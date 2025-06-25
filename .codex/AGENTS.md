@@ -10,7 +10,7 @@
 Indentation → **always 4 spaces** in `.gd`, `.gdshader`, `.cs`. Never tabs.
 `gdlint` expects `class_name` **before** `extends`.
 
-──────────────────────────────── SECTION: FIRST‑TIME SETUP ────────────────────────────────
+──────────────────── SECTION: FIRST‑TIME SETUP ────────────────────
 
 1. **Use the built‑in Godot CLI**  (`/usr/local/bin/godot` in this image).
    If you must override, export `GODOT=/full/path/to/godot`.
@@ -36,7 +36,7 @@ Indentation → **always 4 spaces** in `.gd`, `.gdshader`, `.cs`. Never tabs.
 
 Repeat steps 2‑4 after any edit until all return 0.
 
-──────────────────────────── SECTION: PATCH HYGIENE & FORMAT ──────────────────────────────
+──────────────────── SECTION: PATCH HYGIENE & FORMAT ────────────────────
 
 ```bash
 # Auto‑format changed .gd
@@ -50,7 +50,7 @@ dotnet format --verify-no-changes || {
 
 No tabs, no syntax errors, no style violations before commit.
 
-──────────────────────────── SECTION: VALIDATION LOOP (CI) ────────────────────────────────
+──────────────────── SECTION: VALIDATION LOOP (CI) ────────────────────
 
 ```bash
 godot --headless --editor --import --quit --path .   # refresh cache
@@ -66,7 +66,7 @@ godot --headless -s res://tests/          # GDScript tests
  cargo test | go test ./... | bun test    # others if present
 ```
 
-────────────────────────────── SECTION: QUICK CHECKLIST ─────────────────────────────────
+──────────────────── SECTION: QUICK CHECKLIST ────────────────────
 
 ```
 apply_patch
@@ -78,7 +78,7 @@ apply_patch
 └─ tail -n 20 /tmp/dotnet_build.log  →  ✔ commit / ✘ fix
 ```
 
-──────────────────────── SECTION: WHY THIS MATTERS ───────────────────────────────────────
+──────────────────── SECTION: WHY THIS MATTERS ────────────────────
 
 * `--import` is the **only** way to build Godot’s script‑class cache.
 * CI **skips** the import when no `main_scene` is set, so fresh repos won’t fail.
@@ -87,7 +87,7 @@ apply_patch
 
 > **TL;DR** Run the three headless commands. Exit 0 ⇒ good. Else, fix & rerun.
 
-───────────────────────── ADDENDUM: BUILD‑PLAN RULE SET ──────────────────────────────────
+──────────────────── ADDENDUM: BUILD‑PLAN RULE SET ────────────────────
 
 1. **Foundation first** – scaffolding (data models, interfaces, utils) is built before high‑level features. CI fails fast if missing.
 2. **Design principles** – data‑driven, modular, extensible, compartmentalised. Follow each language’s canonical formatter (PEP 8, rustfmt, go fmt, gdformat, etc.).
@@ -105,7 +105,7 @@ apply_patch
    Skip for formats with no comments (JSON, minified assets).
 5. **Language‑specific tests** – run `cargo test`, `go test`, `bun test`, etc., when present.
 
-─────────────────── ADDENDUM: gdlint CLASS‑ORDER WARNINGS ────────────────────────────────
+──────────────── ADDENDUM: gdlint CLASS‑ORDER WARNINGS ────────────────
 
 `gdlint` 4.x enforces **class‑definitions‑order** (tool → `class_name` → `extends` → signals → enums → consts → exports → vars). If it becomes noisy:
 
