@@ -1,105 +1,123 @@
-🧠 Codex Agent Workspace Tooling Contract and Guide
-Godot 4.4.1 · Headless Environment · CI Safe · Mono/.NET Included
+\###############################################################################
 
-[!IMPORTANT]
-Indentation: Always use 4 spaces in .gd, .gdshader, and .cs files. Never use tabs.
-gdlint wants 'class_name' before 'extends'
+# 🧠  Codex Agent Workspace – Tooling Contract & Guide
 
-🚦 First-Time Setup & Validation (Headless, No GUI Needed)
-When you clone or open this Godot 4.4.1 (Mono/.NET) project for the first time:
+# Godot 4.4.1 · Headless · CI‑safe · **.NET 8 SDK + Godot‑mono included**
 
-Use the Godot editor binary (not export template) with CLI flags.
+\###############################################################################
 
-Must include editor tools and .NET support.
+\[!IMPORTANT]
+Indentation → **always 4 spaces** in `.gd`, `.gdshader`, `.cs`. Never tabs.
+`gdlint` expects `class_name` **before** `extends`.
 
-If godot is not on your $PATH, set the GODOT environment variable to the full binary path.
+──────────────────────────────── SECTION: FIRST‑TIME SETUP ────────────────────────────────
 
-Refresh project caches and import all assets:
+1. **Use the built‑in Godot CLI**  (`/usr/local/bin/godot` in this image).
+   If you must override, export `GODOT=/full/path/to/godot`.
+2. **Import pass** – warm caches & create `global_script_class_cache.cfg`:
 
+   ```bash
+   godot --headless --editor --import --quit --path .
+   ```
+3. **Parse all GDScript**:
 
-$GODOT --headless --editor --import --quit --path .
-Generates .godot/global_script_class_cache.cfg and imports all assets (GDScript and C# included).
+   ```bash
+   godot --headless --check-only --quit --path .   # path MUST be repo root
+   ```
+4. **Build C#/Mono** (auto‑skips if no `*.sln`):
 
-Parse every GDScript file and quit on error:
+   ```bash
+   dotnet build > /tmp/dotnet_build.log
+   tail -n 20 /tmp/dotnet_build.log
+   ```
 
+   • **Exit 0** ⇒ project is clean.
+   • **Non‑zero** ⇒ inspect error lines and fix.
 
-$GODOT --headless --check-only --quit --path .
-Compiles/parses all .gd files; exits non-zero if any errors are found.
+Repeat steps 2‑4 after any edit until all return 0.
 
-Build and check all C#/.NET code:
+──────────────────────────── SECTION: PATCH HYGIENE & FORMAT ──────────────────────────────
 
-
-dotnet build > /tmp/dotnet_build.log
-tail -n 20 /tmp/dotnet_build.log
-This step must succeed (exit code 0) and produce no errors in the log.
-
-Interpret the results:
-
-Exit code 0: All scripts and C# code parsed and built cleanly; project is “clean.”
-
-Non-zero exit: There are GDScript, C#, or asset errors. Parse the output lines:
-
-GDScript errors: res://path/file.gd:<line>:<column>: error: ...
-
-C# errors: Standard MSBuild output, e.g. /path/to/File.cs(17,13): error ...
-
-Use this info to locate and fix the broken files.
-
-Repeat as needed:
-After any codegen or manual edit, repeat all commands until every check and build passes (exit code 0).
-
-🧼 1. Patch Hygiene & Formatting
-Indentation: Always use 4 spaces in .gd, .gdshader, and .cs files. Never use tabs.
-
-Before every commit:
-
-
+```bash
+# Auto‑format changed .gd
 .codex/fix_indent.sh $(git diff --name-only --cached -- '*.gd')
-# For C#, run: dotnet format (optional)
-dotnet format --verify-no-changes || { echo "C# code style violations detected."; exit 1; }
-Do NOT commit with tabs, missing indentation, or syntax errors.
+# Optional extra lint
+gdlint $(git diff --name-only --cached -- '*.gd') || true
+# C# style check
+dotnet format --verify-no-changes || {
+  echo 'C# code‑style violations detected.'; exit 1; }
+```
 
-🧪 2. Script & Code Validation (Always Headless)
-Before every commit or after file edits:
+No tabs, no syntax errors, no style violations before commit.
 
+──────────────────────────── SECTION: VALIDATION LOOP (CI) ────────────────────────────────
 
-$GODOT --headless --editor --import --quit --path .
-$GODOT --headless --check-only --quit --path .
-dotnet build > /tmp/dotnet_build.log
-tail -n 20 /tmp/dotnet_build.log
-All must exit 0.
+```bash
+godot --headless --editor --import --quit --path .   # refresh cache
+godot --headless --check-only --quit --path .        # parse .gd
+dotnet build > /tmp/dotnet_build.log                 # compile C# (auto‑skip)
+```
 
-First Godot step ensures imports and caches are fresh.
+Optional tests:
 
-Second Godot step parses all GDScripts.
+```bash
+godot --headless -s res://tests/          # GDScript tests
+ dotnet test                              # C#
+ cargo test | go test ./... | bun test    # others if present
+```
 
-Dotnet build validates and compiles all C#.
+────────────────────────────── SECTION: QUICK CHECKLIST ─────────────────────────────────
 
-Optional: run tests if present:
-
-
-$GODOT --headless --verbose --no-window -s res://tests/run_all.gd
-dotnet test  # If C# unit tests exist
-✅ Codex Prompt Quick Checklist
-
-
+```
 apply_patch
-→ gdformat --use-spaces=4 <changed.gd>
-→ godot --headless --editor --import --quit --path .
-→ godot --headless --check-only --quit --path .
-→ dotnet build > /tmp/dotnet_build.log
-→ tail -n 20 /tmp/dotnet_build.log
-→ ✅ no syntax/C# errors? commit allowed
-→ 🚫 error? block patch + show error
+├─ gdformat  --use-spaces=4 <changed.gd>
+├─ gdlint    <changed.gd> (non‑blocking)
+├─ godot --headless --editor --import  --quit --path .
+├─ godot --headless --check-only       --quit --path .
+├─ dotnet build > /tmp/dotnet_build.log
+└─ tail -n 20 /tmp/dotnet_build.log  →  ✔ commit / ✘ fix
+```
 
-🔬 Why This Matters
-Godot’s .gd and .cs scripts and dependencies require the internal .godot/global_script_class_cache.cfg generated by the import step.
+──────────────────────── SECTION: WHY THIS MATTERS ───────────────────────────────────────
 
---check-only validates GDScript, but C# code must also compile without error using dotnet build.
+* `--import` is the **only** way to build Godot’s script‑class cache.
+* CI **skips** the import when no `main_scene` is set, so fresh repos won’t fail.
+* `--check-only` finds GDScript errors; `dotnet build` ensures C# compiles.
+  Together they guarantee the project builds headless on any clean machine.
 
-This guarantees full project validation on any headless/clean machine/CI, without GUI.
+> **TL;DR** Run the three headless commands. Exit 0 ⇒ good. Else, fix & rerun.
 
-In summary:
+───────────────────────── ADDENDUM: BUILD‑PLAN RULE SET ──────────────────────────────────
 
-To check if a newly-cloned Godot project “compiles” (parses and builds) without opening the GUI, always run the above headless commands. If all return exit code 0, you’re good. Otherwise, use the output to fix errors, then repeat.
+1. **Foundation first** – scaffolding (data models, interfaces, utils) is built before high‑level features. CI fails fast if missing.
+2. **Design principles** – data‑driven, modular, extensible, compartmentalised. Follow each language’s canonical formatter (PEP 8, rustfmt, go fmt, gdformat, etc.).
+3. **Indentation** – spaces‑only except where a language **requires** tabs (e.g. `Makefile`). Keep tabs localised to that file type.
+4. **Header‑comment block** – for files that support comments, prepend:
 
+   ```
+   ###############################################################
+   # <file path>
+   # Key funcs/classes: • Foo – does X
+   # Critical consts    • BAR – magic value
+   ###############################################################
+   ```
+
+   Skip for formats with no comments (JSON, minified assets).
+5. **Language‑specific tests** – run `cargo test`, `go test`, `bun test`, etc., when present.
+
+─────────────────── ADDENDUM: gdlint CLASS‑ORDER WARNINGS ────────────────────────────────
+
+`gdlint` 4.x enforces **class‑definitions‑order** (tool → `class_name` → `extends` → signals → enums → consts → exports → vars). If it becomes noisy:
+
+* Re‑order clauses to match the list, or
+* Suppress in file – `# gdlint:ignore = class-definitions-order`, or
+* Customise via `.gdlintrc`, or
+* Pin `gdtoolkit==4.0.1`.
+
+CI runs `gdlint` **non‑blocking**; treat warnings as advice until you’re ready to enforce them strictly.
+
+\###############################################################################
+
+# End of Codex Agent Workspace Guide
+
+\###############################################################################
