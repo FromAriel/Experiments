@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # setup_script.sh  —  reproducible CI setup for Godot-mono + .NET + GDToolkit
-# (last tweak: suppress “Cannot infer the type of "fs"” noise during import)
 
 set -euo pipefail
 
@@ -34,13 +33,25 @@ pick_icu () {                  # pick newest libicuXX deb name
     | sort -V | tail -1
 }
 
-godot_import_pass () {         # warm cache & fail only on genuine errors
+godot_import_pass () {         # build .NET if needed, then warm Godot cache
   echo '🔄  Godot import pass (warming cache)…'
+
+  # 1️⃣  Build .NET solutions (if any)
+  if ls ./*.sln 1>/dev/null 2>&1; then
+    for SLN in ./*.sln; do
+      echo "🔨  Building .NET solution: $SLN"
+      retry 3 dotnet build --configuration Release "$SLN"
+    done
+  else
+    echo 'ℹ️  No .NET solutions (*.sln) found, skipping dotnet build.'
+  fi
+
+  # 2️⃣  Run Godot headless import
   local log
   log="$(mktemp /tmp/godot_import.XXXX.log)"
-  retry 3 godot --headless --editor --import --quiet --quit --path .
+  retry 3 godot --headless --editor --import --quiet --quit --path . 2>&1 | tee "$log"
 
-  # Allow these known-harmless messages:
+  # Filter harmless messages
   local ignore='(RebuildClassCache\.gd|\
 Static function "get_singleton"|\
 Static function "idle_frame"|\
@@ -50,7 +61,7 @@ Cannot infer the type of "fs")'
   if grep -E 'SCRIPT ERROR|ERROR:' "$log" | grep -Ev "$ignore" -q; then
     echo "❌  Import finished but script errors detected:"
     grep -E 'SCRIPT ERROR|ERROR:' "$log" | grep -Ev "$ignore" -n | head -20
-    return 1
+    exit 1
   fi
 }
 
@@ -80,7 +91,7 @@ for p in "${RUNTIME_PKGS[@]}"; do
 done
 
 ################################################################################
-# 3. .NET SDK
+# 3. .NET SDK (only if not baked into the base image)
 ################################################################################
 if ! command -v dotnet >/dev/null; then
   echo "⬇️  Installing .NET SDK ${DOTNET_SDK_MAJOR} …"
@@ -97,7 +108,7 @@ if ! command -v dotnet >/dev/null; then
 fi
 
 ################################################################################
-# 4. Godot-mono
+# 4. Godot-mono (download & link if not cached yet)
 ################################################################################
 if [[ ! -x "$GODOT_BIN" ]]; then
   echo "⬇️  Fetching Godot-mono ${GODOT_VERSION}-${GODOT_CHANNEL} …"
