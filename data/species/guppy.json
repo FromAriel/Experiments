@@ -1,0 +1,19 @@
+{
+  "id": "guppy",
+  "name": "Guppy",
+  "sprite_path": "res://sprites/guppy.png",
+  "normal_path": "res://sprites/guppy_normal.png",
+  "max_speed": 250,
+  "max_force": 60,
+  "flock_weights": {
+    "separation": 1.2,
+    "alignment": 1.3,
+    "cohesion": 1.1
+  },
+  "soft_body": {
+    "node_count": 6,
+    "spring_stiffness": 9.0,
+    "spring_damping": 0.8,
+    "masses": [0.6, 0.5, 0.5, 0.4, 0.3, 0.2]
+  }
+}

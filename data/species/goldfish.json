@@ -1,0 +1,19 @@
+{
+  "id": "goldfish",
+  "name": "Goldfish",
+  "sprite_path": "res://sprites/goldfish.png",
+  "normal_path": "res://sprites/goldfish_normal.png",
+  "max_speed": 200,
+  "max_force": 50,
+  "flock_weights": {
+    "separation": 1.5,
+    "alignment": 1.0,
+    "cohesion": 1.2
+  },
+  "soft_body": {
+    "node_count": 8,
+    "spring_stiffness": 8.0,
+    "spring_damping": 0.7,
+    "masses": [0.8, 0.7, 0.6, 0.5, 0.5, 0.4, 0.3, 0.2]
+  }
+}
