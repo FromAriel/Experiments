@@ -123,11 +123,15 @@ apply_patch
 4. **Header-comment block** – for files that support comments, prepend:
 
    ```
-   ###############################################################
-   # <file path>
-   # Key funcs/classes: • Foo – does X
-   # Critical consts    • BAR – magic value
-   ###############################################################
+###############################################################
+# <file path>
+# Key Classes      • Foo – does something important
+# Key Functions    • bar() – handles a critical step
+# Critical Consts  • BAZ – tuning value
+# Editor Exports   • bum: float – Range(0.0 .. 1.0)
+# Dependencies     • foo_bar.gd, utils foo.gd
+# Last Major Rev   • YY-MM-DD – overhauled bar() for clarity
+###############################################################
    ```
 
    Skip for formats with no comments (JSON, minified assets).
