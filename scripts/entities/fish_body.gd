@@ -20,8 +20,9 @@ const MAX_ALPHA := 1.0
 #  EXPORTED TUNABLES
 # ------------------------------------------------------------------
 @export var spring_stiffness: float = 8.0
-@export var spring_damping: float = 0.7
+@export var spring_damping: float = 1.0
 @export var segment_length: float = 20.0
+@export var body_linear_damp: float = 1.0
 @export_range(0.0, 5.5) var z_depth: float = 0.0
 @export var tank_size: Vector3 = Vector3(16.0, 9.0, 5.5)
 
@@ -62,6 +63,8 @@ func _build_segments() -> void:
         var seg := RigidBody2D.new()
         seg.name = "segment_%d" % i
         seg.position = Vector2(-i * segment_length, 0)
+        seg.linear_damp = body_linear_damp
+        seg.angular_damp = body_linear_damp
         if i < masses.size():
             seg.mass = float(masses[i])
 
@@ -88,6 +91,8 @@ func _collect_existing() -> void:
     for child in get_children():
         if child is RigidBody2D:
             segments.append(child)
+            child.linear_damp = body_linear_damp
+            child.angular_damp = body_linear_damp
             if child.get_node_or_null("CollisionShape2D") == null:
                 var col := CollisionShape2D.new()
                 var circle := CircleShape2D.new()
@@ -120,6 +125,13 @@ func set_head_velocity(v: Vector2) -> void:
     if segments.size() > 0:
         var head: RigidBody2D = segments[0]
         head.linear_velocity = v
+
+
+func get_head_velocity() -> Vector2:
+    if segments.size() > 0:
+        var head: RigidBody2D = segments[0]
+        return head.linear_velocity
+    return Vector2.ZERO
 
 
 # ------------------------------------------------------------------
