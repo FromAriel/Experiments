@@ -1,13 +1,16 @@
 [remap]
+
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3iq2fgnece1m"
 valid=false
 
 [deps]
+
 source_file="res://sprites/placeholder.png"
 
 [params]
+
 compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
