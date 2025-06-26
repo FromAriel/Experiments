@@ -3,6 +3,9 @@
 [ext_resource path="res://scripts/entities/fish_body.gd" type="Script" id=1]
 [ext_resource path="res://sprites/placeholder.png" type="Texture2D" id=2]
 
+[ext_resource path="res://scripts/entities/fish_body.gd" type="Script" id=1]
+[ext_resource path="res://sprites/placeholder.png" type="Texture2D" id=2]
+
 [node name="FishBody" type="Node2D"]
 script = ExtResource(1)
 
