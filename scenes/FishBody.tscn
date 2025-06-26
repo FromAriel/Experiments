@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/entities/fish_body.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://btfhgbmt5csqu" path="res://sprites/placeholder.png" id="2"]
-[ext_resource type="Texture2D" path="res://sprites/fish_normal.png" id="3"]
+[ext_resource type="Texture2D" path="res://sprites/placeholder.png" id="3"]
 [ext_resource type="Material" path="res://materials/fish_lit.tres" id="4"]
 
 [sub_resource type="CircleShape2D" id="1"]
