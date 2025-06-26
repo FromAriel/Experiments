@@ -34,4 +34,5 @@ func test_spatial_hash_basic() -> bool:
     var success := res.has("a") and res.has("b") and not res.has("c")
     if not success:
         push_error("SpatialHash2D basic query failed: %s" % [res])
+    grid.queue_free()
     return success
