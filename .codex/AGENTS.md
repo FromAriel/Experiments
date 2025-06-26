@@ -19,6 +19,10 @@
 > * **Indentation:** Always 4 spaces in `.gd`, `.gdshader`, `.cs`. Never use tabs.
 > * `gdlint` expects `class_name` **before** `extends`.
 
+> \[!IMPORTANT]
+>
+> Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PR must EXCLUDE binary files of any sort.
+
 ---
 
 ## ──── SECTION: GODOT FIRST-TIME SETUP ────
@@ -67,7 +71,7 @@ dotnet format --verify-no-changes || {
 ```
 
 * No tabs, no syntax errors, no style violations before commit.
-
+* All PR must EXCLUDE binary files of any sort.
 ---
 
 ## ──── SECTION: GODOT VALIDATION LOOP (CI) ────
