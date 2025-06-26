@@ -21,7 +21,7 @@
 
 > \[!IMPORTANT]
 >
-> Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PR must EXCLUDE binary files of any sort.
+> Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PR must EXCLUDE binary files of any sort. Yuo may use files that are already present but your pull request cannot alter them or stage them.
 
 ---
 
