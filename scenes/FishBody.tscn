@@ -11,14 +11,34 @@ texture = ExtResource("2")
 
 [node name="segment_0" type="RigidBody2D" parent="."]
 
+[node name="shape" type="CollisionShape2D" parent="segment_0"]
+shape = CircleShape2D {
+    radius = 10.0
+}
+
 [node name="segment_1" type="RigidBody2D" parent="."]
 position = Vector2(-20, 0)
+
+[node name="shape" type="CollisionShape2D" parent="segment_1"]
+shape = CircleShape2D {
+    radius = 10.0
+}
 
 [node name="segment_2" type="RigidBody2D" parent="."]
 position = Vector2(-40, 0)
 
+[node name="shape" type="CollisionShape2D" parent="segment_2"]
+shape = CircleShape2D {
+    radius = 10.0
+}
+
 [node name="segment_3" type="RigidBody2D" parent="."]
 position = Vector2(-60, 0)
+
+[node name="shape" type="CollisionShape2D" parent="segment_3"]
+shape = CircleShape2D {
+    radius = 10.0
+}
 
 [node name="joint_1" type="DampedSpringJoint2D" parent="."]
 node_a = NodePath("segment_0")

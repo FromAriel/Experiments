@@ -40,6 +40,12 @@ func _build_segments() -> void:
         seg.position = Vector2(-i * segment_length, 0)
         if i < masses.size():
             seg.mass = float(masses[i])
+        var col := CollisionShape2D.new()
+        var circle := CircleShape2D.new()
+        circle.radius = segment_length / 2.0
+        col.shape = circle
+        seg.add_child(col)
+        segments.append(seg)
         add_child(seg)
         if i > 0:
             var joint := DampedSpringJoint2D.new()
@@ -55,6 +61,12 @@ func _collect_existing() -> void:
     for child in get_children():
         if child is RigidBody2D:
             segments.append(child)
+            if child.get_node_or_null("CollisionShape2D") == null:
+                var col := CollisionShape2D.new()
+                var circle := CircleShape2D.new()
+                circle.radius = segment_length / 2.0
+                col.shape = circle
+                child.add_child(col)
         elif child is DampedSpringJoint2D:
             joints.append(child)
 
