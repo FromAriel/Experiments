@@ -3,6 +3,9 @@
 [node name="FishBody" type="Node2D"]
 script = ExtResource("res://scripts/entities/fish_body.gd")
 
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("res://sprites/placeholder.png")
+
 [node name="segment_0" type="RigidBody2D" parent="."]
 position = Vector2(0, 0)
 
