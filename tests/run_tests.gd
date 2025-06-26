@@ -47,7 +47,7 @@ func test_fish_movement() -> bool:
     await physics_frame
     var seg := fish.get_node("segment_0") as RigidBody2D
     var start := seg.global_position
-    fish.apply_steering_force(Vector2(500, 0))
+    fish.set_head_velocity(Vector2(50, 0))
     await physics_frame
     await physics_frame
     var moved := seg.global_position.distance_to(start) >= 1.0

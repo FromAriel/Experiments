@@ -19,23 +19,24 @@ const MAX_ALPHA := 1.0
 # ------------------------------------------------------------------
 #  EXPORTED TUNABLES
 # ------------------------------------------------------------------
-@export var spring_stiffness : float = 8.0
-@export var spring_damping   : float = 0.7
-@export var segment_length   : float = 20.0
-@export_range(0.0, 5.5) var z_depth : float = 0.0
-@export var tank_size        : Vector3 = Vector3(16.0, 9.0, 5.5)
+@export var spring_stiffness: float = 8.0
+@export var spring_damping: float = 0.7
+@export var segment_length: float = 20.0
+@export_range(0.0, 5.5) var z_depth: float = 0.0
+@export var tank_size: Vector3 = Vector3(16.0, 9.0, 5.5)
 
 # hard safety speed (pixels / second) – rogue fish never exceed this
-@export var max_safe_speed   : float = 200.0
+@export var max_safe_speed: float = 200.0
 
 # ------------------------------------------------------------------
 #  RUNTIME STATE
 # ------------------------------------------------------------------
-var soft_body_params : Dictionary          # optional prefab recipe
-var segments         : Array = []          # RigidBody2D refs
-var joints           : Array = []
+var soft_body_params: Dictionary  # optional prefab recipe
+var segments: Array = []  # RigidBody2D refs
+var joints: Array = []
 
-@onready var mat : ShaderMaterial = $Sprite.material as ShaderMaterial
+@onready var mat: ShaderMaterial = $Sprite.material as ShaderMaterial
+
 
 # ------------------------------------------------------------------
 #  READY
@@ -47,21 +48,19 @@ func _ready() -> void:
         _collect_existing()
 
     _apply_joint_params()
-    mat.set_shader_parameter(
-        "u_light_dir",
-        Vector2(-sin(rotation), -cos(rotation)).normalized()
-    )
+    mat.set_shader_parameter("u_light_dir", Vector2(-sin(rotation), -cos(rotation)).normalized())
+
 
 # ------------------------------------------------------------------
 #  SEGMENT/J0INT CONSTRUCTION
 # ------------------------------------------------------------------
 func _build_segments() -> void:
-    var node_count : int   = soft_body_params.get("node_count", 4)
-    var masses     : Array = soft_body_params.get("masses", [])
+    var node_count: int = soft_body_params.get("node_count", 4)
+    var masses: Array = soft_body_params.get("masses", [])
 
     for i in range(node_count):
         var seg := RigidBody2D.new()
-        seg.name     = "segment_%d" % i
+        seg.name = "segment_%d" % i
         seg.position = Vector2(-i * segment_length, 0)
         if i < masses.size():
             seg.mass = float(masses[i])
@@ -77,12 +76,13 @@ func _build_segments() -> void:
 
         if i > 0:
             var joint := DampedSpringJoint2D.new()
-            joint.name   = "joint_%d" % i
+            joint.name = "joint_%d" % i
             joint.node_a = NodePath("segment_%d" % (i - 1))
             joint.node_b = NodePath(seg.name)
             joint.length = segment_length
             add_child(joint)
             joints.append(joint)
+
 
 func _collect_existing() -> void:
     for child in get_children():
@@ -97,23 +97,30 @@ func _collect_existing() -> void:
         elif child is DampedSpringJoint2D:
             joints.append(child)
 
+
 func _apply_joint_params() -> void:
     for joint in joints:
         joint.stiffness = spring_stiffness
-        joint.damping   = spring_damping
+        joint.damping = spring_damping
+
 
 # ------------------------------------------------------------------
 #  EXTERNAL STEERING API
 # ------------------------------------------------------------------
-func apply_steering_force(force: Vector2) -> void:
-    if segments.size() > 0:
-        var head: RigidBody2D = segments[0]
-        head.apply_central_force(force)
+
+
+# Legacy API kept for earlier tests; now no-op.
+func apply_steering_force(_force: Vector2) -> void:
+    # Direct force application caused runaway acceleration.
+    # Movement is now controlled via `set_head_velocity`.
+    pass
+
 
 func set_head_velocity(v: Vector2) -> void:
     if segments.size() > 0:
         var head: RigidBody2D = segments[0]
         head.linear_velocity = v
+
 
 # ------------------------------------------------------------------
 #  PER-FRAME UPDATE
@@ -129,10 +136,11 @@ func _physics_process(_delta: float) -> void:
 
         # sync transform to head
         global_position = head.global_position
-        rotation        = head.rotation
+        rotation = head.rotation
 
     _update_depth_visuals()
     _wrap_position()
+
 
 # ------------------------------------------------------------------
 #  HELPERS
@@ -143,6 +151,7 @@ func _update_depth_visuals() -> void:
     scale = Vector2(sc, sc)
     var a: float = lerp(MIN_ALPHA, MAX_ALPHA, t)
     modulate.a = a
+
 
 # Wrap instead of clamp so fish re-enter smoothly
 func _wrap_position() -> void:
