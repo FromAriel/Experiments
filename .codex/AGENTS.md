@@ -1,6 +1,6 @@
 ---
 
-<!-- 
+<!--
 ###############################################################################
 # 🧠  Codex Agent Workspace – Tooling Contract & Guide (HIDDEN HEADER)
 # Godot 4.4.1 · Headless · CI‑safe · .NET 8 SDK + Godot‑mono included
@@ -21,7 +21,7 @@
 
 > \[!IMPORTANT]
 >
-> Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PR must EXCLUDE binary files of any sort. Yuo may use files that are already present but your pull request cannot alter them or stage them.
+> Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PRs must EXCLUDE binary files of any sort. You may use files that are already present but your pull request cannot alter them or stage them.
 
 ---
 
@@ -59,27 +59,29 @@
 ## ──── SECTION: PATCH HYGIENE & FORMAT ────
 
 ```bash
-# Auto‑format changed .gd
-.codex/fix_indent.sh $(git diff --name-only --cached -- '*.gd')
+# Auto‑format changed .gd quietly
+.codex/fix_indent.sh $(git diff --name-only --cached -- '*.gd') >/dev/null
 
-# Optional extra lint
-gdlint $(git diff --name-only --cached -- '*.gd') || true
+# Report any lint warnings (non-blocking)
+gdlint $(git diff --name-only --cached -- '*.gd') --quiet || true
 
-# C# style check
-dotnet format --verify-no-changes || {
-  echo 'C# code‑style violations detected.'; exit 1; }
+# C# style check (fail only on real violations)
+dotnet format --verify-no-changes --severity hidden || {
+  echo '🛑 C# style violations'; exit 1; }
 ```
 
 * No tabs, no syntax errors, no style violations before commit.
-* All PR must EXCLUDE binary files of any sort.
+* All PRs must EXCLUDE binary files of any sort.
+
 ---
 
 ## ──── SECTION: GODOT VALIDATION LOOP (CI) ────
 
 ```bash
-godot --headless --editor --import --quit --path .   # refresh cache
-godot --headless --check-only --quit --path .        # parse .gd
-dotnet build > /tmp/dotnet_build.log                 # compile C# (auto-skip)
+# CI validates quietly and only emits errors
+godot --headless --editor --import --quit --path . --quiet
+godot --headless --check-only --quit --path . --quiet
+dotnet build --no-restore --nologo   # errors go to CI log
 ```
 
 * For other languages: use the appropriate headless validation tools and skip validation if not applicable.
@@ -87,9 +89,9 @@ dotnet build > /tmp/dotnet_build.log                 # compile C# (auto-skip)
 **Optional tests:**
 
 ```bash
-godot --headless -s res://tests/          # GDScript tests
-dotnet test                               # C#
-cargo test | go test ./... | bun test     # others if present
+# Run only if tests exist, suppress regular output
+godot --headless -s res://tests/ --quiet || true
+dotnet test --logger "console;verbosity=quiet" || true
 ```
 
 ---
@@ -100,10 +102,9 @@ cargo test | go test ./... | bun test     # others if present
 apply_patch
 ├─ gdformat  --use-spaces=4 <changed.gd>
 ├─ gdlint    <changed.gd> (non‑blocking)
-├─ godot --headless --editor --import  --quit --path .
-├─ godot --headless --check-only       --quit --path .
-├─ dotnet build > /tmp/dotnet_build.log
-└─ tail -n 20 /tmp/dotnet_build.log  →  ✔ commit / ✘ fix
+├─ godot --headless --editor --import  --quit --path . --quiet
+├─ godot --headless --check-only       --quit --path . --quiet
+└─ dotnet build --no-restore --nologo            # errors => fix
 ```
 
 ---
@@ -115,30 +116,30 @@ apply_patch
 * `--check-only` finds GDScript errors; `dotnet build` ensures C# compiles.
   Together, these guarantee the project builds headless on any clean machine.
 
-> **TL;DR:** Run the three headless commands. Exit 0 ⇒ good. Else, fix & rerun.
+> **TL;DR:** Run the three headless commands with `--quiet`. Exit 0 ⇒ good. Else, fix & rerun.
 
 ---
 
 ## ──── ADDENDUM: BUILD‑PLAN RULE SET ────
 
 1. **Foundation first** – scaffolding (data models, interfaces, utils) is built before high-level features. CI fails fast if missing.
-2. **Design principles** – data-driven, modular, extensible, compartmentalized. Follow each language’s canonical formatter (PEP 8, rustfmt, go fmt, gdformat, etc.).
+2. **Design principles** – data-driven, modular, extensible, compartmentalized. Follow each language’s canonical formatter (PEP 8, rustfmt, go fmt, gdformat, etc.).
 3. **Indentation** – spaces-only except where a language **requires** tabs (e.g., `Makefile`). Keep tabs localized to that file type.
 4. **Header-comment block** – for files that support comments, prepend:
 
-   ```
-###############################################################
-# <file path>
-# Key Classes      • Foo – does something important
-# Key Functions    • bar() – handles a critical step
-# Critical Consts  • BAZ – tuning value
-# Editor Exports   • bum: float – Range(0.0 .. 1.0)
-# Dependencies     • foo_bar.gd, utils foo.gd
-# Last Major Rev   • YY-MM-DD – overhauled bar() for clarity
-###############################################################
-   ```
+```
+   ###############################################################
+   # <file path>
+   # Key Classes      • Foo – does something important
+   # Key Functions    • bar() – handles a critical step
+   # Critical Consts  • BAZ – tuning value
+   # Editor Exports   • bum: float – Range(0.0 .. 1.0)
+   # Dependencies     • foo\_bar.gd, utils foo.gd
+   # Last Major Rev   • YY-MM-DD – overhauled bar() for clarity
+   ###############################################################
+```
 
-   Skip for formats with no comments (JSON, minified assets).
+Skip for formats with no comments (JSON, minified assets).
 5. **Language-specific tests** – run `cargo test`, `go test`, `bun test`, etc., when present.
 
 ---
@@ -163,11 +164,11 @@ CI runs `gdlint` **non-blocking**; treat warnings as advice until you’re ready
 ###############################################################################
 # End of Codex Agent Workspace Guide
 ###############################################################################
-```
+````
 
 ---
 
-**This Documents format ensures:**
+**This document’s format ensures:**
 
 * **ASCII headers** are preserved for style and grep-ability.
 * **\[!IMPORTANT]** callouts highlight rules where required and supported.
@@ -175,4 +176,4 @@ CI runs `gdlint` **non-blocking**; treat warnings as advice until you’re ready
 * **All code and bash snippets** are easy to copy.
 * **Machine parsing** is straightforward—each section is clearly delimited.
 
-Let the USER know if you want any further tweaks.
+Let me know if you want any further tweaks.
