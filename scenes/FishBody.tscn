@@ -31,10 +31,3 @@ node_b = NodePath("segment_2")
 length = 20.0
 stiffness = 8.0
 damping = 0.7
-
-[node name="joint_3" type="DampedSpringJoint2D" parent="."]
-node_a = NodePath("segment_2")
-node_b = NodePath("segment_3")
-length = 20.0
-stiffness = 8.0
-damping = 0.7

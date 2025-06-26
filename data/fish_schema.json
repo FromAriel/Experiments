@@ -2,35 +2,38 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Fish Species Schema",
   "type": "object",
-  "required": ["id", "name", "sprite_path", "normal_path", "max_speed", "max_force", "flock_weights", "soft_body"],
+  "required": [
+    "id","name","sprite_path","normal_path","max_speed","max_force","flock_weights","soft_body","z_depth"
+  ],
   "properties": {
-    "id": {"type": "string"},
-    "name": {"type": "string"},
-    "sprite_path": {"type": "string"},
-    "normal_path": {"type": "string"},
-    "max_speed": {"type": "number"},
-    "max_force": {"type": "number"},
+    "id":            { "type": "string" },
+    "name":          { "type": "string" },
+    "sprite_path":   { "type": "string" },
+    "normal_path":   { "type": "string" },
+    "max_speed":     { "type": "number" },
+    "max_force":     { "type": "number" },
     "flock_weights": {
       "type": "object",
-      "required": ["separation", "alignment", "cohesion"],
+      "required": ["separation","alignment","cohesion"],
       "properties": {
-        "separation": {"type": "number"},
-        "alignment": {"type": "number"},
-        "cohesion": {"type": "number"}
+        "separation": { "type": "number" },
+        "alignment":  { "type": "number" },
+        "cohesion":   { "type": "number" }
       }
     },
     "soft_body": {
       "type": "object",
-      "required": ["node_count", "spring_stiffness", "spring_damping", "masses"],
+      "required": ["node_count","spring_stiffness","spring_damping","masses"],
       "properties": {
-        "node_count": {"type": "integer", "minimum": 2},
-        "spring_stiffness": {"type": "number"},
-        "spring_damping": {"type": "number"},
+        "node_count":       { "type": "integer", "minimum": 2 },
+        "spring_stiffness": { "type": "number" },
+        "spring_damping":   { "type": "number" },
         "masses": {
           "type": "array",
-          "items": {"type": "number"}
+          "items": { "type": "number" }
         }
       }
-    }
+    },
+    "z_depth": { "type": "number", "default": 0 }
   }
 }

@@ -1,20 +1,26 @@
 ###############################################################
 # scripts/entities/fish_body.gd
-# Key funcs/classes: \u2022 FishBody – soft-body fish controller
-# Critical consts    \u2022 NONE
+# Key funcs/classes: • FishBody – soft-body fish controller
+# Critical consts    • NONE
 ###############################################################
 
 class_name FishBody
 extends Node2D
 
+const MIN_SCALE := 0.6
+const MAX_SCALE := 1.0
+const MIN_ALPHA := 0.5
+const MAX_ALPHA := 1.0
+
 @export var spring_stiffness: float = 8.0
 @export var spring_damping: float = 0.7
 @export var segment_length: float = 20.0
+@export_range(0.0, 5.5) var z_depth: float = 0.0
+@export var tank_size: Vector3 = Vector3(16.0, 9.0, 5.5)
 
 var soft_body_params: Dictionary
 var segments: Array = []
 var joints: Array = []
-
 
 func _ready() -> void:
     if soft_body_params:
@@ -23,11 +29,9 @@ func _ready() -> void:
         _collect_existing()
     _apply_joint_params()
 
-
 func _build_segments() -> void:
     var node_count: int = soft_body_params.get("node_count", 4)
     var masses: Array = soft_body_params.get("masses", [])
-
     for i in range(node_count):
         var seg := RigidBody2D.new()
         seg.name = "segment_%d" % i
@@ -35,7 +39,6 @@ func _build_segments() -> void:
         if i < masses.size():
             seg.mass = float(masses[i])
         add_child(seg)
-        segments.append(seg)
         if i > 0:
             var joint := DampedSpringJoint2D.new()
             joint.name = "joint_%d" % i
@@ -45,7 +48,6 @@ func _build_segments() -> void:
             add_child(joint)
             joints.append(joint)
 
-
 func _collect_existing() -> void:
     for child in get_children():
         if child is RigidBody2D:
@@ -53,14 +55,28 @@ func _collect_existing() -> void:
         elif child is DampedSpringJoint2D:
             joints.append(child)
 
-
 func _apply_joint_params() -> void:
     for joint in joints:
         joint.stiffness = spring_stiffness
         joint.damping = spring_damping
 
-
 func apply_steering_force(force: Vector2) -> void:
     if segments.size() > 0:
         var head: RigidBody2D = segments[0]
         head.apply_central_force(force)
+
+func _physics_process(_delta: float) -> void:
+    _update_depth_visuals()
+    _clamp_position()
+
+func _update_depth_visuals() -> void:
+    var t := clamp((tank_size.z - z_depth) / tank_size.z, 0.0, 1.0)
+    var sc := lerp(MIN_SCALE, MAX_SCALE, t)
+    scale = Vector2(sc, sc)
+    var a := lerp(MIN_ALPHA, MAX_ALPHA, t)
+    modulate.a = a
+
+func _clamp_position() -> void:
+    global_position.x = clamp(global_position.x, 0.0, tank_size.x)
+    global_position.y = clamp(global_position.y, 0.0, tank_size.y)
+    z_depth = clamp(z_depth, 0.0, tank_size.z)

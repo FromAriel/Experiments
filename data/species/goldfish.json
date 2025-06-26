@@ -14,6 +14,7 @@
     "node_count": 8,
     "spring_stiffness": 8.0,
     "spring_damping": 0.7,
-    "masses": [0.8, 0.7, 0.6, 0.5, 0.5, 0.4, 0.3, 0.2]
-  }
+    "masses": [0.8,0.7,0.6,0.5,0.5,0.4,0.3,0.2]
+  },
+  "z_depth": 2.0
 }
