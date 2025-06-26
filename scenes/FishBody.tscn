@@ -1,7 +1,4 @@
 [gd_scene format=3]
-[ext_resource path="res://scripts/entities/fish_body.gd" type="Script" id=1]R[ext_resource path="res://sprites/placeholder.png" type="Texture2D" id=2]RR
-[ext_resource path="res://scripts/entities/fish_body.gd" type="Script" id=1]
-[ext_resource path="res://sprites/placeholder.png" type="Texture2D" id=2]
 
 [ext_resource path="res://scripts/entities/fish_body.gd" type="Script" id=1]
 [ext_resource path="res://sprites/placeholder.png" type="Texture2D" id=2]
@@ -34,6 +31,13 @@ damping = 0.7
 [node name="joint_2" type="DampedSpringJoint2D" parent="."]
 node_a = NodePath("segment_1")
 node_b = NodePath("segment_2")
+length = 20.0
+stiffness = 8.0
+damping = 0.7
+
+[node name="joint_3" type="DampedSpringJoint2D" parent="."]
+node_a = NodePath("segment_2")
+node_b = NodePath("segment_3")
 length = 20.0
 stiffness = 8.0
 damping = 0.7

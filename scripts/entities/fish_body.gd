@@ -22,12 +22,14 @@ var soft_body_params: Dictionary
 var segments: Array = []
 var joints: Array = []
 
+
 func _ready() -> void:
     if soft_body_params:
         _build_segments()
     else:
         _collect_existing()
     _apply_joint_params()
+
 
 func _build_segments() -> void:
     var node_count: int = soft_body_params.get("node_count", 4)
@@ -48,6 +50,7 @@ func _build_segments() -> void:
             add_child(joint)
             joints.append(joint)
 
+
 func _collect_existing() -> void:
     for child in get_children():
         if child is RigidBody2D:
@@ -55,26 +58,31 @@ func _collect_existing() -> void:
         elif child is DampedSpringJoint2D:
             joints.append(child)
 
+
 func _apply_joint_params() -> void:
     for joint in joints:
         joint.stiffness = spring_stiffness
         joint.damping = spring_damping
+
 
 func apply_steering_force(force: Vector2) -> void:
     if segments.size() > 0:
         var head: RigidBody2D = segments[0]
         head.apply_central_force(force)
 
+
 func _physics_process(_delta: float) -> void:
     _update_depth_visuals()
     _clamp_position()
 
+
 func _update_depth_visuals() -> void:
-    var t := clamp((tank_size.z - z_depth) / tank_size.z, 0.0, 1.0)
-    var sc := lerp(MIN_SCALE, MAX_SCALE, t)
+    var t: float = clamp((tank_size.z - z_depth) / tank_size.z, 0.0, 1.0)
+    var sc: float = lerp(MIN_SCALE, MAX_SCALE, t)
     scale = Vector2(sc, sc)
-    var a := lerp(MIN_ALPHA, MAX_ALPHA, t)
+    var a: float = lerp(MIN_ALPHA, MAX_ALPHA, t)
     modulate.a = a
+
 
 func _clamp_position() -> void:
     global_position.x = clamp(global_position.x, 0.0, tank_size.x)
