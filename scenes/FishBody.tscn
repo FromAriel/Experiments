@@ -1,8 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://drtf5gn5rllhs"]
 
-[ext_resource type="Script" path="res://scripts/entities/fish_body.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://btfhgbmt5csqu" path="res://sprites/placeholder.png" id="2"]
-[ext_resource type="Texture2D" path="res://sprites/placeholder.png" id="3"]
+[ext_resource type="Script" uid="uid://2j66gx3em4vl" path="res://scripts/entities/fish_body.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://btfhgbmt5csqu" path="res://sprites/placeholder.png" id="3"]
 [ext_resource type="Material" path="res://materials/fish_lit.tres" id="4"]
 
 [sub_resource type="CircleShape2D" id="1"]
@@ -18,7 +17,7 @@ script = ExtResource("1")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 material = ExtResource("4")
-texture  = ExtResource("3")
+texture = ExtResource("3")
 
 [node name="segment_0" type="RigidBody2D" parent="."]
 
@@ -44,22 +43,22 @@ position = Vector2(-60, 0)
 shape = SubResource("4")
 
 [node name="joint_1" type="DampedSpringJoint2D" parent="."]
-node_a   = NodePath("../segment_0")
-node_b   = NodePath("../segment_1")
-length   = 20.0
+node_a = NodePath("../segment_0")
+node_b = NodePath("../segment_1")
+length = 20.0
 stiffness = 8.0
-damping  = 0.7
+damping = 0.7
 
 [node name="joint_2" type="DampedSpringJoint2D" parent="."]
-node_a   = NodePath("../segment_1")
-node_b   = NodePath("../segment_2")
-length   = 20.0
+node_a = NodePath("../segment_1")
+node_b = NodePath("../segment_2")
+length = 20.0
 stiffness = 8.0
-damping  = 0.7
+damping = 0.7
 
 [node name="joint_3" type="DampedSpringJoint2D" parent="."]
-node_a   = NodePath("../segment_2")
-node_b   = NodePath("../segment_3")
-length   = 20.0
+node_a = NodePath("../segment_2")
+node_b = NodePath("../segment_3")
+length = 20.0
 stiffness = 8.0
-damping  = 0.7
+damping = 0.7
