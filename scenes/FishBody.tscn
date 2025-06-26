@@ -4,18 +4,15 @@
 [ext_resource type="Texture2D" uid="uid://btfhgbmt5csqu" path="res://sprites/placeholder.png" id="2"]
 
 [sub_resource type="CircleShape2D" id="1"]
-radius = 10.0
 
 [sub_resource type="CircleShape2D" id="2"]
-radius = 10.0
 
 [sub_resource type="CircleShape2D" id="3"]
-radius = 10.0
 
 [sub_resource type="CircleShape2D" id="4"]
-radius = 10.0
 
 [node name="FishBody" type="Node2D"]
+position = Vector2(555, 543)
 script = ExtResource("1")
 
 [node name="Sprite" type="Sprite2D" parent="."]
