@@ -22,6 +22,8 @@ var soft_body_params: Dictionary
 var segments: Array = []
 var joints: Array = []
 
+@onready var mat: ShaderMaterial = $Sprite.material as ShaderMaterial
+
 
 func _ready() -> void:
     if soft_body_params:
@@ -29,6 +31,7 @@ func _ready() -> void:
     else:
         _collect_existing()
     _apply_joint_params()
+    mat.set_shader_parameter("u_light_dir", Vector2(-sin(rotation), -cos(rotation)).normalized())
 
 
 func _build_segments() -> void:
@@ -84,6 +87,10 @@ func apply_steering_force(force: Vector2) -> void:
 
 
 func _physics_process(_delta: float) -> void:
+    if segments.size() > 0:
+        var head: RigidBody2D = segments[0]
+        global_position = head.global_position
+        rotation = head.rotation
     _update_depth_visuals()
     _clamp_position()
 
