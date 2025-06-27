@@ -80,9 +80,10 @@ dotnet format --verify-no-changes --nologo --severity hidden || {
   echo '🛑 C# style violations'; exit 1; }
 ```
 
-* No tabs, no syntax errors, no style violations before commit.  
-* All PRs must EXCLUDE binary files of any sort.
-Review local TODO.md, CHANGE_LOG.md, STYLE_Guide.md, README.md, and VARIABLE_NAMING.md
+* **No tabs, no syntax errors, no style violations before commit.**
+* **All PRs** must EXCLUDE binary files of any sort. You may move and change binary files as needed =
+during coding or testing but your final PR cannot include binary file changes or it will will fail to complete.
+* **Review** local TODO.md, CHANGE_LOG.md, STYLE_Guide.md, README.md, and VARIABLE_NAMING.md
 If they are not found create them. Update TODO.md and CHANGE_LOG.md before you are done.
 ---
 
