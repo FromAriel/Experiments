@@ -21,6 +21,9 @@
 >
 > Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PRs must EXCLUDE binary files of any sort. You may use files that are already present but your pull request cannot alter them or stage them.
 
+> [!IMPORTANT]
+>
+> You ARE NOT allowed to use .gdignore to avoid error messages! You must correctly fix all errors.
 ---
 
 ## ──── SECTION: GODOT FIRST-TIME SETUP ────
