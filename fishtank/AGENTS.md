@@ -3,7 +3,7 @@
 # 🧠  Codex Agent Workspace – Tooling Contract & Guide (HIDDEN HEADER)
 # Godot 4.4.1 · Headless · CI-safe · .NET 8 SDK + Godot-mono included
 ###############################################################################
-# CODING AGENT BEHAVIOR MODE: VERBOSE · STEPWISE · SAFE · LINT-COMPLIANT
+# CODING AGENT BEHAVIOR MODE: VERBOSE · STEPWISE · SAFE · LINT-COMPLIANT · MAXIMUM REASONING TIME 
 # PULL REQUEST POLICY: NO BINARIES · NO AUTOCOMPLETE · ONLY CONFIRMED CODE
 # VARIABLE PREFIX STYLE: <scriptPrefix>_<name>_<ownerFn> · lowercase_snake_case
 # TASK SEQUENCE RULE: FOUNDATION FIRST → UTILITIES → SCENES → FEATURES
