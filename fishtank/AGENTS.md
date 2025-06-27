@@ -3,7 +3,19 @@
 # 🧠  Codex Agent Workspace – Tooling Contract & Guide (HIDDEN HEADER)
 # Godot 4.4.1 · Headless · CI-safe · .NET 8 SDK + Godot-mono included
 ###############################################################################
+# CODING AGENT BEHAVIOR MODE: VERBOSE · STEPWISE · SAFE · LINT-COMPLIANT
+# PULL REQUEST POLICY: NO BINARIES · NO AUTOCOMPLETE · ONLY CONFIRMED CODE
+# VARIABLE PREFIX STYLE: <scriptPrefix>_<name>_<ownerFn> · lowercase_snake_case
+# TASK SEQUENCE RULE: FOUNDATION FIRST → UTILITIES → SCENES → FEATURES
+# COMMIT MESSAGE STYLE: Conventional Commits (e.g., fix(boids): stabilize swim)
+# BUG POLICY: Validate scripts → detect errors → fix → revalidate → repeat.
+# Only commit when zero errors. Warnings may pass unless CI blocks them.
+# ERROR POLICY: No bypassing errors. No .gdignore, fake returns, or suppression.
+# Placeholders and minimal stubs are allowed only for tracked, planned features, 
+# Placeholders must not hide script validation failures.
+###############################################################################
 -->
+
 
 ```text
 ###############################################################################
@@ -79,10 +91,10 @@ gdlint $(git diff --name-only --cached -- '*.gd') --quiet || true
 dotnet format --verify-no-changes --nologo --severity hidden || {
   echo '🛑 C# style violations'; exit 1; }
 ```
-
+> CODING AGENT RULES:
 * **No tabs, no syntax errors, no style violations before commit.**
-* **All PRs** must EXCLUDE binary files of any sort. You may move and change binary files as needed =
-during coding or testing but your final PR cannot include binary file changes or it will will fail to complete.
+* Binary files MAY NOT BE ADDED, STAGED, OR COMMITTED under ANY circumstances. -
+Changes made for local testing must be untracked or `.git update-index --assume-unchanged` before commit.
 * **Review** local TODO.md, CHANGE_LOG.md, STYLE_Guide.md, README.md, and VARIABLE_NAMING.md
 If they are not found create them. Update TODO.md and CHANGE_LOG.md before you are done.
 ---
