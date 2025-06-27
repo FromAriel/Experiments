@@ -16,6 +16,10 @@ const FlockParameters = preload("res://scripts/boids/flock_parameters.gd")
 @export var wander_strength: float = 0.3
 @export var smoothing: float = 0.15  # lerp factor [0,1]
 @export var debug_log: bool = true
+@export var drag: float = 0.05
+@export var speed_mult: float = 1.0
+@export var agility_mult: float = 1.0
+@export var preferred_depth: float = 0.0
 
 var velocity: Vector2 = Vector2.ZERO
 var acceleration: Vector2 = Vector2.ZERO
@@ -62,21 +66,28 @@ func _physics_process(delta: float) -> void:
     # --- RANDOM WANDER ---
     _apply_wander()
 
+    # --- DRAG ---
+    acceleration -= velocity * drag
+
+    var local_max_force = max_force * agility_mult
+    var local_max_speed = max_speed * speed_mult
+
     # --- CLAMP TOTAL ACCELERATION ---
-    acceleration = acceleration.limit_length(max_force)
+    acceleration = acceleration.limit_length(local_max_force)
 
     # --- COMPUTE NEW VELOCITY & SMOOTH IT ---
     var target_vel = velocity + acceleration * delta
-    if target_vel.length() > max_speed:
-        target_vel = target_vel.normalized() * max_speed
+    if target_vel.length() > local_max_speed:
+        target_vel = target_vel.normalized() * local_max_speed
     velocity = velocity.lerp(target_vel, smoothing)
 
     # --- CLAMP AGAIN TO AVOID OVERSHOOT ---
-    if velocity.length() > max_speed:
-        velocity = velocity.normalized() * max_speed
+    if velocity.length() > local_max_speed:
+        velocity = velocity.normalized() * local_max_speed
 
     # --- APPLY TO FISH HEAD ---
     fish.set_head_velocity(velocity)
+    fish.z_depth = lerp(fish.z_depth, preferred_depth, delta)
     if tracing:
         trace_points.append(fish.global_position)
         print(
