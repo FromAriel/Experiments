@@ -34,6 +34,10 @@
         }
       }
     },
-    "z_depth": { "type": "number", "default": 0 }
+    "z_depth": { "type": "number", "default": 0 },
+    "drag": { "type": "number", "default": 0.05 },
+    "speed_mult": { "type": "number", "default": 1.0 },
+    "agility_mult": { "type": "number", "default": 1.0 },
+    "preferred_depth": { "type": "number", "default": 0 }
   }
 }
