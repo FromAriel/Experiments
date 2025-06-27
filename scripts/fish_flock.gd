@@ -17,6 +17,8 @@ const FishBody = preload("res://scripts/entities/fish_body.gd")
 var _hash := SpatialHash2D.new(50.0)
 var _params := FlockParameters.new()
 var _rng := RandomNumberGenerator.new()
+var _tracked_agent: Node = null
+var _agents: Array = []
 
 
 func _ready() -> void:
@@ -34,3 +36,15 @@ func _ready() -> void:
             Vector2(_rng.randf_range(-1.0, 1.0), _rng.randf_range(-1.0, 1.0)) * agent.max_speed
         )
         agent.setup(_hash, _params)
+        _agents.append(agent)
+
+    if _agents.size() > 0:
+        _tracked_agent = _agents[_rng.randi_range(0, _agents.size() - 1)]
+        _tracked_agent.enable_tracing(true)
+        print("Tracking agent: %s" % [_tracked_agent.get_path()])
+
+
+func _physics_process(_delta: float) -> void:
+    if _tracked_agent:
+        var pos: Vector2 = _tracked_agent.fish.global_position
+        print("flock trace frame %d pos=(%.2f,%.2f)" % [Engine.get_physics_frames(), pos.x, pos.y])
