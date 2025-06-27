@@ -1,25 +1,23 @@
----
-
 <!--
 ###############################################################################
 # 🧠  Codex Agent Workspace – Tooling Contract & Guide (HIDDEN HEADER)
-# Godot 4.4.1 · Headless · CI‑safe · .NET 8 SDK + Godot‑mono included
+# Godot 4.4.1 · Headless · CI-safe · .NET 8 SDK + Godot-mono included
 ###############################################################################
 -->
 
 ```text
 ###############################################################################
 # 🧠  Codex Agent Workspace – Tooling Contract & Guide
-# Godot 4.4.1 · Headless · CI‑safe · .NET 8 SDK + Godot‑mono included
+# Godot 4.4.1 · Headless · CI-safe · .NET 8 SDK + Godot-mono included
 ###############################################################################
 ```
 
-> \[!IMPORTANT]
+> [!IMPORTANT]
 >
 > * **Indentation:** Always 4 spaces in `.gd`, `.gdshader`, `.cs`. Never use tabs.
 > * `gdlint` expects `class_name` **before** `extends`.
 
-> \[!IMPORTANT]
+> [!IMPORTANT]
 >
 > Your tools may let you create a PR with a binary file but the user will be unable to merge your changes if you do. All PRs must EXCLUDE binary files of any sort. You may use files that are already present but your pull request cannot alter them or stage them.
 
@@ -27,50 +25,59 @@
 
 ## ──── SECTION: GODOT FIRST-TIME SETUP ────
 
-1. **Use the built-in Godot CLI**: `/usr/local/bin/godot` (default in this image).
+1. **Use the built-in Godot CLI**: `/usr/local/bin/godot` (default in this image).  
    To override, export `GODOT=/full/path/to/godot`.
 
 2. **Import pass** – warm caches & create `global_script_class_cache.cfg`:
 
    ```bash
-   godot --headless --editor --import --quit --path .
+   godot --headless --editor --import --quit --path . --verbose .
    ```
 
 3. **Parse all GDScript**:
 
    ```bash
-   godot --headless --check-only --quit --path .   # path MUST be repo root
+   godot --headless --check-only --quit --path . --verbose .   # path MUST be repo root
    ```
 
 4. **Build C#/Mono** (auto-skips if no `*.sln`):
 
    ```bash
-   dotnet build > /tmp/dotnet_build.log
+   dotnet build --nologo > /tmp/dotnet_build.log
    tail -n 20 /tmp/dotnet_build.log
    ```
 
-   * **Exit 0** ⇒ project is clean.
-   * **Non‑zero** ⇒ inspect error lines and fix.
+   * **Exit 0** ⇒ project is clean.  
+   * **Non-zero** ⇒ inspect error lines and fix.
 
 **Repeat steps 2–4 after any edit until all return 0.**
+
+For persistent or challenging errors, use:
+
+```bash
+dotnet build --verbosity diagnostic
+godot --headless --check-only --nologo --quit --path . --verbose .
+```
+
+to enable maximum verbosity and get detailed diagnostic output.
 
 ---
 
 ## ──── SECTION: PATCH HYGIENE & FORMAT ────
 
 ```bash
-# Auto‑format changed .gd quietly
+# Auto-format changed .gd quietly
 .codex/fix_indent.sh $(git diff --name-only --cached -- '*.gd') >/dev/null
 
 # Report any lint warnings (non-blocking)
 gdlint $(git diff --name-only --cached -- '*.gd') --quiet || true
 
 # C# style check (fail only on real violations)
-dotnet format --verify-no-changes --severity hidden || {
+dotnet format --verify-no-changes --nologo --severity hidden || {
   echo '🛑 C# style violations'; exit 1; }
 ```
 
-* No tabs, no syntax errors, no style violations before commit.
+* No tabs, no syntax errors, no style violations before commit.  
 * All PRs must EXCLUDE binary files of any sort.
 
 ---
@@ -84,8 +91,6 @@ godot --headless --check-only --quit --path . --quiet
 dotnet build --no-restore --nologo   # errors go to CI log
 ```
 
-* For other languages: use the appropriate headless validation tools and skip validation if not applicable.
-
 **Optional tests:**
 
 ```bash
@@ -98,10 +103,10 @@ dotnet test --logger "console;verbosity=quiet" || true
 
 ## ──── SECTION: QUICK CHECKLIST ────
 
-```
+```text
 apply_patch
 ├─ gdformat  --use-spaces=4 <changed.gd>
-├─ gdlint    <changed.gd> (non‑blocking)
+├─ gdlint    <changed.gd> (non-blocking)
 ├─ godot --headless --editor --import  --quit --path . --quiet
 ├─ godot --headless --check-only       --quit --path . --quiet
 └─ dotnet build --no-restore --nologo            # errors => fix
@@ -111,52 +116,55 @@ apply_patch
 
 ## ──── SECTION: WHY THIS MATTERS ────
 
-* `--import` is the **only** way to build Godot’s script-class cache.
-* CI **skips** the import when no `main_scene` is set, so fresh repos won’t fail.
-* `--check-only` finds GDScript errors; `dotnet build` ensures C# compiles.
+* `--import` is the **only** way to build Godot’s script-class cache.  
+* CI **skips** the import when no `main_scene` is set, so fresh repos won’t fail.  
+* `--check-only` finds GDScript errors; `dotnet build` ensures C# compiles.  
   Together, these guarantee the project builds headless on any clean machine.
 
-> **TL;DR:** Run the three headless commands with `--quiet`. Exit 0 ⇒ good. Else, fix & rerun.
+> **TL;DR:** Run the three headless commands with `--quiet`. Exit 0 ⇒ good. Else, fix & rerun.
 
 ---
 
-## ──── ADDENDUM: BUILD‑PLAN RULE SET ────
+## ──── ADDENDUM: BUILD-PLAN RULE SET ────
 
-1. **Foundation first** – scaffolding (data models, interfaces, utils) is built before high-level features. CI fails fast if missing.
-2. **Design principles** – data-driven, modular, extensible, compartmentalized. Follow each language’s canonical formatter (PEP 8, rustfmt, go fmt, gdformat, etc.).
-3. **Indentation** – spaces-only except where a language **requires** tabs (e.g., `Makefile`). Keep tabs localized to that file type.
+1. **Foundation first** – scaffolding (data models, interfaces, utils) is built before high-level features. CI fails fast if missing.  
+2. **Design principles** – data-driven, modular, extensible, compartmentalized. Follow each language’s canonical formatter (PEP 8, rustfmt, go fmt, gdformat, etc.).  
+3. **Indentation** – spaces-only except where a language **requires** tabs (e.g., `Makefile`). Keep tabs localized to that file type.  
 4. **Header-comment block** – for files that support comments, prepend:
 
-```
+   ```text
    ###############################################################
    # <file path>
    # Key Classes      • Foo – does something important
    # Key Functions    • bar() – handles a critical step
    # Critical Consts  • BAZ – tuning value
    # Editor Exports   • bum: float – Range(0.0 .. 1.0)
-   # Dependencies     • foo\_bar.gd, utils foo.gd
+   # Dependencies     • foo_bar.gd, utils/foo.gd
    # Last Major Rev   • YY-MM-DD – overhauled bar() for clarity
    ###############################################################
-```
+   ```
 
-Skip for formats with no comments (JSON, minified assets).
+   Skip for formats with no comments (JSON, minified assets).  
 5. **Language-specific tests** – run `cargo test`, `go test`, `bun test`, etc., when present.
+6. **Efficent Time Use** You do not need to run .net and Gotdot verify comands if you have not chaged GD or CS files or thier related dependancies. Precommit hooks will check automaticaly anyhow.
 
 ---
 
 ## ──── ADDENDUM: gdlint CLASS-ORDER WARNINGS ────
 
-`gdlint` 4.x enforces **class‑definitions‑order**
+`gdlint` 4.x enforces **class-definitions-order**  
 (tool → `class_name` → `extends` → signals → enums → consts → exports → vars).
 
 If it becomes noisy:
 
 * Reorder clauses to match the list, or
-* Suppress in file – `# gdlint:ignore = class-definitions-order`, or
-* Customize via `.gdlintrc`, or
+* Customize via `.gdlintrc`, or  
 * Pin `gdtoolkit==4.0.1`.
+> [!NOTE] 
+> * **Only if no other beter option** Suppress in file
+> * `# gdlint:ignore = class-definitions-order`
 
-CI runs `gdlint` **non-blocking**; treat warnings as advice until you’re ready to enforce them strictly.
+CI runs `gdlint` **non-blocking**; treat warnings as advice until enforcing them strictly.
 
 ---
 
@@ -164,16 +172,4 @@ CI runs `gdlint` **non-blocking**; treat warnings as advice until you’re ready
 ###############################################################################
 # End of Codex Agent Workspace Guide
 ###############################################################################
-````
-
----
-
-**This document’s format ensures:**
-
-* **ASCII headers** are preserved for style and grep-ability.
-* **\[!IMPORTANT]** callouts highlight rules where required and supported.
-* **Section separators** use bold, readable formatting.
-* **All code and bash snippets** are easy to copy.
-* **Machine parsing** is straightforward—each section is clearly delimited.
-
-Let me know if you want any further tweaks.
+```
