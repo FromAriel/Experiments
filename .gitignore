@@ -1,2 +1,5 @@
 .godot/
 .import/
+
+scripts/dummy/bin/
+scripts/dummy/obj/
