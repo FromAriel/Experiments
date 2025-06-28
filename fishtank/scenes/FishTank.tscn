@@ -1,10 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://kfoqp1krcof3"]
+[gd_scene load_steps=3 format=3 uid="uid://kfoqp1krcof3"]
 
 [ext_resource type="Script" uid="uid://bsx7rq6kme2hm" path="res://scripts/fish_tank.gd" id="1"]
-[ext_resource type="Script" uid="uid://bbjqlnes704ef" path="res://scripts/data/tank_environment.gd" id="2"]
 
-[sub_resource type="Resource" id="1" script="ExtResource('2')"]
-TE_size_IN = Vector3(16, 9, 5.5)
+[sub_resource type="Resource" id="1"]
 
 [node name="FishTank" type="Node2D"]
 script = ExtResource("1")
