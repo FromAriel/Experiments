@@ -22,3 +22,11 @@ scripts/dummy/obj/
 
 # User specific project files
 *.csproj.user
+
+# Temporary files in fishtank UI and tools
+fishtank/ui/*.tmp
+fishtank/ui/*~
+fishtank/tools/*.tmp
+fishtank/tools/*~
+fishtank/ui/.DS_Store
+fishtank/tools/.DS_Store
