@@ -11,3 +11,6 @@ run/max_fps=60
 
 [debug]
 settings/stdout/print_fps=true
+
+[dotnet]
+project/assembly_name="Fishtank"
