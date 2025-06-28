@@ -12,7 +12,7 @@ config_version=5
 
 config/name="FakeyFishTank"
 run/main_scene="res://scenes/FishTank.tscn"
-config/features=PackedStringArray("4.4")
+config/features=PackedStringArray("4.4.1")
 run/max_fps=60
 
 [debug]
