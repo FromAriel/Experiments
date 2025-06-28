@@ -2,7 +2,7 @@
     {
         "name": "Flocker",
         "species_list": [],
-        "placeholder_texture": "res://fishtank/art/placeholder_fish.png",
+        "placeholder_texture": "res://art/placeholder_fish.png",
         "base_color": "#FFFFFF"
     }
 ]

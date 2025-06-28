@@ -8,6 +8,7 @@ It is organized for extensibility and data-driven development.
 - `scenes/` – Scene files (`.tscn`)
 - `scripts/` – GDScript logic stubs
 - `scripts/data/` – Resource classes like `FishArchetype`
+- `scripts/data/archetype_loader.gd` – JSON parser with fallback art
 - `art/` – Placeholder sprites and textures
 - `ui/` – Interface scenes
 - `tools/` – Debug and development helpers
