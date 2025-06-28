@@ -7,3 +7,4 @@
 - Expanded `.gitignore` rules for IDE and build artifacts.
 - Added ignore rules for temporary files inside `ui/` and `tools/`.
 - Created `scripts/data/` with resource classes for core data structures.
+- Implemented `ArchetypeLoader` with placeholder texture fallback and loaded in `FishTank`.

@@ -6,6 +6,7 @@
 
 - Added resource scripts for core data models in `scripts/data/`.
 
-- Implement FishArchetype parsing from JSON.
+- [x] Implement FishArchetype parsing from JSON.
+- [x] Integrate ArchetypeLoader in FishTank scene.
 - Add boid behavior system.
 - Create UI for spawning fish.
