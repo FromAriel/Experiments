@@ -17,5 +17,7 @@ Both `ui/` and `tools/` are created empty for now and ready for new scenes and e
 
 ## Adding New Archetypes
 1. Create an entry in `data/archetypes.json`.
-2. Provide any required placeholder art in `art/`.
+2. Provide any required placeholder art in `art/`. When nothing is supplied,
+   run `godot --headless -s res://art/shape_generator.gd` to create default
+   ellipse and triangle textures.
 3. Extend scripts to support custom behavior.
