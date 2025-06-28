@@ -12,7 +12,7 @@ config_version=5
 
 config/name="FakeyFishTank"
 run/main_scene="res://scenes/FishTank.tscn"
-config/features=PackedStringArray("4.4.1")
+config/features=PackedStringArray("4.4", "4.4.1", "C#")
 run/max_fps=60
 
 [debug]
@@ -20,5 +20,5 @@ run/max_fps=60
 settings/stdout/print_fps=true
 
 [dotnet]
-project/assembly_name="Fishtank"
 
+project/assembly_name="Fishtank"
