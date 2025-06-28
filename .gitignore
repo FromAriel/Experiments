@@ -15,3 +15,10 @@ mono_crash.*.json
 
 scripts/dummy/bin/
 scripts/dummy/obj/
+
+# IDE files
+.idea/
+.vs/
+
+# User specific project files
+*.csproj.user

@@ -1,2 +1,14 @@
 .godot/
 .import/
+
+# Mono build outputs
+.mono/
+bin/
+obj/
+
+# IDE project files
+.idea/
+.vs/
+
+# User-specific metadata
+*.csproj.user
