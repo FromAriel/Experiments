@@ -1,5 +1,17 @@
 .godot/
 .import/
 
+# Godot-specific files
+.nomedia
+export.cfg
+export_credentials.cfg
+*.translation
+
+# Mono/.NET build outputs
+.mono/
+**/bin/
+**/obj/
+mono_crash.*.json
+
 scripts/dummy/bin/
 scripts/dummy/obj/

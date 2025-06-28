@@ -10,6 +10,7 @@ It is organized for extensibility and data-driven development.
 - `art/` – Placeholder sprites and textures
 - `ui/` – Interface scenes
 - `tools/` – Debug and development helpers
+- `FishTank.sln` and `FishTank.csproj` – C# project files for Mono builds
 Both `ui/` and `tools/` are created empty for now and ready for new scenes and editor utilities.
 
 ## Adding New Archetypes
