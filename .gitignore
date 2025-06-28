@@ -30,3 +30,5 @@ fishtank/tools/*.tmp
 fishtank/tools/*~
 fishtank/ui/.DS_Store
 fishtank/tools/.DS_Store
+fishtank/art/ellipse_placeholder.png
+fishtank/art/triangle_placeholder.png
