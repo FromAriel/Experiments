@@ -1,4 +1,5 @@
 # TODO
+- Scaffolded empty `ui/` and `tools/` directories for future development.
 
 - Implement FishArchetype parsing from JSON.
 - Add boid behavior system.

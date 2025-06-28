@@ -1,0 +1,13 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly.
+
+config_version=5
+
+[application]
+config/name="FakeyFishTank"
+run/main_scene="res://scenes/FishTank.tscn"
+config/features=PackedStringArray("4.4")
+run/max_fps=60
+
+[debug]
+settings/stdout/print_fps=true
