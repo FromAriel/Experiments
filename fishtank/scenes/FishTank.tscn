@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3 uid="uid://kfoqp1krcof3"]
 
-[ext_resource path="res://scripts/fish_tank.gd" type="Script" id="1"]
+[ext_resource type="Script" uid="uid://bsx7rq6kme2hm" path="res://scripts/fish_tank.gd" id="1"]
 
 [node name="FishTank" type="Node2D"]
 script = ExtResource("1")
