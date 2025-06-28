@@ -12,3 +12,11 @@ obj/
 
 # User-specific metadata
 *.csproj.user
+
+# Temporary files in ui and tools directories
+ui/*.tmp
+ui/*~
+tools/*.tmp
+tools/*~
+ui/.DS_Store
+tools/.DS_Store
