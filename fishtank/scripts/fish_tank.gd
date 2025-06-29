@@ -22,6 +22,8 @@ func _ready() -> void:
     FT_environment_IN.TE_update_bounds_IN()
     var FT_loader_IN := ArchetypeLoader.new()
     var FT_archetypes_UP := FT_loader_IN.AL_load_archetypes_IN("res://data/archetypes.json")
+    var FT_boid_system_UP: BoidSystem = $BoidSystem
+    FT_boid_system_UP.BS_spawn_population_IN(FT_archetypes_UP)
     FT_overlay_label_UP.text = "Loaded %d archetypes" % FT_archetypes_UP.size()
 
 
