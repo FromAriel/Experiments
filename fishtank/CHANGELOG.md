@@ -20,3 +20,5 @@
 - Removed placeholder `Tank` node and compute boundaries from viewport so
   fish stay within the visible tank.
 - Improved boid steering using spatial grid, separation distance, and wander.
+- Introduced `FishBehavior` enum and new behavior-related exports for `BoidFish`.
+  Updated `FishArchetype` with a matching `FA_behavior_IN` field.
