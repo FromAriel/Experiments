@@ -19,7 +19,6 @@ func _ready() -> void:
     set_process(true)
 
 
-func _process(delta: float) -> void:
-    _ = delta
+func _process(_delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
         rotation = BF_velocity_UP.angle()
