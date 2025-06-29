@@ -30,7 +30,7 @@ func _ready() -> void:
         BS_fish_scene_IN = preload("res://scenes/BoidFish.tscn")
     if BS_environment_IN == null:
         var BS_parent_UP: Node = get_parent()
-        if BS_parent_UP != null and BS_parent_UP.has_variable("FT_environment_IN"):
+        if BS_parent_UP != null and BS_parent_UP is FishTank:
             BS_environment_IN = BS_parent_UP.FT_environment_IN
         else:
             BS_environment_IN = TankEnvironment.new()
