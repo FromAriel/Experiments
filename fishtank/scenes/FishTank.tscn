@@ -1,10 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://kfoqp1krcof3"]
+[gd_scene load_steps=2 format=3 uid="uid://kfoqp1krcof3"]
 
 [ext_resource type="Script" uid="uid://bsx7rq6kme2hm" path="res://scripts/fish_tank.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/boids/boid_system.gd" id="2"]
 
 [sub_resource type="Resource" id="1"]
-[sub_resource type="BoidSystemConfig" id="2"]
 
 [node name="FishTank" type="Node2D"]
 script = ExtResource("1")
@@ -12,7 +11,6 @@ FT_environment_IN = SubResource("1")
 
 [node name="BoidSystem" type="Node2D" parent="."]
 script = ExtResource("2")
-BS_config_IN = SubResource("2")
 
 [node name="DebugOverlay" type="CanvasLayer" parent="."]
 
