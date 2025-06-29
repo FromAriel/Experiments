@@ -52,14 +52,8 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     var BS_fish_UP: BoidFish = BS_fish_scene_IN.instantiate()
     if BS_environment_IN != null:
         var BS_bounds_UP: AABB = BS_environment_IN.TE_boundaries_SH
-        var BS_min_x_UP: float = BS_bounds_UP.position.x
-        var BS_max_x_UP: float = BS_bounds_UP.position.x + BS_bounds_UP.size.x
-        var BS_min_y_UP: float = BS_bounds_UP.position.y
-        var BS_max_y_UP: float = BS_bounds_UP.position.y + BS_bounds_UP.size.y
-        BS_fish_UP.position = Vector2(
-            BS_rng_UP.randf_range(BS_min_x_UP, BS_max_x_UP),
-            BS_rng_UP.randf_range(BS_min_y_UP, BS_max_y_UP)
-        )
+        var BS_center_UP := BS_bounds_UP.position + BS_bounds_UP.size / 2.0
+        BS_fish_UP.position = Vector2(BS_center_UP.x, BS_center_UP.y)
     else:
         BS_fish_UP.position = Vector2(
             BS_rng_UP.randf_range(-50, 50), BS_rng_UP.randf_range(-30, 30)
@@ -73,6 +67,7 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
 func _physics_process(delta: float) -> void:
     for BS_fish_UP in BS_fish_nodes_SH:
         _BS_update_fish_IN(BS_fish_UP, delta)
+        _BS_apply_sanity_check_IN(BS_fish_UP, delta)
 
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
@@ -163,3 +158,32 @@ func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -
         if typeof(val) == TYPE_FLOAT:
             return val
     return default_val
+
+
+func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
+    if BS_environment_IN == null:
+        return
+    var BS_bounds_UP: AABB = BS_environment_IN.TE_boundaries_SH
+    var BS_center_UP := BS_bounds_UP.position + BS_bounds_UP.size / 2.0
+    var BS_min_x_UP: float = BS_bounds_UP.position.x
+    var BS_max_x_UP: float = BS_bounds_UP.position.x + BS_bounds_UP.size.x
+    var BS_min_y_UP: float = BS_bounds_UP.position.y
+    var BS_max_y_UP: float = BS_bounds_UP.position.y + BS_bounds_UP.size.y
+    var BS_margin_UP: float = BS_boundary_margin_IN * 0.5
+    var BS_near_edge := (
+        fish.position.x < BS_min_x_UP + BS_margin_UP
+        or fish.position.x > BS_max_x_UP - BS_margin_UP
+        or fish.position.y < BS_min_y_UP + BS_margin_UP
+        or fish.position.y > BS_max_y_UP - BS_margin_UP
+    )
+    var BS_outside := (
+        fish.position.x < BS_min_x_UP
+        or fish.position.x > BS_max_x_UP
+        or fish.position.y < BS_min_y_UP
+        or fish.position.y > BS_max_y_UP
+    )
+    if BS_near_edge or BS_outside:
+        var BS_push_dir := (Vector2(BS_center_UP.x, BS_center_UP.y) - fish.position).normalized()
+        fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
+            BS_push_dir * BS_config_IN.BC_max_speed_IN, delta * 2.0
+        )

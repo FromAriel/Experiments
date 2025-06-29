@@ -11,4 +11,5 @@
 - [x] Create ShapeGenerator script for ellipse/triangle placeholders.
 - [x] Add boid behavior system.
 - Create UI for spawning fish.
+- [ ] Verify spawn location and boundary sanity checks for fish.
 - [x] Resolve duplicate TargetFramework build attribute.
