@@ -13,3 +13,4 @@
 - Create UI for spawning fish.
 - [x] Verify spawn location and boundary sanity checks for fish.
 - [x] Resolve duplicate TargetFramework build attribute.
+- [ ] Improve boid flocking with wander and spatial grid.

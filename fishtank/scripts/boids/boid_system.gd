@@ -15,12 +15,15 @@ extends Node2D
 @export var BS_config_IN: BoidSystemConfig
 @export var BS_fish_scene_IN: PackedScene
 @export var BS_neighbor_radius_IN: float = 80.0
+@export var BS_separation_distance_IN: float = 40.0
 @export var BS_environment_IN: TankEnvironment
 @export var BS_group_count_IN: int = 5
 @export var BS_boundary_margin_IN: float = 1.0
+@export var BS_grid_cell_size_IN: float = 100.0
 
 var BS_fish_nodes_SH: Array[BoidFish] = []
 var BS_rng_UP := RandomNumberGenerator.new()
+var BS_grid_SH: Dictionary = {}
 
 
 func _ready() -> void:
@@ -65,29 +68,48 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
 
 
 func _physics_process(delta: float) -> void:
+    _BS_update_grid_IN()
     for BS_fish_UP in BS_fish_nodes_SH:
         _BS_update_fish_IN(BS_fish_UP, delta)
         _BS_apply_sanity_check_IN(BS_fish_UP, delta)
+
+
+func _BS_update_grid_IN() -> void:
+    BS_grid_SH.clear()
+    for BS_fish_UP in BS_fish_nodes_SH:
+        var BS_p_UP: Vector2 = BS_fish_UP.position
+        var BS_cell_UP := Vector2i(
+            floor(BS_p_UP.x / BS_grid_cell_size_IN), floor(BS_p_UP.y / BS_grid_cell_size_IN)
+        )
+        if not BS_grid_SH.has(BS_cell_UP):
+            BS_grid_SH[BS_cell_UP] = []
+        BS_grid_SH[BS_cell_UP].append(BS_fish_UP)
 
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     var BS_sep_UP := Vector2.ZERO
     var BS_ali_UP := Vector2.ZERO
     var BS_coh_UP := Vector2.ZERO
-    var BS_count_UP := 0.0
-    for BS_other_UP in BS_fish_nodes_SH:
-        if BS_other_UP == fish:
-            continue
-        var BS_diff_UP := fish.position - BS_other_UP.position
-        var BS_dist_UP: float = BS_diff_UP.length()
-        if BS_dist_UP <= BS_neighbor_radius_IN and BS_dist_UP > 0.0:
-            var BS_group_weight_UP: float = 1.0
-            if BS_other_UP.BF_group_id_SH != fish.BF_group_id_SH:
-                BS_group_weight_UP = 0.5
-            BS_sep_UP += BS_diff_UP.normalized() / BS_dist_UP * BS_group_weight_UP
-            BS_ali_UP += BS_other_UP.BF_velocity_UP * BS_group_weight_UP
-            BS_coh_UP += BS_other_UP.position * BS_group_weight_UP
-            BS_count_UP += BS_group_weight_UP
+    var BS_count_UP := 0
+    var BS_cell_UP := Vector2i(
+        floor(fish.position.x / BS_grid_cell_size_IN), floor(fish.position.y / BS_grid_cell_size_IN)
+    )
+    for dx in range(-1, 2):
+        for dy in range(-1, 2):
+            var BS_key_UP := Vector2i(BS_cell_UP.x + dx, BS_cell_UP.y + dy)
+            if not BS_grid_SH.has(BS_key_UP):
+                continue
+            for BS_other_UP in BS_grid_SH[BS_key_UP]:
+                if BS_other_UP == fish:
+                    continue
+                var BS_diff_UP := BS_other_UP.position - fish.position
+                var BS_dist_UP: float = BS_diff_UP.length()
+                if BS_dist_UP < BS_neighbor_radius_IN:
+                    BS_ali_UP += BS_other_UP.BF_velocity_UP
+                    BS_coh_UP += BS_other_UP.position
+                    BS_count_UP += 1
+                    if BS_dist_UP < BS_separation_distance_IN and BS_dist_UP > 0.0:
+                        BS_sep_UP -= BS_diff_UP / BS_dist_UP
 
     var BS_align_weight_UP := _BS_get_weight_IN(
         fish.BF_archetype_IN, "FA_alignment_weight_IN", BS_config_IN.BC_default_alignment_IN
@@ -104,15 +126,25 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
 
     var BS_steer_UP := Vector2.ZERO
     if BS_count_UP > 0:
-        BS_sep_UP /= BS_count_UP
-        BS_ali_UP = (BS_ali_UP / BS_count_UP) - fish.BF_velocity_UP
+        BS_ali_UP = (
+            (BS_ali_UP / BS_count_UP).normalized() * BS_config_IN.BC_max_speed_IN
+            - fish.BF_velocity_UP
+        )
+        BS_ali_UP = BS_ali_UP.limit_length(BS_config_IN.BC_max_force_IN)
+
         BS_coh_UP = (BS_coh_UP / BS_count_UP) - fish.position
-        if BS_sep_UP != Vector2.ZERO:
-            BS_steer_UP += BS_sep_UP.normalized() * BS_separ_weight_UP
-        if BS_ali_UP != Vector2.ZERO:
-            BS_steer_UP += BS_ali_UP.normalized() * BS_align_weight_UP
         if BS_coh_UP != Vector2.ZERO:
-            BS_steer_UP += BS_coh_UP.normalized() * BS_cohes_weight_UP
+            BS_coh_UP = BS_coh_UP.normalized() * BS_config_IN.BC_max_speed_IN - fish.BF_velocity_UP
+            BS_coh_UP = BS_coh_UP.limit_length(BS_config_IN.BC_max_force_IN)
+
+        BS_sep_UP = BS_sep_UP / BS_count_UP
+        if BS_sep_UP != Vector2.ZERO:
+            BS_sep_UP = BS_sep_UP.normalized() * BS_config_IN.BC_max_speed_IN - fish.BF_velocity_UP
+            BS_sep_UP = BS_sep_UP.limit_length(BS_config_IN.BC_max_force_IN)
+
+        BS_steer_UP += BS_ali_UP * BS_align_weight_UP
+        BS_steer_UP += BS_coh_UP * BS_cohes_weight_UP
+        BS_steer_UP += BS_sep_UP * BS_separ_weight_UP
         fish.BF_isolated_timer_UP = 0.0
     else:
         fish.BF_isolated_timer_UP += delta
@@ -122,9 +154,9 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         fish.BF_isolated_timer_UP = 0.0
 
     var BS_wander_UP := (
-        Vector2(BS_rng_UP.randf_range(-1.0, 1.0), BS_rng_UP.randf_range(-1.0, 1.0))
-        * BS_wander_weight_UP
+        Vector2(BS_rng_UP.randf_range(-1.0, 1.0), BS_rng_UP.randf_range(-1.0, 1.0)).normalized()
     )
+    BS_wander_UP *= BS_wander_weight_UP * BS_config_IN.BC_max_force_IN
     BS_steer_UP += BS_wander_UP
 
     if BS_environment_IN != null:
@@ -138,15 +170,15 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             BS_bounds_UP.position.y + BS_bounds_UP.size.y - BS_boundary_margin_IN
         )
         if fish.position.x < BS_min_x_UP:
-            BS_steer_UP.x += 1.0
+            BS_steer_UP.x += BS_config_IN.BC_max_force_IN
         elif fish.position.x > BS_max_x_UP:
-            BS_steer_UP.x -= 1.0
+            BS_steer_UP.x -= BS_config_IN.BC_max_force_IN
         if fish.position.y < BS_min_y_UP:
-            BS_steer_UP.y += 1.0
+            BS_steer_UP.y += BS_config_IN.BC_max_force_IN
         elif fish.position.y > BS_max_y_UP:
-            BS_steer_UP.y -= 1.0
+            BS_steer_UP.y -= BS_config_IN.BC_max_force_IN
 
-    var BS_vel_UP := fish.BF_velocity_UP + BS_steer_UP
+    var BS_vel_UP := fish.BF_velocity_UP + BS_steer_UP * delta
     BS_vel_UP = BS_vel_UP.limit_length(BS_config_IN.BC_max_speed_IN)
     fish.position += BS_vel_UP * delta
     fish.BF_velocity_UP = BS_vel_UP
