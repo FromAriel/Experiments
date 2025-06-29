@@ -14,3 +14,4 @@
 - [x] Verify spawn location and boundary sanity checks for fish.
 - [x] Resolve duplicate TargetFramework build attribute.
 - [ ] Improve boid flocking with wander and spatial grid.
+- [x] Add FishBehavior enum and behavior fields to fish boids.

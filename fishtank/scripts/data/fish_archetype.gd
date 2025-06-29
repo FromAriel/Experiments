@@ -4,6 +4,7 @@
 # Key Functions    • N/A
 # Critical Consts  • None
 # Editor Exports   • FA_name_IN: String
+#                   • FA_behavior_IN: int
 # Dependencies     • None
 # Last Major Rev   • 24-06-28 – initial creation
 ###############################################################
@@ -15,6 +16,9 @@ extends Resource
 
 """
 Holds configuration data defining behaviors and visuals for a fish archetype.
+
+The `FA_behavior_IN` field specifies the default `FishBehavior` for fish using
+this archetype. Values correspond to the enum defined in `BoidFish`.
 """
 
 @export var FA_name_IN: String = ""
@@ -36,5 +40,6 @@ Holds configuration data defining behaviors and visuals for a fish archetype.
 @export var FA_chase_chance_IN: float = 0.0
 @export var FA_jump_chance_IN: float = 0.0
 @export var FA_rest_chance_IN: float = 0.0
+@export var FA_behavior_IN: int = 0
 @export var FA_special_notes_IN: String = ""
 # gdlint:enable = class-variable-name

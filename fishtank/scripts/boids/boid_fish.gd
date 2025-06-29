@@ -2,6 +2,9 @@
 # fishtank/scripts/boids/boid_fish.gd
 # Key Classes      • BoidFish – minimal boid entity
 # Dependencies     • fish_archetype.gd, tank_environment.gd
+# Editor Exports   • BF_behavior_SH: FishBehavior
+#                   • BF_wander_phase_UP: float
+#                   • BF_target_depth_SH: float
 # Last Major Rev   • 24-07-05 – initial creation
 ###############################################################
 # gdlint:disable = class-variable-name,function-name,function-variable-name
@@ -9,7 +12,18 @@
 class_name BoidFish
 extends Node2D
 
+enum FishBehavior {
+    SCHOOL,
+    DART,
+    CURIOUS,
+    IDLE,
+}
+
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
+
+@export var BF_behavior_SH: FishBehavior = FishBehavior.SCHOOL
+@export var BF_wander_phase_UP: float = 0.0
+@export var BF_target_depth_SH: float = 0.0
 
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
