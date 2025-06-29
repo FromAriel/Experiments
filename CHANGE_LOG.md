@@ -9,3 +9,4 @@
   avoidance to keep fish inside the tank.
 - Boundaries now derive from the viewport and the placeholder Tank node was
   removed.
+- Fixed type inference error in BoidSystem affecting build.

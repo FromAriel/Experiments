@@ -100,13 +100,14 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             if not BS_grid_SH.has(BS_key_UP):
                 continue
             for BS_other_UP in BS_grid_SH[BS_key_UP]:
-                if BS_other_UP == fish:
+                var BS_other_fish_UP: BoidFish = BS_other_UP
+                if BS_other_fish_UP == fish:
                     continue
-                var BS_diff_UP := BS_other_UP.position - fish.position
+                var BS_diff_UP: Vector2 = BS_other_fish_UP.position - fish.position
                 var BS_dist_UP: float = BS_diff_UP.length()
                 if BS_dist_UP < BS_neighbor_radius_IN:
-                    BS_ali_UP += BS_other_UP.BF_velocity_UP
-                    BS_coh_UP += BS_other_UP.position
+                    BS_ali_UP += BS_other_fish_UP.BF_velocity_UP
+                    BS_coh_UP += BS_other_fish_UP.position
                     BS_count_UP += 1
                     if BS_dist_UP < BS_separation_distance_IN and BS_dist_UP > 0.0:
                         BS_sep_UP -= BS_diff_UP / BS_dist_UP
