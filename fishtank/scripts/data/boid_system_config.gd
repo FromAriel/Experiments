@@ -20,6 +20,7 @@ Configurable constants controlling the default boid behavior parameters.
 @export var BC_default_alignment_IN: float = 1.0
 @export var BC_default_cohesion_IN: float = 1.0
 @export var BC_default_separation_IN: float = 1.5
+@export var BC_default_wander_IN: float = 0.5
 @export var BC_max_speed_IN: float = 200.0
 @export var BC_max_force_IN: float = 50.0
 @export var BC_fish_count_min_IN: int = 3

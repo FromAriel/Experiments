@@ -9,5 +9,5 @@
 - [x] Implement FishArchetype parsing from JSON.
 - [x] Integrate ArchetypeLoader in FishTank scene.
 - [x] Create ShapeGenerator script for ellipse/triangle placeholders.
-- Add boid behavior system.
+- [x] Add boid behavior system.
 - Create UI for spawning fish.
