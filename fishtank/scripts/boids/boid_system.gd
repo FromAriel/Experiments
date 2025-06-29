@@ -17,7 +17,7 @@ extends Node2D
 @export var BS_neighbor_radius_IN: float = 80.0
 @export var BS_separation_distance_IN: float = 40.0
 @export var BS_environment_IN: TankEnvironment
-@export var BS_group_count_IN: int = 5
+@export var BS_group_count_IN: int = 6
 @export var BS_boundary_margin_IN: float = 1.0
 @export var BS_grid_cell_size_IN: float = 100.0
 
@@ -57,10 +57,19 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
         var BS_bounds_UP: AABB = BS_environment_IN.TE_boundaries_SH
         var BS_center_UP := BS_bounds_UP.position + BS_bounds_UP.size / 2.0
         BS_fish_UP.position = Vector2(BS_center_UP.x, BS_center_UP.y)
+        BS_fish_UP.BF_depth_UP = (
+            BS_rng_UP
+            . randf_range(
+                0.0,
+                BS_environment_IN.TE_size_IN.z,
+            )
+        )
+        BS_fish_UP.BF_environment_IN = BS_environment_IN
     else:
         BS_fish_UP.position = Vector2(
             BS_rng_UP.randf_range(-50, 50), BS_rng_UP.randf_range(-30, 30)
         )
+        BS_fish_UP.BF_depth_UP = 0.0
     BS_fish_UP.BF_archetype_IN = arch
     BS_fish_UP.BF_group_id_SH = BS_rng_UP.randi_range(0, max(1, BS_group_count_IN) - 1)
     add_child(BS_fish_UP)
@@ -183,6 +192,13 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     BS_vel_UP = BS_vel_UP.limit_length(BS_config_IN.BC_max_speed_IN)
     fish.position += BS_vel_UP * delta
     fish.BF_velocity_UP = BS_vel_UP
+    if BS_environment_IN != null:
+        fish.BF_depth_UP += BS_rng_UP.randf_range(-20.0, 20.0) * delta
+        fish.BF_depth_UP = clamp(
+            fish.BF_depth_UP,
+            0.0,
+            BS_environment_IN.TE_size_IN.z,
+        )
 
 
 func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -> float:
