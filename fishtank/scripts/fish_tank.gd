@@ -40,7 +40,10 @@ func FT_apply_depth_IN(node: Node2D, depth: float) -> void:
 func _FT_update_environment_bounds_IN() -> void:
     var FT_tank_UP: Area2D = get_node_or_null("Tank")
     if FT_tank_UP and FT_tank_UP.has_node("CollisionShape2D"):
-        var FT_shape_UP := FT_tank_UP.get_node("CollisionShape2D").shape
+        var FT_collision_shape_UP: CollisionShape2D = (
+            FT_tank_UP.get_node("CollisionShape2D") as CollisionShape2D
+        )
+        var FT_shape_UP: Shape2D = FT_collision_shape_UP.shape
         if FT_shape_UP is RectangleShape2D:
             var FT_size_UP: Vector2 = FT_shape_UP.size * FT_tank_UP.scale
             var FT_origin_UP: Vector2 = FT_tank_UP.position - FT_size_UP / 2.0
