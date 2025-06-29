@@ -2,3 +2,4 @@
 - Set up documentation for root workspace.
 - [x] Investigate and resolve duplicate assembly attribute errors.
 - [ ] Polish boid group visuals and add unit tests for boundary logic.
+- [x] Resolve BoidSystem type inference error.
