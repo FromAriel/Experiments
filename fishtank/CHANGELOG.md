@@ -15,3 +15,5 @@
   duplicate attribute build errors.
 - Enhanced `BoidSystem` with random spawn counts, group logic, and wall
   avoidance to prevent fish from exiting the tank.
+- Fixed fish spawning at `(0,0)` by spawning at tank center and added
+  a sanity check that gently pushes stray fish back toward the middle.
