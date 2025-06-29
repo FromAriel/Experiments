@@ -17,3 +17,5 @@
   avoidance to prevent fish from exiting the tank.
 - Fixed fish spawning at `(0,0)` by spawning at tank center and added
   a sanity check that gently pushes stray fish back toward the middle.
+- Removed placeholder `Tank` node and compute boundaries from viewport so
+  fish stay within the visible tank.
