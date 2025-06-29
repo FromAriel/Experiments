@@ -19,3 +19,4 @@
   a sanity check that gently pushes stray fish back toward the middle.
 - Removed placeholder `Tank` node and compute boundaries from viewport so
   fish stay within the visible tank.
+- Improved boid steering using spatial grid, separation distance, and wander.
