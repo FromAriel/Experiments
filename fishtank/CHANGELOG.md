@@ -13,3 +13,4 @@
 - Implemented `BoidSystem` with per-archetype weight overrides and basic flocking.
 - Added `GenerateTargetFrameworkAttribute` property in `FishTank.csproj` to avoid
   duplicate attribute build errors.
+- Improved `BoidSystem` spawning and wall avoidance for natural movement.

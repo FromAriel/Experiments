@@ -25,6 +25,10 @@ func _ready() -> void:
     var FT_boid_system_UP: BoidSystem = $BoidSystem
     if FT_boid_system_UP.BS_config_IN == null:
         FT_boid_system_UP.BS_config_IN = BoidSystemConfig.new()
+    FT_boid_system_UP.BS_bounds_rect_IN = Rect2(
+        Vector2(-FT_environment_IN.TE_size_IN.x / 2.0, -FT_environment_IN.TE_size_IN.y / 2.0),
+        Vector2(FT_environment_IN.TE_size_IN.x, FT_environment_IN.TE_size_IN.y)
+    )
     FT_boid_system_UP.BS_spawn_population_IN(FT_archetypes_UP)
     FT_overlay_label_UP.text = "Loaded %d archetypes" % FT_archetypes_UP.size()
 
