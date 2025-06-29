@@ -7,3 +7,5 @@
   `TargetFramework` errors on some systems.
 - Improved fish tank boid simulation with group assignment and boundary
   avoidance to keep fish inside the tank.
+- Boundaries now derive from the viewport and the placeholder Tank node was
+  removed.
