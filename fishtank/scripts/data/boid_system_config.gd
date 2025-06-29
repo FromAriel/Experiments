@@ -23,8 +23,8 @@ Configurable constants controlling the default boid behavior parameters.
 @export var BC_default_wander_IN: float = 0.5
 @export var BC_max_speed_IN: float = 200.0
 @export var BC_max_force_IN: float = 50.0
-@export var BC_fish_count_min_IN: int = 3
-@export var BC_fish_count_max_IN: int = 15
+@export var BC_fish_count_min_IN: int = 50
+@export var BC_fish_count_max_IN: int = 60
 @export var BC_archetype_count_min_IN: int = 3
 @export var BC_archetype_count_max_IN: int = 5
 @export var BC_misc_params_SH: Dictionary = {}
