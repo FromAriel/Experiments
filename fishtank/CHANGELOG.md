@@ -11,3 +11,5 @@
 - Added `art/shape_generator.gd` to create ellipse and triangle placeholders.
 - Updated loader and JSON to use generated textures when sprites are missing.
 - Implemented `BoidSystem` with per-archetype weight overrides and basic flocking.
+- Added `GenerateTargetFrameworkAttribute` property in `FishTank.csproj` to avoid
+  duplicate attribute build errors.
