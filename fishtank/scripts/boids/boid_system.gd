@@ -104,7 +104,7 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
 
 
 func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -> float:
-    if arch != null and arch.has_property(field):
+    if arch != null:
         var val = arch.get(field)
         if typeof(val) == TYPE_FLOAT:
             return val
