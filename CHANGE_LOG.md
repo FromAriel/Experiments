@@ -9,3 +9,4 @@
   avoidance to keep fish inside the tank.
 - Boundaries now derive from the viewport and the placeholder Tank node was
   removed.
+- Fixed a parse error in `boid_system.gd` by explicitly typing `BS_diff_UP`.

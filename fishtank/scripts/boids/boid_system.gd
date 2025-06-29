@@ -102,7 +102,7 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             for BS_other_UP in BS_grid_SH[BS_key_UP]:
                 if BS_other_UP == fish:
                     continue
-                var BS_diff_UP := BS_other_UP.position - fish.position
+                var BS_diff_UP: Vector2 = BS_other_UP.position - fish.position
                 var BS_dist_UP: float = BS_diff_UP.length()
                 if BS_dist_UP < BS_neighbor_radius_IN:
                     BS_ali_UP += BS_other_UP.BF_velocity_UP
