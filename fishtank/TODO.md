@@ -16,3 +16,5 @@
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
 - [x] Add FishProto soft-body prototyping scene under `fishy/`.
+- [ ] Integrate TankCollider for graceful wall constraints.
+

@@ -23,3 +23,6 @@
 - Introduced `FishBehavior` enum and new behavior-related exports for `BoidFish`.
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
 - Added standalone `fishy/FishProto.tscn` prototyping scene for soft-body tuning.
+- Added `TankCollider` node and collider-based confinement to keep fish
+  from exiting the tank while gliding smoothly along walls.
+
