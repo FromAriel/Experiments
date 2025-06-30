@@ -14,6 +14,8 @@ extends Node2D
 # --------------------------------------------------------------
 enum FishBehavior { SCHOOL, DART, IDLE, CHASE }
 
+enum MovementMode { NORMAL, FLIP_TURN_ENABLED }
+
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 
 # --------------------------------------------------------------
@@ -33,6 +35,9 @@ var BF_environment_IN: TankEnvironment
 var BF_behavior_SH: int = FishBehavior.SCHOOL
 var BF_target_depth_SH: float = 0.0
 var BF_wander_phase_UP: float = 0.0
+var BF_flip_timer_UP: float = 0.0
+var BF_flip_applied_SH: bool = false
+var BF_flip_duration_IN: float = 0.4
 
 
 func _ready() -> void:
@@ -47,7 +52,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-    if BF_velocity_UP != Vector2.ZERO:
+    if BF_flip_timer_UP > 0.0:
+        _BF_update_flip_turn_IN(delta)
+    elif BF_velocity_UP != Vector2.ZERO:
         var turn_speed: float = 5.0
         if BF_archetype_IN != null:
             turn_speed = BF_archetype_IN.FA_turn_speed_IN
@@ -90,3 +97,34 @@ func _BF_apply_depth_IN() -> void:
     var BF_col := modulate
     BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
     modulate = BF_col
+
+
+func _BF_start_flip_turn_IN(duration: float) -> void:
+    BF_flip_duration_IN = duration
+    BF_flip_timer_UP = duration
+    BF_flip_applied_SH = false
+
+
+func _BF_update_flip_turn_IN(delta: float) -> void:
+    BF_flip_timer_UP = max(BF_flip_timer_UP - delta, 0.0)
+    var half := BF_flip_duration_IN * 0.5
+    var sprite: Sprite2D = get_node_or_null("Sprite2D")
+    var sx := 1.0
+    var sy := 1.0
+    if BF_flip_timer_UP > half:
+        var t := 1.0 - (BF_flip_timer_UP - half) / half
+        sx = lerp(1.0, 0.6, t)
+        sy = lerp(1.0, 1.4, t)
+    else:
+        if not BF_flip_applied_SH:
+            BF_flip_applied_SH = true
+            if sprite:
+                sprite.flip_h = not sprite.flip_h
+            BF_velocity_UP = -BF_velocity_UP
+        var t2 := 1.0 - BF_flip_timer_UP / half
+        sx = lerp(0.6, 1.0, t2)
+        sy = lerp(1.4, 1.0, t2)
+    if sprite:
+        sprite.scale = Vector2(sx, sy)
+    if BF_flip_timer_UP == 0.0 and sprite:
+        sprite.scale = Vector2.ONE

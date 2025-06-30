@@ -353,7 +353,21 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     var max_speed: float = lerp(
         BS_config_IN.BC_depth_speed_front, BS_config_IN.BC_depth_speed_back, depth_ratio
     )
-    var desired_vel := (fish.BF_velocity_UP + BS_steer_UP).limit_length(max_speed)
+    var desired_vel: Vector2 = (fish.BF_velocity_UP + BS_steer_UP).limit_length(max_speed)
+
+    if (
+        fish.BF_archetype_IN != null
+        and fish.BF_archetype_IN.FA_movement_mode_IN == FishArchetype.MovementMode.FLIP_TURN_ENABLED
+    ):
+        var angle_diff: float = abs(fish.BF_velocity_UP.angle_to(desired_vel))
+        if (
+            angle_diff > fish.BF_archetype_IN.FA_flip_turn_threshold_IN
+            and fish.BF_flip_timer_UP <= 0.0
+        ):
+            fish._BF_start_flip_turn_IN(fish.BF_archetype_IN.FA_flip_duration_IN)
+        if fish.BF_flip_timer_UP > 0.0:
+            max_speed *= fish.BF_archetype_IN.FA_flip_speed_reduction_IN
+            desired_vel = desired_vel.limit_length(max_speed)
     fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
         desired_vel, BS_config_IN.BC_max_force_IN * delta
     )
