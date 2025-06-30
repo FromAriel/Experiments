@@ -151,7 +151,7 @@ func _physics_process(_delta: float) -> void:
         rotation = head.rotation
 
     _update_depth_visuals()
-    _wrap_position()
+    _constrain_position()
 
 
 # ------------------------------------------------------------------
@@ -165,8 +165,8 @@ func _update_depth_visuals() -> void:
     modulate.a = a
 
 
-# Wrap instead of clamp so fish re-enter smoothly
-func _wrap_position() -> void:
-    global_position.x = wrapf(global_position.x, 0.0, tank_size.x)
-    global_position.y = wrapf(global_position.y, 0.0, tank_size.y)
+# Clamp position to keep fish inside the tank
+func _constrain_position() -> void:
+    global_position.x = clamp(global_position.x, 0.0, tank_size.x)
+    global_position.y = clamp(global_position.y, 0.0, tank_size.y)
     z_depth = clamp(z_depth, 0.0, tank_size.z)
