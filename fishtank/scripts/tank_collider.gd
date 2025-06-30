@@ -35,23 +35,23 @@ func TC_get_rect_IN() -> Rect2:
 
 func TC_confine_IN(fish: BoidFish, delta: float, decel: float) -> void:
     var rect: Rect2 = TC_get_rect_IN()
-    var pos: Vector2 = fish.position
-    var vel: Vector2 = fish.BF_velocity_UP
+    var pos3: Vector3 = fish.BF_position_UP
+    var vel3: Vector3 = fish.BF_velocity_UP
 
-    if pos.x < rect.position.x + TC_margin_IN:
-        vel.x = move_toward(vel.x, 0.0, decel * delta)
-        pos.x = max(pos.x, rect.position.x)
-    elif pos.x > rect.position.x + rect.size.x - TC_margin_IN:
-        vel.x = move_toward(vel.x, 0.0, decel * delta)
-        pos.x = min(pos.x, rect.position.x + rect.size.x)
+    if pos3.x < rect.position.x + TC_margin_IN:
+        vel3.x = move_toward(vel3.x, 0.0, decel * delta)
+        pos3.x = max(pos3.x, rect.position.x)
+    elif pos3.x > rect.position.x + rect.size.x - TC_margin_IN:
+        vel3.x = move_toward(vel3.x, 0.0, decel * delta)
+        pos3.x = min(pos3.x, rect.position.x + rect.size.x)
 
-    if pos.y < rect.position.y + TC_margin_IN:
-        vel.y = move_toward(vel.y, 0.0, decel * delta)
-        pos.y = max(pos.y, rect.position.y)
-    elif pos.y > rect.position.y + rect.size.y - TC_margin_IN:
-        vel.y = move_toward(vel.y, 0.0, decel * delta)
-        pos.y = min(pos.y, rect.position.y + rect.size.y)
-
-    fish.position = pos
-    fish.BF_velocity_UP = vel
+    if pos3.y < rect.position.y + TC_margin_IN:
+        vel3.y = move_toward(vel3.y, 0.0, decel * delta)
+        pos3.y = max(pos3.y, rect.position.y)
+    elif pos3.y > rect.position.y + rect.size.y - TC_margin_IN:
+        vel3.y = move_toward(vel3.y, 0.0, decel * delta)
+        pos3.y = min(pos3.y, rect.position.y + rect.size.y)
+    fish.BF_position_UP = pos3
+    fish.position = Vector2(pos3.x, pos3.y)
+    fish.BF_velocity_UP = vel3
 # gdlint:enable = class-variable-name,function-name
