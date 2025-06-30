@@ -24,3 +24,5 @@
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
 - Added `TankCollider` node and collider-based confinement to keep fish
   from exiting the tank while gliding smoothly along walls.
+- Extended `TankCollider` with proximity-based deceleration and a nudge force
+  so fish gently slide along walls and recover when stuck.

@@ -15,4 +15,6 @@
 - [x] Resolve duplicate TargetFramework build attribute.
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
-- [ ] Integrate TankCollider for graceful wall constraints.
+- [x] Integrate TankCollider for graceful wall constraints.
+- [ ] Polish fish spawning UI.
+- [ ] Tune near-wall sliding and nudging forces.
