@@ -29,6 +29,11 @@ extends Node2D
 @export var BS_hard_margin_IN: float = 20.0
 @export var BS_hard_decel_IN: float = 200.0
 
+# Soft deceleration when nearing walls
+@export var BS_soft_decel_IN: float = 80.0
+# Additional steering back toward the tank center
+@export var BS_wall_nudge_IN: float = 50.0
+
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
 var BS_fish_nodes_SH: Array[BoidFish] = []
@@ -238,7 +243,8 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     )
     steer += wander_vec
 
-    # soft‐wall repulsion
+    # soft‐wall repulsion with slowdown and center bias
+    var wall_factor = 0.0
     if BS_environment_IN != null:
         var b = BS_environment_IN.TE_boundaries_SH
         var eff_min_x = b.position.x + BS_hard_margin_IN
@@ -251,22 +257,40 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         var soft_min_y = eff_min_y + BS_boundary_margin_IN
         var soft_max_y = eff_max_y - BS_boundary_margin_IN
 
+        var push = Vector2.ZERO
+
         if fish.position.x < soft_min_x:
             var d = (soft_min_x - fish.position.x) / BS_boundary_margin_IN
-            steer.x += BS_boundary_force_IN * d
+            push.x += d
+            wall_factor = max(wall_factor, d)
         elif fish.position.x > soft_max_x:
             var d = (fish.position.x - soft_max_x) / BS_boundary_margin_IN
-            steer.x -= BS_boundary_force_IN * d
+            push.x -= d
+            wall_factor = max(wall_factor, d)
 
         if fish.position.y < soft_min_y:
             var dY = (soft_min_y - fish.position.y) / BS_boundary_margin_IN
-            steer.y += BS_boundary_force_IN * dY
+            push.y += dY
+            wall_factor = max(wall_factor, dY)
         elif fish.position.y > soft_max_y:
             var dY = (fish.position.y - soft_max_y) / BS_boundary_margin_IN
-            steer.y -= BS_boundary_force_IN * dY
+            push.y -= dY
+            wall_factor = max(wall_factor, dY)
 
-    # apply movement
-    var velocity = (fish.BF_velocity_UP + steer * delta).limit_length(BS_config_IN.BC_max_speed_IN)
+        if push != Vector2.ZERO:
+            steer += push * BS_boundary_force_IN
+            var center := Vector2(
+                b.position.x + b.size.x * 0.5,
+                b.position.y + b.size.y * 0.5,
+            )
+            steer += (center - fish.position).normalized() * BS_wall_nudge_IN * wall_factor
+
+    # apply movement with smoothing and slowdown near walls
+    var target_vel = (fish.BF_velocity_UP + steer * delta).limit_length(
+        BS_config_IN.BC_max_speed_IN
+    )
+    target_vel = target_vel.move_toward(Vector2.ZERO, BS_soft_decel_IN * wall_factor * delta)
+    var velocity = fish.BF_velocity_UP.lerp(target_vel, clamp(delta * 4.0, 0.0, 1.0))
     fish.position += velocity * delta
     fish.BF_velocity_UP = velocity
 
