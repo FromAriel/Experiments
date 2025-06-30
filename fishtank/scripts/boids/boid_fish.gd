@@ -4,12 +4,19 @@
 # Dependencies     • fish_archetype.gd, tank_environment.gd
 # Last Major Rev   • 24-07-05 – auto-spawn placeholder sprite, null-safety
 ###############################################################
-# gdlint:disable = class-variable-name,function-name,function-variable-name
+# gdlint:disable = class-variable-name,function-name,function-variable-name,class-definitions-order
 
 class_name BoidFish
 extends Node2D
 
-const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
+var BF_prefix_UP := _BF_get_prefix_IN()
+
+
+static func _BF_get_prefix_IN() -> String:
+    if ResourceLoader.exists("res://fishtank/project.godot"):
+        return "res://fishtank/"
+    return "res://"
+
 
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
@@ -44,7 +51,7 @@ func _BF_ensure_visual_IN() -> void:
     var sprite := Sprite2D.new()
     sprite.name = "Sprite2D"
     sprite.centered = true
-    var tex_path := "res://art/ellipse_placeholder.png"
+    var tex_path := BF_prefix_UP + "art/ellipse_placeholder.png"
     if ResourceLoader.exists(tex_path):
         sprite.texture = load(tex_path)
     add_child(sprite)

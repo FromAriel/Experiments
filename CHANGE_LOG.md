@@ -12,3 +12,4 @@
 - Fixed type inference error in BoidSystem affecting build.
 - Added depth-based scaling and randomized z positions for boids.
 - Default population increased to over 50 fish across six groups.
+- Updated Fishtank scripts to resolve resource paths from either standalone or root project.

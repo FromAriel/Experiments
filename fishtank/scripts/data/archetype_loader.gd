@@ -8,21 +8,31 @@
 # Last Major Rev   • 24-06-28 – initial creation
 ###############################################################
 # gdlint:disable = class-variable-name,function-name,function-variable-name,loop-variable-name
+# gdlint:disable = class-definitions-order,max-line-length
 
 class_name ArchetypeLoader
 extends Node
+
+var AL_prefix_UP := _AL_get_prefix_IN()
+
+
+static func _AL_get_prefix_IN() -> String:
+    if ResourceLoader.exists("res://fishtank/project.godot"):
+        return "res://fishtank/"
+    return "res://"
+
 
 var AL_default_texture_IN: Texture2D
 
 
 func _init() -> void:
-    var AL_shape_gen_UP: Node = load("res://art/shape_generator.gd").new()
+    var AL_shape_gen_UP: Node = load(AL_prefix_UP + "art/shape_generator.gd").new()
     AL_shape_gen_UP.SG_generate_shapes_IN()
-    var AL_default_path_UP := "res://art/ellipse_placeholder.png"
+    var AL_default_path_UP := AL_prefix_UP + "art/ellipse_placeholder.png"
     if ResourceLoader.exists(AL_default_path_UP):
         AL_default_texture_IN = load(AL_default_path_UP)
     else:
-        AL_default_texture_IN = preload("res://art/placeholder_fish.png")
+        AL_default_texture_IN = preload(AL_prefix_UP + "art/placeholder_fish.png")
 
 
 func AL_load_archetypes_IN(json_path: String) -> Array[FishArchetype]:

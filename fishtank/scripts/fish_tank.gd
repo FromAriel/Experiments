@@ -6,10 +6,19 @@
 # Dependencies     • archetype_loader.gd, tank_environment.gd
 # Last Major Rev   • 24-07-05 – robust node look-ups, auto-create overlay & system
 ###############################################################
-# gdlint:disable = class-variable-name,function-name,function-variable-name
+# gdlint:disable = class-variable-name,function-name,function-variable-name,class-definitions-order
 
 class_name FishTank
 extends Node2D
+
+var FT_prefix_UP := _FT_get_prefix_IN()
+
+
+static func _FT_get_prefix_IN() -> String:
+    if ResourceLoader.exists("res://fishtank/project.godot"):
+        return "res://fishtank/"
+    return "res://"
+
 
 @export var FT_environment_IN: TankEnvironment
 var FT_overlay_label_UP: Label
@@ -25,7 +34,9 @@ func _ready() -> void:
 
     # --- Load archetypes ----------------------------------------------------
     var FT_loader_IN := ArchetypeLoader.new()
-    var FT_archetypes_UP := FT_loader_IN.AL_load_archetypes_IN("res://data/archetypes.json")
+    var FT_archetypes_UP := FT_loader_IN.AL_load_archetypes_IN(
+        FT_prefix_UP + "data/archetypes.json"
+    )
 
     # --- Boid system --------------------------------------------------------
     var FT_boid_system_UP: BoidSystem = get_node_or_null("BoidSystem")
@@ -95,7 +106,9 @@ func _FT_update_environment_bounds_IN() -> void:
         FT_rect_UP.size.x, FT_rect_UP.size.y, FT_environment_IN.TE_size_IN.z
     )
     FT_environment_IN.TE_boundaries_SH = AABB(
-        Vector3(FT_rect_UP.position.x, FT_rect_UP.position.y, -FT_environment_IN.TE_size_IN.z / 2.0),
+        Vector3(
+            FT_rect_UP.position.x, FT_rect_UP.position.y, -FT_environment_IN.TE_size_IN.z / 2.0
+        ),
         FT_environment_IN.TE_size_IN
     )
 # gdlint:enable = class-variable-name,function-name,function-variable-name
