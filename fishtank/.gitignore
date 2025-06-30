@@ -11,6 +11,7 @@ obj/
 .vs/
 
 # User-specific metadata
+ZZZScriptCompilation.txt
 *.csproj.user
 
 # Temporary files in ui and tools directories
