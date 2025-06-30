@@ -13,3 +13,4 @@
 - Added depth-based scaling and randomized z positions for boids.
 - Default population increased to over 50 fish across six groups.
 - Added gentle boundary bounce logic to keep fish from leaving the screen.
+- Removed old subproject file and updated paths so BoidSystemConfig loads.

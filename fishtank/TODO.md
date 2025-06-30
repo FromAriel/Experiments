@@ -16,3 +16,4 @@
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add boundary bounce to keep fish from leaving the screen.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
+- [x] Remove nested project.godot and correct resource paths.

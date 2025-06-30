@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://kfoqp1krcof3"]
 
-[ext_resource type="Script" uid="uid://bsx7rq6kme2hm" path="res://scripts/fish_tank.gd" id="1"]
-[ext_resource type="Script" uid="uid://c5bs0pwcc1srx" path="res://scripts/boids/boid_system.gd" id="2"]
+[ext_resource type="Script" uid="uid://bsx7rq6kme2hm" path="res://fishtank/scripts/fish_tank.gd" id="1"]
+[ext_resource type="Script" uid="uid://c5bs0pwcc1srx" path="res://fishtank/scripts/boids/boid_system.gd" id="2"]
 
 [sub_resource type="Resource" id="1"]
 

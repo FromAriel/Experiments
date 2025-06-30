@@ -13,7 +13,7 @@
 class_name BoidSystem
 extends Node2D
 
-const BS_BOID_FISH_SCRIPT_UP := preload("res://scripts/boids/boid_fish.gd")
+const BS_BOID_FISH_SCRIPT_UP := preload("res://fishtank/scripts/boids/boid_fish.gd")
 
 @export var BS_config_IN: BoidSystemConfig
 @export var BS_fish_scene_IN: PackedScene
@@ -75,7 +75,7 @@ func _BS_ensure_fish_scene_exists_IN() -> void:
     var root := BS_BOID_FISH_SCRIPT_UP.new() as Node2D
     var sprite := Sprite2D.new()
     sprite.centered = true
-    var tex_path := "res://art/ellipse_placeholder.png"
+    var tex_path := "res://fishtank/art/ellipse_placeholder.png"
     if ResourceLoader.exists(tex_path):
         sprite.texture = load(tex_path)
     root.add_child(sprite)

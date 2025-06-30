@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://art/ellipse_placeholder.png"
+source_file="res://fishtank/art/ellipse_placeholder.png"
 dest_files=["res://.godot/imported/ellipse_placeholder.png-2d64f291773569a90860586630f9429e.ctex"]
 
 [params]

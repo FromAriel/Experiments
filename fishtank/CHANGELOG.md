@@ -24,3 +24,4 @@
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
 - Added gentle boundary damping and bounce to BoidSystem so fish slow before
   the wall and turn back.
+- Fixed missing BoidSystemConfig by removing subproject project.godot.

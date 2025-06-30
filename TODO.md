@@ -5,3 +5,4 @@
 - [x] Improved boundary deceleration and bounce to keep fish inside the tank.
 - [ ] Verify depth scaling across 6 fish groups with 50+ population.
 - [x] Resolve BoidSystem type inference error.
+- [x] Remove stray project.godot and update resource paths.

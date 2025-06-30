@@ -10,12 +10,13 @@
 class_name ShapeGenerator
 extends Node
 
-const SG_ART_DIR := "res://art"
+const SG_ART_DIR := "res://fishtank/art"
 
 
 func SG_generate_shapes_IN() -> void:
     # Make sure the art directory exists (important on a fresh checkout / export).
-    var SG_dir_err := DirAccess.make_dir_recursive(SG_ART_DIR)
+    var SG_art_path := ProjectSettings.globalize_path(SG_ART_DIR)
+    var SG_dir_err := DirAccess.make_dir_recursive_absolute(SG_art_path)
     if SG_dir_err != OK and SG_dir_err != ERR_ALREADY_EXISTS:
         push_error("ShapeGenerator: Cannot create directory %s (err %d)" % [SG_ART_DIR, SG_dir_err])
         return

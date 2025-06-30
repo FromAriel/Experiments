@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://art/triangle_placeholder.png"
+source_file="res://fishtank/art/triangle_placeholder.png"
 dest_files=["res://.godot/imported/triangle_placeholder.png-e776d489aca22b73b1b7118ebac86558.ctex"]
 
 [params]

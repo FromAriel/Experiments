@@ -9,7 +9,7 @@
 class_name BoidFish
 extends Node2D
 
-const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
+const TankEnvironment = preload("res://fishtank/scripts/data/tank_environment.gd")
 
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
@@ -44,7 +44,7 @@ func _BF_ensure_visual_IN() -> void:
     var sprite := Sprite2D.new()
     sprite.name = "Sprite2D"
     sprite.centered = true
-    var tex_path := "res://art/ellipse_placeholder.png"
+    var tex_path := "res://fishtank/art/ellipse_placeholder.png"
     if ResourceLoader.exists(tex_path):
         sprite.texture = load(tex_path)
     add_child(sprite)

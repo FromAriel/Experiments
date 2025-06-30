@@ -16,13 +16,13 @@ var AL_default_texture_IN: Texture2D
 
 
 func _init() -> void:
-    var AL_shape_gen_UP: Node = load("res://art/shape_generator.gd").new()
+    var AL_shape_gen_UP: Node = load("res://fishtank/art/shape_generator.gd").new()
     AL_shape_gen_UP.SG_generate_shapes_IN()
-    var AL_default_path_UP := "res://art/ellipse_placeholder.png"
+    var AL_default_path_UP := "res://fishtank/art/ellipse_placeholder.png"
     if ResourceLoader.exists(AL_default_path_UP):
         AL_default_texture_IN = load(AL_default_path_UP)
     else:
-        AL_default_texture_IN = preload("res://art/placeholder_fish.png")
+        AL_default_texture_IN = preload("res://fishtank/art/placeholder_fish.png")
 
 
 func AL_load_archetypes_IN(json_path: String) -> Array[FishArchetype]:
