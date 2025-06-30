@@ -35,8 +35,8 @@ func TC_get_rect_IN() -> Rect2:
 
 func TC_confine_IN(fish: BoidFish, delta: float, decel: float) -> void:
     var rect: Rect2 = TC_get_rect_IN()
-    var pos: Vector2 = fish.position
-    var vel: Vector2 = fish.BF_velocity_UP
+    var pos: Vector2 = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
+    var vel: Vector3 = fish.BF_velocity_UP
 
     if pos.x < rect.position.x + TC_margin_IN:
         vel.x = move_toward(vel.x, 0.0, decel * delta)
@@ -52,6 +52,8 @@ func TC_confine_IN(fish: BoidFish, delta: float, decel: float) -> void:
         vel.y = move_toward(vel.y, 0.0, decel * delta)
         pos.y = min(pos.y, rect.position.y + rect.size.y)
 
+    fish.BF_position_UP.x = pos.x
+    fish.BF_position_UP.y = pos.y
     fish.position = pos
     fish.BF_velocity_UP = vel
 # gdlint:enable = class-variable-name,function-name
