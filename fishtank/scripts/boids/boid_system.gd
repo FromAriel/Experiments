@@ -546,8 +546,8 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
     )
     if near_edge or outside:
 
-        var center3 := b.position + b.size * 0.5
-        var push3 := (center3 - fish.BF_position_UP).normalized()
+        var center3 :Vector3= b.position + b.size * 0.5
+        var push3 :Vector3= (center3 - fish.BF_position_UP).normalized()
 
 
         fish.BF_velocity_UP = (
