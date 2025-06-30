@@ -5,9 +5,17 @@
 
 [sub_resource type="Resource" id="1"]
 
+[sub_resource type="RectangleShape2D" id="2"]
+size = Vector2(800, 450)
+
 [node name="FishTank" type="Node2D"]
 script = ExtResource("1")
 FT_environment_IN = SubResource("1")
+
+[node name="Tank" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Tank"]
+shape = SubResource("2")
 
 [node name="BoidSystem" type="Node2D" parent="."]
 script = ExtResource("2")

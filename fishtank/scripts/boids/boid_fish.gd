@@ -11,6 +11,8 @@ extends Node2D
 
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 
+@export var BF_turn_speed_IN: float = 4.0
+
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
 var BF_group_id_SH: int = 0
@@ -24,9 +26,10 @@ func _ready() -> void:
     _BF_ensure_visual_IN()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
+        var target_angle := BF_velocity_UP.angle()
+        rotation = lerp_angle(rotation, target_angle, BF_turn_speed_IN * delta)
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
