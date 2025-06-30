@@ -71,7 +71,19 @@ func FT_apply_depth_IN(node: Node2D, depth: float) -> void:
 
 
 func _FT_update_environment_bounds_IN() -> void:
-    var FT_tank_UP: Area2D = get_node_or_null("Tank")
+    var FT_tank_UP: Node2D = get_node_or_null("Tank")
+    if FT_tank_UP is TankCollider:
+        var FT_rect_UP: Rect2 = (FT_tank_UP as TankCollider).TC_get_bounds_IN()
+        FT_environment_IN.TE_size_IN = Vector3(
+            FT_rect_UP.size.x, FT_rect_UP.size.y, FT_environment_IN.TE_size_IN.z
+        )
+        FT_environment_IN.TE_boundaries_SH = AABB(
+            Vector3(
+                FT_rect_UP.position.x, FT_rect_UP.position.y, -FT_environment_IN.TE_size_IN.z / 2.0
+            ),
+            FT_environment_IN.TE_size_IN
+        )
+        return
     if FT_tank_UP and FT_tank_UP.has_node("CollisionShape2D"):
         var FT_collision_shape_UP: CollisionShape2D = (
             FT_tank_UP.get_node("CollisionShape2D") as CollisionShape2D
@@ -94,8 +106,9 @@ func _FT_update_environment_bounds_IN() -> void:
     FT_environment_IN.TE_size_IN = Vector3(
         FT_rect_UP.size.x, FT_rect_UP.size.y, FT_environment_IN.TE_size_IN.z
     )
+    var FT_origin_vec_UP = Vector2(FT_rect_UP.position.x, FT_rect_UP.position.y)
     FT_environment_IN.TE_boundaries_SH = AABB(
-        Vector3(FT_rect_UP.position.x, FT_rect_UP.position.y, -FT_environment_IN.TE_size_IN.z / 2.0),
+        Vector3(FT_origin_vec_UP.x, FT_origin_vec_UP.y, -FT_environment_IN.TE_size_IN.z / 2.0),
         FT_environment_IN.TE_size_IN
     )
 # gdlint:enable = class-variable-name,function-name,function-variable-name

@@ -22,3 +22,4 @@
 - Improved boid steering using spatial grid, separation distance, and wander.
 - Introduced `FishBehavior` enum and new behavior-related exports for `BoidFish`.
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
+- Added `TankCollider` node and script to enforce tank boundaries with gentle wall sliding.
