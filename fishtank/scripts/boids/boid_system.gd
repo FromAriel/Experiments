@@ -36,9 +36,9 @@ extends Node2D
 
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
+@export var BS_reveal_batch_IN: int = 4
+@export var BS_reveal_speed_IN: float = 3.0
 var BS_fish_nodes_SH: Array[BoidFish] = []
-# gdlint:ignore-start
-
 var BS_group_colors := [
     # gdlint:ignore = max-line-length
     Color(1, 0, 0),
@@ -50,6 +50,7 @@ var BS_group_colors := [
 ]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+var BS_hidden_fish_SH: Array[BoidFish] = []
 
 # gdlint:ignore-end
 
@@ -129,12 +130,18 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     var ci = fish.BF_group_id_SH % BS_group_colors.size()
     fish.modulate = BS_group_colors[ci]
     fish.BF_archetype_IN = arch
+    fish.scale = Vector2.ONE * 0.2
+    var col := fish.modulate
+    col.a = 0.0
+    fish.modulate = col
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
+    BS_hidden_fish_SH.append(fish)
 
 
 func _physics_process(delta: float) -> void:
     _BS_update_grid_IN()
+    _BS_update_fish_reveal_IN(delta)
     for fish in BS_fish_nodes_SH:
         _BS_update_fish_IN(fish, delta)
         if BS_collider_IN != null:
@@ -152,6 +159,23 @@ func _BS_update_grid_IN() -> void:
         if not BS_grid_SH.has(cell):
             BS_grid_SH[cell] = []
         BS_grid_SH[cell].append(fish)
+
+
+func _BS_update_fish_reveal_IN(delta: float) -> void:
+    if BS_hidden_fish_SH.is_empty():
+        return
+    var show_count = min(BS_reveal_batch_IN, BS_hidden_fish_SH.size())
+    var remove_indices: Array[int] = []
+    for i in range(show_count):
+        var f: BoidFish = BS_hidden_fish_SH[i]
+        f.scale = f.scale.move_toward(Vector2.ONE, BS_reveal_speed_IN * delta)
+        var col := f.modulate
+        col.a = move_toward(col.a, 1.0, BS_reveal_speed_IN * delta)
+        f.modulate = col
+        if f.scale == Vector2.ONE and is_equal_approx(col.a, 1.0):
+            remove_indices.append(i)
+    for idx in range(remove_indices.size() - 1, -1, -1):
+        BS_hidden_fish_SH.remove_at(remove_indices[idx])
 
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
