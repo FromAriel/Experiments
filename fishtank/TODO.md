@@ -12,6 +12,7 @@
 - [x] Add boid behavior system.
 - Create UI for spawning fish.
 - [x] Verify spawn location and boundary sanity checks for fish.
+- [x] Stagger fish spawns in randomized batches.
 - [x] Resolve duplicate TargetFramework build attribute.
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
