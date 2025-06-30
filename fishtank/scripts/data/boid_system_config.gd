@@ -23,6 +23,13 @@ Configurable constants controlling the default boid behavior parameters.
 @export var BC_default_wander_IN: float = 0.5
 @export var BC_max_speed_IN: float = 200.0
 @export var BC_max_force_IN: float = 50.0
+@export var BC_soft_contain_k: float = 5.0
+@export var BC_reflect_damping: float = 0.8
+@export var BC_noise_freq_base: float = 1.0
+@export var BC_thread_threshold: int = 300
+@export var BC_depth_speed_front: float = 200.0
+@export var BC_depth_speed_back: float = 120.0
+@export var BS_boundary_mode_IN: int = 1
 @export var BC_fish_count_min_IN: int = 50
 @export var BC_fish_count_max_IN: int = 60
 @export var BC_archetype_count_min_IN: int = 3

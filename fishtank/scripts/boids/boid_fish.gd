@@ -9,13 +9,24 @@
 class_name BoidFish
 extends Node2D
 
+enum FishBehavior {
+    SCHOOL,
+    DART,
+    IDLE,
+    CHASE,
+}
+
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 
+@export var BF_depth_lerp_speed_IN: float = 1.0
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
 var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
 var BF_depth_UP: float = 0.0
+var BF_target_depth_SH: float = 0.0
+var BF_wander_phase_UP: float = 0.0
+var BF_behavior_SH: int = FishBehavior.SCHOOL
 var BF_environment_IN: TankEnvironment
 
 
@@ -24,12 +35,14 @@ func _ready() -> void:
     _BF_ensure_visual_IN()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
+        rotation = lerp_angle(
+            rotation, BF_velocity_UP.angle(), BF_archetype_IN.FA_turn_speed_IN * delta
+        )
 
     if BF_environment_IN != null:
-        _BF_apply_depth_IN()
+        _BF_apply_depth_IN(delta)
 
 
 # --------------------------------------------------------------
@@ -50,7 +63,12 @@ func _BF_ensure_visual_IN() -> void:
     add_child(sprite)
 
 
-func _BF_apply_depth_IN() -> void:
+func _BF_apply_depth_IN(delta: float) -> void:
+    if abs(BF_depth_UP - BF_target_depth_SH) < 0.01:
+        BF_target_depth_SH = randf_range(0.0, BF_environment_IN.TE_size_IN.z)
+
+    BF_depth_UP = lerp(BF_depth_UP, BF_target_depth_SH, BF_depth_lerp_speed_IN * delta)
+
     var BF_ratio_UP: float = clamp(
         (BF_environment_IN.TE_size_IN.z - BF_depth_UP) / BF_environment_IN.TE_size_IN.z,
         0.0,
@@ -64,4 +82,7 @@ func _BF_apply_depth_IN() -> void:
     # Tint / opacity
     var BF_col := modulate
     BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
+    BF_col.r = lerp(1.0, 0.5, BF_ratio_UP)
+    BF_col.g = lerp(1.0, 0.5, BF_ratio_UP)
+    BF_col.b = lerp(1.0, 0.5, BF_ratio_UP)
     modulate = BF_col

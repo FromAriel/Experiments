@@ -34,8 +34,12 @@ extends Node2D
 # Additional steering back toward the tank center
 @export var BS_wall_nudge_IN: float = 50.0
 
+@export var BS_home_radius_IN: float = 200.0
+@export var BS_home_pull_IN: float = 10.0
+
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
+@export var BS_boundary_mode_IN: int = 1
 var BS_fish_nodes_SH: Array[BoidFish] = []
 # gdlint:ignore-start
 
@@ -50,6 +54,9 @@ var BS_group_colors := [
 ]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+var BS_noise_UP := OpenSimplexNoise.new()
+var BS_wander_weight_UP: float = 1.0
+var BS_group_centers_SH: Dictionary = {}
 
 # gdlint:ignore-end
 
@@ -69,6 +76,12 @@ func _ready() -> void:
         if tc_node is TankCollider:
             BS_collider_IN = tc_node
     BS_rng_UP.randomize()
+    BS_noise_UP.seed = BS_rng_UP.randi()
+    BS_noise_UP.period = 1.0 / max(BS_config_IN.BC_noise_freq_base, 0.001)
+    BS_wander_weight_UP = BS_config_IN.BC_default_wander_IN
+    BS_boundary_mode_IN = BS_config_IN.BS_boundary_mode_IN
+    for i in range(BS_group_count_IN):
+        BS_group_centers_SH[i] = Vector2.ZERO
 
 
 func _BS_ensure_fish_scene_exists_IN() -> void:
@@ -129,12 +142,16 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     var ci = fish.BF_group_id_SH % BS_group_colors.size()
     fish.modulate = BS_group_colors[ci]
     fish.BF_archetype_IN = arch
+    fish.BF_behavior_SH = arch.FA_behavior_IN
+    fish.BF_target_depth_SH = fish.BF_depth_UP + arch.FA_depth_variance_IN
+    fish.BF_wander_phase_UP = BS_rng_UP.randf_range(0.0, 100.0)
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
 
 
 func _physics_process(delta: float) -> void:
     _BS_update_grid_IN()
+    _BS_update_group_centers_IN()
     for fish in BS_fish_nodes_SH:
         _BS_update_fish_IN(fish, delta)
         if BS_collider_IN != null:
@@ -152,6 +169,43 @@ func _BS_update_grid_IN() -> void:
         if not BS_grid_SH.has(cell):
             BS_grid_SH[cell] = []
         BS_grid_SH[cell].append(fish)
+
+
+func _BS_update_group_centers_IN() -> void:
+    for g in range(BS_group_count_IN):
+        var sum := Vector2.ZERO
+        var count := 0
+        for fish in BS_fish_nodes_SH:
+            if fish.BF_group_id_SH == g:
+                sum += fish.position
+                count += 1
+        if count > 0:
+            var avg = sum / count
+            if BS_group_centers_SH.has(g):
+                BS_group_centers_SH[g] = BS_group_centers_SH[g].lerp(avg, 0.05)
+            else:
+                BS_group_centers_SH[g] = avg
+
+
+func _BS_apply_behavior_IN(fish: BoidFish, _delta: float, steer: Vector2) -> Vector2:
+    match fish.BF_behavior_SH:
+        FishBehavior.DART:
+            if BS_rng_UP.randf() < 0.05:
+                steer += (
+                    Vector2(BS_rng_UP.randf_range(-1, 1), BS_rng_UP.randf_range(-1, 1))
+                    * fish.BF_archetype_IN.FA_burst_speed_IN
+                )
+        FishBehavior.IDLE:
+            steer *= fish.BF_archetype_IN.FA_idle_jitter_IN
+        FishBehavior.CHASE:
+            var target := _BS_choose_target_IN(fish)
+            var chase_vec := (target - fish.position).normalized()
+            steer += chase_vec * fish.BF_archetype_IN.FA_burst_speed_IN
+    return steer
+
+
+func _BS_choose_target_IN(_fish: BoidFish) -> Vector2:
+    return Vector2.ZERO
 
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
@@ -235,13 +289,25 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     else:
         fish.BF_isolated_timer_UP += delta
 
-    # wander
-    var wander_vec = (
-        Vector2(BS_rng_UP.randf_range(-1.0, 1.0), BS_rng_UP.randf_range(-1.0, 1.0)).normalized()
-        * BS_config_IN.BC_default_wander_IN
-        * BS_config_IN.BC_max_force_IN
+    steer = _BS_apply_behavior_IN(fish, delta, steer)
+
+    fish.BF_wander_phase_UP += fish.BF_archetype_IN.FA_wander_speed_IN * delta
+    var wander_vec := (
+        (
+            Vector2(
+                BS_noise_UP.get_noise_2d(fish.BF_wander_phase_UP, 0.0),
+                BS_noise_UP.get_noise_2d(0.0, fish.BF_wander_phase_UP)
+            )
+            . normalized()
+        )
+        * BS_wander_weight_UP
     )
     steer += wander_vec
+
+    if BS_group_centers_SH.has(fish.BF_group_id_SH):
+        var home := BS_group_centers_SH[fish.BF_group_id_SH]
+        if fish.position.distance_to(home) > BS_home_radius_IN:
+            steer += (home - fish.position).normalized() * BS_home_pull_IN
 
     # soft‐wall repulsion with slowdown and center bias
     var wall_factor = 0.0
@@ -286,9 +352,11 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             steer += (center - fish.position).normalized() * BS_wall_nudge_IN * wall_factor
 
     # apply movement with smoothing and slowdown near walls
-    var target_vel = (fish.BF_velocity_UP + steer * delta).limit_length(
-        BS_config_IN.BC_max_speed_IN
-    )
+    var max_speed = BS_config_IN.BC_max_speed_IN
+    if BS_environment_IN != null:
+        var ratio := fish.BF_depth_UP / BS_environment_IN.TE_size_IN.z
+        max_speed = lerp(BS_config_IN.BC_depth_speed_front, BS_config_IN.BC_depth_speed_back, ratio)
+    var target_vel = (fish.BF_velocity_UP + steer * delta).limit_length(max_speed)
     target_vel = target_vel.move_toward(Vector2.ZERO, BS_soft_decel_IN * wall_factor * delta)
     var velocity = fish.BF_velocity_UP.lerp(target_vel, clamp(delta * 4.0, 0.0, 1.0))
     fish.position += velocity * delta
@@ -319,6 +387,22 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             fish.position.y = eff_max_y2
             if fish.BF_velocity_UP.y > 0:
                 fish.BF_velocity_UP.y = max(fish.BF_velocity_UP.y - BS_hard_decel_IN * delta, 0)
+
+        match BS_boundary_mode_IN:
+            2:
+                if fish.position.x <= eff_min_x2 or fish.position.x >= eff_max_x2:
+                    fish.BF_velocity_UP.x *= -BS_config_IN.BC_reflect_damping
+                if fish.position.y <= eff_min_y2 or fish.position.y >= eff_max_y2:
+                    fish.BF_velocity_UP.y *= -BS_config_IN.BC_reflect_damping
+            3:
+                if fish.position.x < eff_min_x2:
+                    fish.position.x = eff_max_x2
+                elif fish.position.x > eff_max_x2:
+                    fish.position.x = eff_min_x2
+                if fish.position.y < eff_min_y2:
+                    fish.position.y = eff_max_y2
+                elif fish.position.y > eff_max_y2:
+                    fish.position.y = eff_min_y2
 
     # depth jitter (fakey z)
     var max_z = 0.0
