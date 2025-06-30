@@ -32,7 +32,11 @@ func _ready() -> void:
     if FT_boid_system_UP == null:
         FT_boid_system_UP = BoidSystem.new()
         FT_boid_system_UP.name = "BoidSystem"
+        FT_boid_system_UP.BS_environment_IN = FT_environment_IN
         add_child(FT_boid_system_UP)
+
+    if FT_boid_system_UP.BS_environment_IN == null:
+        FT_boid_system_UP.BS_environment_IN = FT_environment_IN
 
     if FT_boid_system_UP.BS_config_IN == null:
         FT_boid_system_UP.BS_config_IN = BoidSystemConfig.new()

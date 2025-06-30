@@ -24,3 +24,5 @@
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
 - Added `TankCollider` node and collider-based confinement to keep fish
   from exiting the tank while gliding smoothly along walls.
+- Ensured `BoidSystem` uses the environment when spawned at runtime so fish
+  start at the tank center instead of the top-left corner.
