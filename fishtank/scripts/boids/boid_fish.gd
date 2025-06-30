@@ -26,11 +26,11 @@ const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 # --------------------------------------------------------------
 # Vars
 # --------------------------------------------------------------
-var BF_velocity_UP: Vector2 = Vector2.ZERO
+var BF_position_UP: Vector3 = Vector3.ZERO
+var BF_velocity_UP: Vector3 = Vector3.ZERO
 var BF_archetype_IN: FishArchetype
 var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
-var BF_depth_UP: float = 0.0
 var BF_environment_IN: TankEnvironment
 var BF_behavior_SH: int = FishBehavior.SCHOOL
 var BF_target_depth_SH: float = 0.0
@@ -46,7 +46,7 @@ func _ready() -> void:
     var rng := RandomNumberGenerator.new()
     rng.randomize()
     BF_wander_phase_UP = rng.randf_range(0.0, TAU)
-    BF_target_depth_SH = BF_depth_UP
+    BF_target_depth_SH = BF_position_UP.z
     if BF_archetype_IN != null:
         BF_behavior_SH = BF_archetype_IN.FA_behavior_IN
 
@@ -54,11 +54,15 @@ func _ready() -> void:
 func _process(delta: float) -> void:
     if BF_flip_timer_UP > 0.0:
         _BF_update_flip_turn_IN(delta)
-    elif BF_velocity_UP != Vector2.ZERO:
+    elif BF_velocity_UP != Vector3.ZERO:
         var turn_speed: float = 5.0
         if BF_archetype_IN != null:
             turn_speed = BF_archetype_IN.FA_turn_speed_IN
-        rotation = lerp_angle(rotation, BF_velocity_UP.angle(), turn_speed * delta)
+        rotation = lerp_angle(
+            rotation,
+            Vector2(BF_velocity_UP.x, BF_velocity_UP.y).angle(),
+            turn_speed * delta,
+        )
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
@@ -84,7 +88,7 @@ func _BF_ensure_visual_IN() -> void:
 
 func _BF_apply_depth_IN() -> void:
     var BF_ratio_UP: float = clamp(
-        (BF_environment_IN.TE_size_IN.z - BF_depth_UP) / BF_environment_IN.TE_size_IN.z,
+        (BF_environment_IN.TE_size_IN.z - BF_position_UP.z) / BF_environment_IN.TE_size_IN.z,
         0.0,
         1.0,
     )
