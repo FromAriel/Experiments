@@ -15,3 +15,4 @@
 - [x] Resolve duplicate TargetFramework build attribute.
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
+- [ ] Soft-body fish prototype scene for tuning segment springs.
