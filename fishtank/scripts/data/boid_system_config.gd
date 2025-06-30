@@ -28,4 +28,11 @@ Configurable constants controlling the default boid behavior parameters.
 @export var BC_archetype_count_min_IN: int = 3
 @export var BC_archetype_count_max_IN: int = 5
 @export var BC_misc_params_SH: Dictionary = {}
+@export var BC_soft_contain_k: float = 2.0
+@export var BC_reflect_damping: float = 0.8
+@export var BC_noise_freq_base: float = 1.0
+@export var BC_thread_threshold: int = 500
+@export var BC_depth_speed_front: float = 200.0
+@export var BC_depth_speed_back: float = 80.0
+@export var BS_boundary_mode_IN: int = 1
 # gdlint:enable = class-variable-name

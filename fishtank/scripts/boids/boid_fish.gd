@@ -10,6 +10,7 @@ class_name BoidFish
 extends Node2D
 
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
+const FishBehavior = preload("res://scripts/data/fish_behavior.gd")
 
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
@@ -17,6 +18,10 @@ var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
 var BF_depth_UP: float = 0.0
 var BF_environment_IN: TankEnvironment
+var BF_behavior_SH: int = 0
+var BF_target_depth_SH: float = 0.0
+var BF_wander_phase_UP: float = 0.0
+var BF_depth_lerp_speed_IN: float = 1.0
 
 
 func _ready() -> void:
@@ -24,12 +29,18 @@ func _ready() -> void:
     _BF_ensure_visual_IN()
 
 
-func _process(_delta: float) -> void:
-    if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
+func _process(delta: float) -> void:
+    if BF_velocity_UP != Vector2.ZERO and BF_archetype_IN != null:
+        rotation = lerp_angle(
+            rotation, BF_velocity_UP.angle(), BF_archetype_IN.FA_turn_speed_IN * delta
+        )
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
+
+    var anim_player := get_node_or_null("AnimationPlayer") as AnimationPlayer
+    if anim_player != null:
+        anim_player.speed_scale = BF_velocity_UP.length() / 200.0
 
 
 # --------------------------------------------------------------
@@ -51,17 +62,15 @@ func _BF_ensure_visual_IN() -> void:
 
 
 func _BF_apply_depth_IN() -> void:
-    var BF_ratio_UP: float = clamp(
-        (BF_environment_IN.TE_size_IN.z - BF_depth_UP) / BF_environment_IN.TE_size_IN.z,
-        0.0,
-        1.0,
-    )
-
-    # Scale
-    var BF_scale_UP: float = lerp(0.5, 1.0, BF_ratio_UP)
+    if BF_environment_IN == null:
+        return
+    var BF_ratio_UP: float = clamp(BF_depth_UP / BF_environment_IN.TE_size_IN.z, 0.0, 1.0)
+    var BF_scale_UP: float = lerp(1.0, 0.5, BF_ratio_UP)
     scale = Vector2.ONE * BF_scale_UP
-
-    # Tint / opacity
-    var BF_col := modulate
-    BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
+    var BF_col := Color(
+        1.0 - BF_ratio_UP * 0.5,
+        1.0 - BF_ratio_UP * 0.5,
+        1.0 - BF_ratio_UP * 0.5,
+        lerp(1.0, 0.4, BF_ratio_UP)
+    )
     modulate = BF_col

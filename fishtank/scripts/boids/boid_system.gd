@@ -13,6 +13,8 @@
 class_name BoidSystem
 extends Node2D
 
+const FishBehavior = preload("res://scripts/data/fish_behavior.gd")
+
 @export var BS_config_IN: BoidSystemConfig
 @export var BS_fish_scene_IN: PackedScene
 @export var BS_neighbor_radius_IN: float = 80.0
@@ -36,7 +38,11 @@ extends Node2D
 
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
+@export var BS_boundary_mode_IN: int = 1
+@export var BS_group_home_radius_IN: float = 200.0
+@export var BS_home_pull_strength_IN: float = 50.0
 var BS_fish_nodes_SH: Array[BoidFish] = []
+var BS_group_centers_UP: Dictionary = {}
 # gdlint:ignore-start
 
 var BS_group_colors := [
@@ -50,6 +56,7 @@ var BS_group_colors := [
 ]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+var BS_noise_UP := FastNoiseLite.new()
 
 # gdlint:ignore-end
 
@@ -69,6 +76,8 @@ func _ready() -> void:
         if tc_node is TankCollider:
             BS_collider_IN = tc_node
     BS_rng_UP.randomize()
+    BS_noise_UP.seed = BS_rng_UP.randi()
+    BS_noise_UP.frequency = BS_config_IN.BC_noise_freq_base
 
 
 func _BS_ensure_fish_scene_exists_IN() -> void:
@@ -129,6 +138,9 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     var ci = fish.BF_group_id_SH % BS_group_colors.size()
     fish.modulate = BS_group_colors[ci]
     fish.BF_archetype_IN = arch
+    fish.BF_behavior_SH = arch.FA_behavior_IN
+    fish.BF_target_depth_SH = fish.BF_depth_UP
+    fish.BF_depth_lerp_speed_IN = 1.0
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
 
@@ -144,6 +156,8 @@ func _physics_process(delta: float) -> void:
 
 func _BS_update_grid_IN() -> void:
     BS_grid_SH.clear()
+    var group_pos: Dictionary = {}
+    var group_count: Dictionary = {}
     for fish in BS_fish_nodes_SH:
         var cell = Vector2i(
             floor(fish.position.x / BS_grid_cell_size_IN),
@@ -153,8 +167,22 @@ func _BS_update_grid_IN() -> void:
             BS_grid_SH[cell] = []
         BS_grid_SH[cell].append(fish)
 
+        var g = fish.BF_group_id_SH
+        group_pos[g] = group_pos.get(g, Vector2.ZERO) + fish.position
+        group_count[g] = group_count.get(g, 0) + 1
+
+    for g in group_pos.keys():
+        var avg = group_pos[g] / group_count[g]
+        var cur = BS_group_centers_UP.get(g, avg)
+        BS_group_centers_UP[g] = cur.lerp(avg, 0.05)
+
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
+    var BS_steer_UP := _BS_apply_behavior_IN(fish, delta)
+    var g_center = BS_group_centers_UP.get(fish.BF_group_id_SH, fish.position)
+    if fish.position.distance_to(g_center) > BS_group_home_radius_IN:
+        BS_steer_UP += (g_center - fish.position).normalized() * BS_home_pull_strength_IN
+
     # gather neighbor sums
     var same_sep = Vector2.ZERO
     var same_ali = Vector2.ZERO
@@ -210,7 +238,7 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         use_count = all_count
         weight_mult = 1.0
 
-    var steer = Vector2.ZERO
+    var steer: Vector2 = BS_steer_UP
     if use_count > 0:
         # alignment
         var ali_vec = (
@@ -235,11 +263,17 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     else:
         fish.BF_isolated_timer_UP += delta
 
-    # wander
-    var wander_vec = (
-        Vector2(BS_rng_UP.randf_range(-1.0, 1.0), BS_rng_UP.randf_range(-1.0, 1.0)).normalized()
+    # wander noise
+    fish.BF_wander_phase_UP += fish.BF_archetype_IN.FA_wander_speed_IN * delta
+    var wander_vec := (
+        (
+            Vector2(
+                BS_noise_UP.get_noise_2d(fish.BF_wander_phase_UP, 0.0),
+                BS_noise_UP.get_noise_2d(0.0, fish.BF_wander_phase_UP)
+            )
+            . normalized()
+        )
         * BS_config_IN.BC_default_wander_IN
-        * BS_config_IN.BC_max_force_IN
     )
     steer += wander_vec
 
@@ -285,48 +319,68 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             )
             steer += (center - fish.position).normalized() * BS_wall_nudge_IN * wall_factor
 
-    # apply movement with smoothing and slowdown near walls
-    var target_vel = (fish.BF_velocity_UP + steer * delta).limit_length(
-        BS_config_IN.BC_max_speed_IN
+    # apply movement
+    var max_speed: float = BS_config_IN.BC_max_speed_IN
+    if BS_environment_IN != null:
+        var ratio := fish.BF_depth_UP / BS_environment_IN.TE_size_IN.z
+        max_speed = lerp(BS_config_IN.BC_depth_speed_front, BS_config_IN.BC_depth_speed_back, ratio)
+    var desired_vel: Vector2 = (fish.BF_velocity_UP + steer).limit_length(max_speed)
+    fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
+        desired_vel, BS_config_IN.BC_max_force_IN * delta
     )
-    target_vel = target_vel.move_toward(Vector2.ZERO, BS_soft_decel_IN * wall_factor * delta)
-    var velocity = fish.BF_velocity_UP.lerp(target_vel, clamp(delta * 4.0, 0.0, 1.0))
-    fish.position += velocity * delta
-    fish.BF_velocity_UP = velocity
+    fish.position += fish.BF_velocity_UP * delta
 
-    # hard‐wall deceleration
+    # boundary handling
     if BS_environment_IN != null:
         var b2 = BS_environment_IN.TE_boundaries_SH
-        var eff_min_x2 = b2.position.x + BS_hard_margin_IN
-        var eff_max_x2 = b2.position.x + b2.size.x - BS_hard_margin_IN
-        var eff_min_y2 = b2.position.y + BS_hard_margin_IN
-        var eff_max_y2 = b2.position.y + b2.size.y - BS_hard_margin_IN
+        var BS_min_x_UP = b2.position.x
+        var BS_max_x_UP = b2.position.x + b2.size.x
+        var BS_min_y_UP = b2.position.y
+        var BS_max_y_UP = b2.position.y + b2.size.y
 
-        if fish.position.x < eff_min_x2:
-            fish.position.x = eff_min_x2
-            if fish.BF_velocity_UP.x < 0:
-                fish.BF_velocity_UP.x = min(fish.BF_velocity_UP.x + BS_hard_decel_IN * delta, 0)
-        elif fish.position.x > eff_max_x2:
-            fish.position.x = eff_max_x2
-            if fish.BF_velocity_UP.x > 0:
-                fish.BF_velocity_UP.x = max(fish.BF_velocity_UP.x - BS_hard_decel_IN * delta, 0)
+        match BS_boundary_mode_IN:
+            1:
+                var max_push = 10.0
+                var edge_force := Vector2.ZERO
+                edge_force.x += (
+                    clamp(BS_min_x_UP - fish.position.x, -max_push, 0.0)
+                    * BS_config_IN.BC_soft_contain_k
+                )
+                edge_force.x += (
+                    clamp(BS_max_x_UP - fish.position.x, 0.0, max_push)
+                    * BS_config_IN.BC_soft_contain_k
+                )
+                edge_force.y += (
+                    clamp(BS_min_y_UP - fish.position.y, -max_push, 0.0)
+                    * BS_config_IN.BC_soft_contain_k
+                )
+                edge_force.y += (
+                    clamp(BS_max_y_UP - fish.position.y, 0.0, max_push)
+                    * BS_config_IN.BC_soft_contain_k
+                )
+                fish.BF_velocity_UP += edge_force * delta
+            2:
+                if fish.position.x < BS_min_x_UP or fish.position.x > BS_max_x_UP:
+                    fish.BF_velocity_UP.x *= -BS_config_IN.BC_reflect_damping
+                if fish.position.y < BS_min_y_UP or fish.position.y > BS_max_y_UP:
+                    fish.BF_velocity_UP.y *= -BS_config_IN.BC_reflect_damping
+            3:
+                if fish.position.x < BS_min_x_UP:
+                    fish.position.x = BS_max_x_UP
+                elif fish.position.x > BS_max_x_UP:
+                    fish.position.x = BS_min_x_UP
+                if fish.position.y < BS_min_y_UP:
+                    fish.position.y = BS_max_y_UP
+                elif fish.position.y > BS_max_y_UP:
+                    fish.position.y = BS_min_y_UP
 
-        if fish.position.y < eff_min_y2:
-            fish.position.y = eff_min_y2
-            if fish.BF_velocity_UP.y < 0:
-                fish.BF_velocity_UP.y = min(fish.BF_velocity_UP.y + BS_hard_decel_IN * delta, 0)
-        elif fish.position.y > eff_max_y2:
-            fish.position.y = eff_max_y2
-            if fish.BF_velocity_UP.y > 0:
-                fish.BF_velocity_UP.y = max(fish.BF_velocity_UP.y - BS_hard_decel_IN * delta, 0)
-
-    # depth jitter (fakey z)
-    var max_z = 0.0
     if BS_environment_IN != null:
-        max_z = BS_environment_IN.TE_size_IN.z
-    fish.BF_depth_UP = clamp(
-        fish.BF_depth_UP + BS_rng_UP.randf_range(-20.0, 20.0) * delta, 0.0, max_z
-    )
+        var eps = 0.1
+        if abs(fish.BF_depth_UP - fish.BF_target_depth_SH) < eps:
+            fish.BF_target_depth_SH = BS_rng_UP.randf_range(0.0, BS_environment_IN.TE_size_IN.z)
+        fish.BF_depth_UP = lerp(
+            fish.BF_depth_UP, fish.BF_target_depth_SH, fish.BF_depth_lerp_speed_IN * delta
+        )
 
 
 func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -> float:
@@ -335,6 +389,26 @@ func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -
         if typeof(val) == TYPE_FLOAT:
             return val
     return default_val
+
+
+func _BS_apply_behavior_IN(fish: BoidFish, _delta: float) -> Vector2:
+    var out := Vector2.ZERO
+    match fish.BF_behavior_SH:
+        FishBehavior.DART:
+            if BS_rng_UP.randf() < 0.05:
+                out += (
+                    Vector2(BS_rng_UP.randf_range(-1, 1), BS_rng_UP.randf_range(-1, 1))
+                    * fish.BF_archetype_IN.FA_burst_speed_IN
+                )
+        FishBehavior.IDLE:
+            out *= fish.BF_archetype_IN.FA_idle_jitter_IN
+        FishBehavior.CHASE:
+            var target := Vector2.ZERO
+            if BS_fish_nodes_SH.size() > 0:
+                target = BS_fish_nodes_SH[0].position
+            var chase_vec := (target - fish.position).normalized()
+            out += chase_vec * fish.BF_archetype_IN.FA_burst_speed_IN
+    return out
 
 
 func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
