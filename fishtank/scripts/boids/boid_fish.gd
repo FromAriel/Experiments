@@ -9,7 +9,20 @@
 class_name BoidFish
 extends Node2D
 
+enum FishBehavior {
+    SCHOOL,
+    DART,
+    IDLE,
+    CHASE,
+}
+
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
+const BoidSystemConfig = preload("res://scripts/data/boid_system_config.gd")
+
+@export var BF_behavior_SH: FishBehavior = FishBehavior.SCHOOL
+@export var BF_wander_phase_UP: float = 0.0
+@export var BF_target_depth_SH: float = 0.0
+@export var BF_depth_lerp_speed_IN: float = 1.0
 
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
@@ -17,6 +30,7 @@ var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
 var BF_depth_UP: float = 0.0
 var BF_environment_IN: TankEnvironment
+var BF_config_IN: BoidSystemConfig
 
 
 func _ready() -> void:
@@ -24,12 +38,17 @@ func _ready() -> void:
     _BF_ensure_visual_IN()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
-
+        var ts = 4.0
+        if BF_archetype_IN != null:
+            ts = BF_archetype_IN.FA_turn_speed_IN
+        rotation = lerp_angle(rotation, BF_velocity_UP.angle(), ts * delta)
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
+    var anim: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
+    if anim != null and BF_config_IN != null:
+        anim.speed_scale = BF_velocity_UP.length() / BF_config_IN.BC_depth_speed_front
 
 
 # --------------------------------------------------------------
@@ -51,17 +70,7 @@ func _BF_ensure_visual_IN() -> void:
 
 
 func _BF_apply_depth_IN() -> void:
-    var BF_ratio_UP: float = clamp(
-        (BF_environment_IN.TE_size_IN.z - BF_depth_UP) / BF_environment_IN.TE_size_IN.z,
-        0.0,
-        1.0,
-    )
-
-    # Scale
-    var BF_scale_UP: float = lerp(0.5, 1.0, BF_ratio_UP)
-    scale = Vector2.ONE * BF_scale_UP
-
-    # Tint / opacity
-    var BF_col := modulate
-    BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
-    modulate = BF_col
+    var ratio: float = clamp(BF_depth_UP / BF_environment_IN.TE_size_IN.z, 0.0, 1.0)
+    var scale_val: float = lerp(1.0, 0.5, ratio)
+    scale = Vector2.ONE * scale_val
+    modulate = Color(1.0 - ratio * 0.5, 1.0 - ratio * 0.5, 1.0 - ratio * 0.5, lerp(1.0, 0.4, ratio))
