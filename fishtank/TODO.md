@@ -15,3 +15,4 @@
 - [x] Resolve duplicate TargetFramework build attribute.
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
+- [x] Reintroduce Tank collider and smooth wall steering.

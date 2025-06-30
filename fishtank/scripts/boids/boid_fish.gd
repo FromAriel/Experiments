@@ -26,7 +26,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
+        var BF_target_angle_UP: float = _BF_compute_angle_IN()
+        rotation = lerp_angle(rotation, BF_target_angle_UP, 0.1)
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
@@ -65,3 +66,15 @@ func _BF_apply_depth_IN() -> void:
     var BF_col := modulate
     BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
     modulate = BF_col
+
+
+func _BF_compute_angle_IN() -> float:
+    var BF_dir_UP := BF_velocity_UP
+    if BF_dir_UP == Vector2.ZERO:
+        return rotation
+    var BF_left_UP: bool = BF_dir_UP.x < 0.0
+    var BF_base_angle_UP: float = atan2(BF_dir_UP.y, abs(BF_dir_UP.x))
+    BF_base_angle_UP = clamp(BF_base_angle_UP, -PI / 4.0, PI / 4.0)
+    if BF_left_UP:
+        BF_base_angle_UP = PI - BF_base_angle_UP
+    return BF_base_angle_UP
