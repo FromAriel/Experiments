@@ -37,6 +37,12 @@ func _ready() -> void:
     if FT_boid_system_UP.BS_config_IN == null:
         FT_boid_system_UP.BS_config_IN = BoidSystemConfig.new()
 
+    # Ensure the boid system uses the current environment and collider
+    FT_boid_system_UP.BS_environment_IN = FT_environment_IN
+    var FT_tank_collider_UP: TankCollider = get_node_or_null("Tank") as TankCollider
+    if FT_boid_system_UP.BS_collider_IN == null and FT_tank_collider_UP != null:
+        FT_boid_system_UP.BS_collider_IN = FT_tank_collider_UP
+
     FT_boid_system_UP.BS_spawn_population_IN(FT_archetypes_UP)
 
     if FT_overlay_label_UP != null:

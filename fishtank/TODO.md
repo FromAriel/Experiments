@@ -7,6 +7,7 @@
 - Added resource scripts for core data models in `scripts/data/`.
 
 - [x] Implement FishArchetype parsing from JSON.
+- [x] Ensure boid system receives environment before spawning fish.
 - [x] Integrate ArchetypeLoader in FishTank scene.
 - [x] Create ShapeGenerator script for ellipse/triangle placeholders.
 - [x] Add boid behavior system.
