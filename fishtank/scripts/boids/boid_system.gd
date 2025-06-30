@@ -6,7 +6,7 @@
 #                   • _BS_update_fish_IN() – group‐preferred flocking, soft & hard walls
 # Critical Consts  • BS_neighbor_radius_IN: float
 # Dependencies     • boid_system_config.gd, fish_archetype.gd, boid_fish.gd
-# Last Major Rev   • 25-07-05 – combines fallback scene, color groups, z-depth, robust spawn
+# Last Major Rev   • 24-07-07 – staggered spawn reveal and center spawn
 ###############################################################
 # gdlint:disable = class-variable-name,function-name,function-variable-name,loop-variable-name
 
@@ -50,6 +50,8 @@ var BS_group_colors := [
 ]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+var BS_pending_fish_SH: Array[BoidFish] = []
+var BS_reveal_timer_UP: Timer = null
 
 # gdlint:ignore-end
 
@@ -69,6 +71,11 @@ func _ready() -> void:
         if tc_node is TankCollider:
             BS_collider_IN = tc_node
     BS_rng_UP.randomize()
+    if BS_reveal_timer_UP == null:
+        BS_reveal_timer_UP = Timer.new()
+        BS_reveal_timer_UP.one_shot = true
+        add_child(BS_reveal_timer_UP)
+        BS_reveal_timer_UP.connect("timeout", Callable(self, "_BS_reveal_batch_IN"))
 
 
 func _BS_ensure_fish_scene_exists_IN() -> void:
@@ -104,10 +111,13 @@ func BS_spawn_population_IN(archetypes: Array[FishArchetype]) -> void:
     )
     for i in range(count):
         var arch: FishArchetype = archetypes[BS_rng_UP.randi_range(0, archetypes.size() - 1)]
-        _BS_spawn_fish_IN(arch)
+        var fish = _BS_spawn_fish_IN(arch)
+        fish.visible = false
+        BS_pending_fish_SH.append(fish)
+    _BS_start_reveal_timer_IN()
 
 
-func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
+func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     var fish: BoidFish
     if BS_fish_scene_IN != null and is_instance_valid(BS_fish_scene_IN):
         fish = BS_fish_scene_IN.instantiate() as BoidFish
@@ -131,6 +141,24 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     fish.BF_archetype_IN = arch
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
+    return fish
+
+
+func _BS_start_reveal_timer_IN() -> void:
+    if BS_pending_fish_SH.is_empty():
+        return
+    BS_reveal_timer_UP.wait_time = BS_rng_UP.randf_range(0.2, 1.0)
+    BS_reveal_timer_UP.start()
+
+
+func _BS_reveal_batch_IN() -> void:
+    var batch = BS_rng_UP.randi_range(1, 5)
+    for i in range(batch):
+        if BS_pending_fish_SH.is_empty():
+            break
+        var f: BoidFish = BS_pending_fish_SH.pop_front()
+        f.visible = true
+    _BS_start_reveal_timer_IN()
 
 
 func _physics_process(delta: float) -> void:
