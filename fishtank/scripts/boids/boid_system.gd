@@ -18,7 +18,7 @@ extends Node2D
 @export var BS_neighbor_radius_IN: float = 80.0
 @export var BS_separation_distance_IN: float = 40.0
 @export var BS_environment_IN: TankEnvironment
-@export var BS_group_count_IN: int = 5   # at least 5 groups
+@export var BS_group_count_IN: int = 5  # at least 5 groups
 @export var BS_group_preference_weight_IN: float = 2.0
 
 # Soft‐repulsion parameters
@@ -30,20 +30,24 @@ extends Node2D
 @export var BS_hard_decel_IN: float = 200.0
 
 @export var BS_grid_cell_size_IN: float = 100.0
-
-# Tint colors for each group (cyclic if >6 groups)
-var BS_group_colors := [
-    Color(1, 0, 0),   # red
-    Color(0, 1, 0),   # green
-    Color(0, 0, 1),   # blue
-    Color(1, 1, 0),   # yellow
-    Color(1, 0, 1),   # magenta
-    Color(0, 1, 1)    # cyan
-]
-
+@export var BS_collider_IN: TankCollider
 var BS_fish_nodes_SH: Array[BoidFish] = []
+# gdlint:ignore-start
+
+var BS_group_colors := [
+    # gdlint:ignore = max-line-length
+    Color(1, 0, 0),
+    Color(0, 1, 0),
+    Color(0, 0, 1),
+    Color(1, 1, 0),
+    Color(1, 0, 1),
+    Color(0, 1, 1)  # red  # green  # blue  # yellow  # magenta  # cyan
+]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+
+# gdlint:ignore-end
+
 
 func _ready() -> void:
     if BS_config_IN == null:
@@ -55,7 +59,12 @@ func _ready() -> void:
             BS_environment_IN = (parent as FishTank).FT_environment_IN
         else:
             BS_environment_IN = TankEnvironment.new()
+    if BS_collider_IN == null:
+        var tc_node = get_parent().get_node_or_null("Tank")
+        if tc_node is TankCollider:
+            BS_collider_IN = tc_node
     BS_rng_UP.randomize()
+
 
 func _BS_ensure_fish_scene_exists_IN() -> void:
     if BS_fish_scene_IN != null and is_instance_valid(BS_fish_scene_IN):
@@ -81,22 +90,24 @@ func _BS_ensure_fish_scene_exists_IN() -> void:
     else:
         push_error("BoidSystem: Failed to build fallback fish scene! (err %d)" % err)
 
+
 func BS_spawn_population_IN(archetypes: Array[FishArchetype]) -> void:
     if archetypes.is_empty():
         return
     var count: int = BS_rng_UP.randi_range(
-        BS_config_IN.BC_fish_count_min_IN,
-        BS_config_IN.BC_fish_count_max_IN
+        BS_config_IN.BC_fish_count_min_IN, BS_config_IN.BC_fish_count_max_IN
     )
     for i in range(count):
         var arch: FishArchetype = archetypes[BS_rng_UP.randi_range(0, archetypes.size() - 1)]
         _BS_spawn_fish_IN(arch)
+
 
 func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     var fish: BoidFish
     if BS_fish_scene_IN != null and is_instance_valid(BS_fish_scene_IN):
         fish = BS_fish_scene_IN.instantiate() as BoidFish
     else:
+# gdlint:ignore = duplicated-load
         fish = load("res://scripts/boids/boid_fish.gd").new()
     # Position & depth
     if BS_environment_IN != null:
@@ -116,11 +127,15 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
 
+
 func _physics_process(delta: float) -> void:
     _BS_update_grid_IN()
     for fish in BS_fish_nodes_SH:
         _BS_update_fish_IN(fish, delta)
+        if BS_collider_IN != null:
+            BS_collider_IN.TC_confine_IN(fish, delta, BS_hard_decel_IN)
         _BS_apply_sanity_check_IN(fish, delta)
+
 
 func _BS_update_grid_IN() -> void:
     BS_grid_SH.clear()
@@ -132,6 +147,7 @@ func _BS_update_grid_IN() -> void:
         if not BS_grid_SH.has(cell):
             BS_grid_SH[cell] = []
         BS_grid_SH[cell].append(fish)
+
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     # gather neighbor sums
@@ -145,8 +161,7 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     var all_count = 0
 
     var cell = Vector2i(
-        floor(fish.position.x / BS_grid_cell_size_IN),
-        floor(fish.position.y / BS_grid_cell_size_IN)
+        floor(fish.position.x / BS_grid_cell_size_IN), floor(fish.position.y / BS_grid_cell_size_IN)
     )
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
@@ -193,7 +208,9 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     var steer = Vector2.ZERO
     if use_count > 0:
         # alignment
-        var ali_vec = (use_ali / use_count).normalized() * BS_config_IN.BC_max_speed_IN - fish.BF_velocity_UP
+        var ali_vec = (
+            (use_ali / use_count).normalized() * BS_config_IN.BC_max_speed_IN - fish.BF_velocity_UP
+        )
         ali_vec = ali_vec.limit_length(BS_config_IN.BC_max_force_IN)
         # cohesion
         var coh_vec = (use_coh / use_count) - fish.position
@@ -214,10 +231,11 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         fish.BF_isolated_timer_UP += delta
 
     # wander
-    var wander_vec = Vector2(
-        BS_rng_UP.randf_range(-1.0, 1.0),
-        BS_rng_UP.randf_range(-1.0, 1.0)
-    ).normalized() * BS_config_IN.BC_default_wander_IN * BS_config_IN.BC_max_force_IN
+    var wander_vec = (
+        Vector2(BS_rng_UP.randf_range(-1.0, 1.0), BS_rng_UP.randf_range(-1.0, 1.0)).normalized()
+        * BS_config_IN.BC_default_wander_IN
+        * BS_config_IN.BC_max_force_IN
+    )
     steer += wander_vec
 
     # soft‐wall repulsion
@@ -283,10 +301,9 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     if BS_environment_IN != null:
         max_z = BS_environment_IN.TE_size_IN.z
     fish.BF_depth_UP = clamp(
-        fish.BF_depth_UP + BS_rng_UP.randf_range(-20.0, 20.0) * delta,
-        0.0,
-        max_z
+        fish.BF_depth_UP + BS_rng_UP.randf_range(-20.0, 20.0) * delta, 0.0, max_z
     )
+
 
 func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -> float:
     if arch != null:
@@ -294,6 +311,7 @@ func _BS_get_weight_IN(arch: FishArchetype, field: String, default_val: float) -
         if typeof(val) == TYPE_FLOAT:
             return val
     return default_val
+
 
 func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
     if BS_environment_IN == null:
@@ -305,14 +323,21 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
     var min_y = b.position.y
     var max_y = b.position.y + b.size.y
     var margin = BS_boundary_margin_IN * 0.5
-    var near_edge = fish.position.x < min_x + margin or fish.position.x > max_x - margin \
-        or fish.position.y < min_y + margin or fish.position.y > max_y - margin
-    var outside = fish.position.x < min_x or fish.position.x > max_x \
-        or fish.position.y < min_y or fish.position.y > max_y
+    var near_edge = (
+        fish.position.x < min_x + margin
+        or fish.position.x > max_x - margin
+        or fish.position.y < min_y + margin
+        or fish.position.y > max_y - margin
+    )
+    var outside = (
+        fish.position.x < min_x
+        or fish.position.x > max_x
+        or fish.position.y < min_y
+        or fish.position.y > max_y
+    )
     if near_edge or outside:
         var push_dir = (Vector2(center.x, center.y) - fish.position).normalized()
         fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
-            push_dir * BS_config_IN.BC_max_speed_IN,
-            delta * 2.0
+            push_dir * BS_config_IN.BC_max_speed_IN, delta * 2.0
         )
 # gdlint:enable = class-variable-name,function-name,function-variable-name,loop-variable-name
