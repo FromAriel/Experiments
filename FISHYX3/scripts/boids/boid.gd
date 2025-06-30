@@ -2,29 +2,32 @@
 class_name Boid
 extends Node2D
 
-@export var max_speed:       float = 150.0
-@export var max_force:       float = 30.0
+@export var max_speed: float = 150.0
+@export var max_force: float = 30.0
 @export var neighbor_radius: float = 40.0
 @export var wander_strength: float = 0.3
-@export var smoothing:       float = 0.15   # new
-@export var debug_log:      bool  = true    # new
+@export var smoothing: float = 0.15  # new
+@export var debug_log: bool = true  # new
 
-var velocity:      Vector2 = Vector2.ZERO
-var acceleration:  Vector2 = Vector2.ZERO
-var params:        FlockParameters
-var spatial_hash:  SpatialHash2D
+var velocity: Vector2 = Vector2.ZERO
+var acceleration: Vector2 = Vector2.ZERO
+var params: FlockParameters
+var spatial_hash: SpatialHash2D
 var _rng := RandomNumberGenerator.new()
-var _boid_accel:   Vector2 = Vector2.ZERO
+var _boid_accel: Vector2 = Vector2.ZERO
 var _wander_accel: Vector2 = Vector2.ZERO
+
 
 func _ready() -> void:
     if params == null:
         params = FlockParameters.new()
     _rng.randomize()
 
+
 func setup(hash: SpatialHash2D, p_params: FlockParameters) -> void:
     spatial_hash = hash
     params = p_params
+
 
 func _physics_process(delta: float) -> void:
     if spatial_hash:
@@ -49,18 +52,23 @@ func _physics_process(delta: float) -> void:
     # debug log
     if debug_log:
         var speed = velocity.length()
-        var dir   = velocity.normalized()
-        print("frame %d | speed=%.2f | dir=(%.2f,%.2f) | boid=%.2f | wander=%.2f"
-            % [
-                Engine.get_physics_frames(),
-                speed,
-                dir.x, dir.y,
-                _boid_accel.length(),
-                _wander_accel.length()
-            ]
+        var dir = velocity.normalized()
+        print(
+            (
+                "frame %d | speed=%.2f | dir=(%.2f,%.2f) | boid=%.2f | wander=%.2f"
+                % [
+                    Engine.get_physics_frames(),
+                    speed,
+                    dir.x,
+                    dir.y,
+                    _boid_accel.length(),
+                    _wander_accel.length()
+                ]
+            )
         )
 
     acceleration = Vector2.ZERO
+
 
 func _apply_boid_rules(neighbors: Array) -> void:
     var sep = Vector2.ZERO
@@ -101,10 +109,8 @@ func _apply_boid_rules(neighbors: Array) -> void:
     acceleration += steer
     _boid_accel = steer
 
+
 func _apply_wander() -> void:
-    var jitter = Vector2(
-        _rng.randf_range(-1.0,1.0),
-        _rng.randf_range(-1.0,1.0)
-    ) * wander_strength
+    var jitter = Vector2(_rng.randf_range(-1.0, 1.0), _rng.randf_range(-1.0, 1.0)) * wander_strength
     acceleration += jitter
     _wander_accel = jitter
