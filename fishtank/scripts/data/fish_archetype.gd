@@ -41,5 +41,10 @@ this archetype. Values correspond to the enum defined in `BoidFish`.
 @export var FA_jump_chance_IN: float = 0.0
 @export var FA_rest_chance_IN: float = 0.0
 @export var FA_behavior_IN: int = 0
+@export var FA_turn_speed_IN: float = 5.0
+@export var FA_burst_speed_IN: float = 200.0
+@export var FA_idle_jitter_IN: float = 1.0
+@export var FA_depth_variance_IN: float = 1.0
+@export var FA_wander_speed_IN: float = 1.0
 @export var FA_special_notes_IN: String = ""
 # gdlint:enable = class-variable-name
