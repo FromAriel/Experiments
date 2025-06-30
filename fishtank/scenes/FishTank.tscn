@@ -5,9 +5,6 @@
 
 [sub_resource type="Resource" id="1"]
 
-[sub_resource type="BoidSystemConfig" id="2"]
-resource_local_to_scene = false
-resource_name = ""
 
 [node name="FishTank" type="Node2D"]
 script = ExtResource("1")
@@ -15,7 +12,6 @@ FT_environment_IN = SubResource("1")
 
 [node name="BoidSystem" type="Node2D" parent="."]
 script = ExtResource("2")
-BS_config_IN = SubResource("2")
 
 [node name="DebugOverlay" type="CanvasLayer" parent="."]
 
