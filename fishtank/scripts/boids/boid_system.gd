@@ -8,7 +8,7 @@
 # Dependencies     • boid_system_config.gd, fish_archetype.gd, boid_fish.gd
 # Last Major Rev   • 25-07-05 – combines fallback scene, color groups, z-depth, robust spawn
 ###############################################################
-# gdlint:disable = class-variable-name,function-name,function-variable-name,loop-variable-name
+# gdlint:disable = class-variable-name,function-name,function-variable-name,loop-variable-name,class-definitions-order,max-line-length
 
 class_name BoidSystem
 extends Node2D
@@ -37,6 +37,9 @@ extends Node2D
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
 var BS_fish_nodes_SH: Array[BoidFish] = []
+@export var BS_batch_interval_IN: float = 0.4
+@export var BS_batch_size_min_IN: int = 2
+@export var BS_batch_size_max_IN: int = 5
 # gdlint:ignore-start
 
 var BS_group_colors := [
@@ -50,6 +53,8 @@ var BS_group_colors := [
 ]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+var BS_pending_fish_SH: Array[BoidFish] = []
+var BS_visibility_timer_UP: Timer
 
 # gdlint:ignore-end
 
@@ -69,6 +74,10 @@ func _ready() -> void:
         if tc_node is TankCollider:
             BS_collider_IN = tc_node
     BS_rng_UP.randomize()
+    BS_visibility_timer_UP = Timer.new()
+    BS_visibility_timer_UP.one_shot = true
+    add_child(BS_visibility_timer_UP)
+    BS_visibility_timer_UP.connect("timeout", Callable(self, "_BS_on_visibility_timer_timeout_IN"))
 
 
 func _BS_ensure_fish_scene_exists_IN() -> void:
@@ -102,12 +111,18 @@ func BS_spawn_population_IN(archetypes: Array[FishArchetype]) -> void:
     var count: int = BS_rng_UP.randi_range(
         BS_config_IN.BC_fish_count_min_IN, BS_config_IN.BC_fish_count_max_IN
     )
+    BS_pending_fish_SH.clear()
     for i in range(count):
         var arch: FishArchetype = archetypes[BS_rng_UP.randi_range(0, archetypes.size() - 1)]
-        _BS_spawn_fish_IN(arch)
+        var fish := _BS_spawn_fish_IN(arch)
+        fish.visible = false
+        fish.set_physics_process(false)
+        fish.set_process(false)
+        BS_pending_fish_SH.append(fish)
+    _BS_schedule_next_batch_IN()
 
 
-func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
+func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     var fish: BoidFish
     if BS_fish_scene_IN != null and is_instance_valid(BS_fish_scene_IN):
         fish = BS_fish_scene_IN.instantiate() as BoidFish
@@ -131,11 +146,14 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     fish.BF_archetype_IN = arch
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
+    return fish
 
 
 func _physics_process(delta: float) -> void:
     _BS_update_grid_IN()
     for fish in BS_fish_nodes_SH:
+        if not fish.visible:
+            continue
         _BS_update_fish_IN(fish, delta)
         if BS_collider_IN != null:
             BS_collider_IN.TC_confine_IN(fish, delta, BS_hard_decel_IN)
@@ -364,4 +382,22 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
         fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
             push_dir * BS_config_IN.BC_max_speed_IN, delta * 2.0
         )
+
+
+func _BS_schedule_next_batch_IN() -> void:
+    if BS_pending_fish_SH.is_empty():
+        return
+    BS_visibility_timer_UP.start(BS_batch_interval_IN)
+
+
+func _BS_on_visibility_timer_timeout_IN() -> void:
+    var batch_size = BS_rng_UP.randi_range(BS_batch_size_min_IN, BS_batch_size_max_IN)
+    for i in range(batch_size):
+        if BS_pending_fish_SH.is_empty():
+            break
+        var fish: BoidFish = BS_pending_fish_SH.pop_front()
+        fish.visible = true
+        fish.set_physics_process(true)
+        fish.set_process(true)
+    _BS_schedule_next_batch_IN()
 # gdlint:enable = class-variable-name,function-name,function-variable-name,loop-variable-name
