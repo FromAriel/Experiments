@@ -9,24 +9,49 @@
 class_name BoidFish
 extends Node2D
 
+# --------------------------------------------------------------
+# Enums
+# --------------------------------------------------------------
+enum FishBehavior { SCHOOL, DART, IDLE, CHASE }
+
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 
+# --------------------------------------------------------------
+# Exports
+# --------------------------------------------------------------
+@export var BF_depth_lerp_speed_IN: float = 1.0
+
+# --------------------------------------------------------------
+# Vars
+# --------------------------------------------------------------
 var BF_velocity_UP: Vector2 = Vector2.ZERO
 var BF_archetype_IN: FishArchetype
 var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
 var BF_depth_UP: float = 0.0
 var BF_environment_IN: TankEnvironment
+var BF_behavior_SH: int = FishBehavior.SCHOOL
+var BF_target_depth_SH: float = 0.0
+var BF_wander_phase_UP: float = 0.0
 
 
 func _ready() -> void:
     set_process(true)
     _BF_ensure_visual_IN()
+    var rng := RandomNumberGenerator.new()
+    rng.randomize()
+    BF_wander_phase_UP = rng.randf_range(0.0, TAU)
+    BF_target_depth_SH = BF_depth_UP
+    if BF_archetype_IN != null:
+        BF_behavior_SH = BF_archetype_IN.FA_behavior_IN
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
+        var turn_speed: float = 5.0
+        if BF_archetype_IN != null:
+            turn_speed = BF_archetype_IN.FA_turn_speed_IN
+        rotation = lerp_angle(rotation, BF_velocity_UP.angle(), turn_speed * delta)
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
