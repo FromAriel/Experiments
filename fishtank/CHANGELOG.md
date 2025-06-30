@@ -25,3 +25,5 @@
 - Added `TankCollider` node and collider-based confinement to keep fish
   from exiting the tank while gliding smoothly along walls.
 - Boids now spawn at the tank center and fade in gradually from depth.
+- Added optional flip-turn behavior with sprite deformation and direction flip
+  to smooth out sharp reversals near walls.

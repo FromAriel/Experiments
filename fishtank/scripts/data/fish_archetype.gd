@@ -21,6 +21,8 @@ The `FA_behavior_IN` field specifies the default `FishBehavior` for fish using
 this archetype. Values correspond to the enum defined in `BoidFish`.
 """
 
+enum MovementMode { NORMAL, FLIP_TURN_ENABLED }
+
 @export var FA_name_IN: String = ""
 @export var FA_species_list_IN: Array[String] = []
 @export var FA_placeholder_texture_IN: Texture2D
@@ -47,4 +49,8 @@ this archetype. Values correspond to the enum defined in `BoidFish`.
 @export var FA_depth_variance_IN: float = 1.0
 @export var FA_wander_speed_IN: float = 1.0
 @export var FA_special_notes_IN: String = ""
+@export var FA_movement_mode_IN: int = MovementMode.NORMAL
+@export var FA_flip_turn_threshold_IN: float = deg_to_rad(160.0)
+@export var FA_flip_duration_IN: float = 0.4
+@export var FA_flip_speed_reduction_IN: float = 0.3
 # gdlint:enable = class-variable-name
