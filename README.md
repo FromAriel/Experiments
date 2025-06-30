@@ -1,4 +1,6 @@
 # Experiments Repository
 
-This workspace hosts multiple Godot experiments. The `fishtank` directory
-contains a modular aquarium simulation prototype built with Godot 4.4.1.
+This workspace hosts multiple Godot experiments.
+
+- `FISHYX3/` – the main softbody fish tank simulation project.
+- `fishtank/` – a separate modular aquarium prototype built with Godot 4.4.1.
