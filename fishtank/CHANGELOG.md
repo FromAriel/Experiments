@@ -19,6 +19,8 @@
   a sanity check that gently pushes stray fish back toward the middle.
 - Removed placeholder `Tank` node and compute boundaries from viewport so
   fish stay within the visible tank.
+- Adjusted spawn logic to read collider bounds so fish begin exactly at
+  the tank's midpoint.
 - Improved boid steering using spatial grid, separation distance, and wander.
 - Introduced `FishBehavior` enum and new behavior-related exports for `BoidFish`.
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.

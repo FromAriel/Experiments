@@ -114,11 +114,17 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     else:
 # gdlint:ignore = duplicated-load
         fish = load("res://scripts/boids/boid_fish.gd").new()
-    # Position & depth
+    # Position & depth – spawn at tank center when possible
     if BS_environment_IN != null:
-        var b: AABB = BS_environment_IN.TE_boundaries_SH
-        var center: Vector3 = b.position + b.size * 0.5
-        fish.position = Vector2(center.x, center.y)
+        var spawn_pos: Vector2
+        if BS_collider_IN != null:
+            var rect: Rect2 = BS_collider_IN.TC_get_rect_IN()
+            spawn_pos = rect.position + rect.size * 0.5
+        else:
+            var b: AABB = BS_environment_IN.TE_boundaries_SH
+            var center: Vector3 = b.position + b.size * 0.5
+            spawn_pos = Vector2(center.x, center.y)
+        fish.position = spawn_pos
         fish.BF_depth_UP = BS_rng_UP.randf_range(0.0, BS_environment_IN.TE_size_IN.z)
         fish.BF_environment_IN = BS_environment_IN
     else:
