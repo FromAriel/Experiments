@@ -54,7 +54,7 @@ var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
 var BS_reveal_timer_UP: Timer
 var BS_reveal_index_UP: int = 0
-var BS_steer_UP: Vector2 = Vector2.ZERO
+var BS_steer_UP: Vector3 = Vector3.ZERO
 
 # Wander noise generator
 var BS_noise_UP := FastNoiseLite.new()
@@ -146,11 +146,16 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     if BS_environment_IN != null:
         var b: AABB = BS_environment_IN.TE_boundaries_SH
         var center: Vector3 = b.position + b.size * 0.5
+        var z := BS_rng_UP.randf_range(0.0, BS_environment_IN.TE_size_IN.z)
+        fish.BF_position_UP = Vector3(center.x, center.y, z)
         fish.position = Vector2(center.x, center.y)
-        fish.BF_depth_UP = BS_rng_UP.randf_range(0.0, BS_environment_IN.TE_size_IN.z)
+        fish.BF_depth_UP = z
         fish.BF_environment_IN = BS_environment_IN
     else:
-        fish.position = Vector2(BS_rng_UP.randf_range(-50, 50), BS_rng_UP.randf_range(-30, 30))
+        var px = BS_rng_UP.randf_range(-50, 50)
+        var py = BS_rng_UP.randf_range(-30, 30)
+        fish.BF_position_UP = Vector3(px, py, 0.0)
+        fish.position = Vector2(px, py)
         fish.BF_depth_UP = 0.0
     # assign group and tint
     fish.BF_group_id_SH = BS_rng_UP.randi_range(0, BS_group_count_IN - 1)
@@ -193,14 +198,14 @@ func _BS_update_grid_IN() -> void:
         group_count.append(0)
     for fish in BS_fish_nodes_SH:
         var cell = Vector2i(
-            floor(fish.position.x / BS_grid_cell_size_IN),
-            floor(fish.position.y / BS_grid_cell_size_IN)
+            floor(fish.BF_position_UP.x / BS_grid_cell_size_IN),
+            floor(fish.BF_position_UP.y / BS_grid_cell_size_IN)
         )
         if not BS_grid_SH.has(cell):
             BS_grid_SH[cell] = []
         BS_grid_SH[cell].append(fish)
         var g := fish.BF_group_id_SH
-        group_sum[g] += fish.position
+        group_sum[g] += Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
         group_count[g] += 1
     for i in range(BS_group_count_IN):
         if group_count[i] > 0:
@@ -208,19 +213,20 @@ func _BS_update_grid_IN() -> void:
 
 
 func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
-    BS_steer_UP = Vector2.ZERO
+    BS_steer_UP = Vector3.ZERO
     # gather neighbor sums
-    var same_sep = Vector2.ZERO
-    var same_ali = Vector2.ZERO
-    var same_coh = Vector2.ZERO
+    var same_sep = Vector3.ZERO
+    var same_ali = Vector3.ZERO
+    var same_coh = Vector3.ZERO
     var same_count = 0
-    var all_sep = Vector2.ZERO
-    var all_ali = Vector2.ZERO
-    var all_coh = Vector2.ZERO
+    var all_sep = Vector3.ZERO
+    var all_ali = Vector3.ZERO
+    var all_coh = Vector3.ZERO
     var all_count = 0
 
     var cell = Vector2i(
-        floor(fish.position.x / BS_grid_cell_size_IN), floor(fish.position.y / BS_grid_cell_size_IN)
+        floor(fish.BF_position_UP.x / BS_grid_cell_size_IN),
+        floor(fish.BF_position_UP.y / BS_grid_cell_size_IN)
     )
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
@@ -230,25 +236,25 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             for other in BS_grid_SH[key]:
                 if other == fish:
                     continue
-                var diff: Vector2 = other.position - fish.position
+                var diff: Vector3 = other.BF_position_UP - fish.BF_position_UP
                 var dist: float = diff.length()
                 if dist < BS_neighbor_radius_IN:
                     all_ali += other.BF_velocity_UP
-                    all_coh += other.position
+                    all_coh += other.BF_position_UP
                     all_count += 1
                     if dist < BS_separation_distance_IN and dist > 0.0:
                         all_sep -= diff / dist
                     if other.BF_group_id_SH == fish.BF_group_id_SH:
                         same_ali += other.BF_velocity_UP
-                        same_coh += other.position
+                        same_coh += other.BF_position_UP
                         same_count += 1
                         if dist < BS_separation_distance_IN and dist > 0.0:
                             same_sep -= diff / dist
 
     # decide which to use (group preference)
-    var use_ali: Vector2
-    var use_coh: Vector2
-    var use_sep: Vector2
+    var use_ali: Vector3
+    var use_coh: Vector3
+    var use_sep: Vector3
     var use_count: int
     var weight_mult: float
     if same_count > 0:
@@ -264,7 +270,7 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         use_count = all_count
         weight_mult = 1.0
 
-    var steer = Vector2.ZERO
+    var steer = Vector3.ZERO
     if use_count > 0:
         # alignment
         var ali_vec = (
@@ -272,13 +278,13 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         )
         ali_vec = ali_vec.limit_length(BS_config_IN.BC_max_force_IN)
         # cohesion
-        var coh_vec = (use_coh / use_count) - fish.position
-        if coh_vec != Vector2.ZERO:
+        var coh_vec = (use_coh / use_count) - fish.BF_position_UP
+        if coh_vec != Vector3.ZERO:
             coh_vec = coh_vec.normalized() * BS_config_IN.BC_max_speed_IN - fish.BF_velocity_UP
             coh_vec = coh_vec.limit_length(BS_config_IN.BC_max_force_IN)
         # separation
         var sep_vec = use_sep / use_count
-        if sep_vec != Vector2.ZERO:
+        if sep_vec != Vector3.ZERO:
             sep_vec = sep_vec.normalized() * BS_config_IN.BC_max_speed_IN - fish.BF_velocity_UP
             sep_vec = sep_vec.limit_length(BS_config_IN.BC_max_force_IN)
 
@@ -295,9 +301,10 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     fish.BF_wander_phase_UP += fish.BF_archetype_IN.FA_wander_speed_IN * delta
     var wander_vec := (
         (
-            Vector2(
-                BS_noise_UP.get_noise_2d(fish.BF_wander_phase_UP, 0.0),
-                BS_noise_UP.get_noise_2d(0.0, fish.BF_wander_phase_UP)
+            Vector3(
+                BS_noise_UP.get_noise_3d(fish.BF_wander_phase_UP, 0.0, 0.0),
+                BS_noise_UP.get_noise_3d(0.0, fish.BF_wander_phase_UP, 0.0),
+                BS_noise_UP.get_noise_3d(0.0, 0.0, fish.BF_wander_phase_UP)
             )
             . normalized()
         )
@@ -319,47 +326,48 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         var soft_min_y = eff_min_y + BS_boundary_margin_IN
         var soft_max_y = eff_max_y - BS_boundary_margin_IN
 
-        var push = Vector2.ZERO
+        var push = Vector3.ZERO
 
-        if fish.position.x < soft_min_x:
-            var d = (soft_min_x - fish.position.x) / BS_boundary_margin_IN
+        if fish.BF_position_UP.x < soft_min_x:
+            var d = (soft_min_x - fish.BF_position_UP.x) / BS_boundary_margin_IN
             push.x += d
             wall_factor = max(wall_factor, d)
-        elif fish.position.x > soft_max_x:
-            var d = (fish.position.x - soft_max_x) / BS_boundary_margin_IN
+        elif fish.BF_position_UP.x > soft_max_x:
+            var d = (fish.BF_position_UP.x - soft_max_x) / BS_boundary_margin_IN
             push.x -= d
             wall_factor = max(wall_factor, d)
 
-        if fish.position.y < soft_min_y:
-            var dY = (soft_min_y - fish.position.y) / BS_boundary_margin_IN
+        if fish.BF_position_UP.y < soft_min_y:
+            var dY = (soft_min_y - fish.BF_position_UP.y) / BS_boundary_margin_IN
             push.y += dY
             wall_factor = max(wall_factor, dY)
-        elif fish.position.y > soft_max_y:
-            var dY = (fish.position.y - soft_max_y) / BS_boundary_margin_IN
+        elif fish.BF_position_UP.y > soft_max_y:
+            var dY = (fish.BF_position_UP.y - soft_max_y) / BS_boundary_margin_IN
             push.y -= dY
             wall_factor = max(wall_factor, dY)
 
-        if push != Vector2.ZERO:
+        if push != Vector3.ZERO:
             BS_steer_UP += push * BS_boundary_force_IN
-            var center := Vector2(
-                b.position.x + b.size.x * 0.5,
-                b.position.y + b.size.y * 0.5,
+            var center := Vector3(
+                b.position.x + b.size.x * 0.5, b.position.y + b.size.y * 0.5, fish.BF_position_UP.z
             )
-            BS_steer_UP += (center - fish.position).normalized() * BS_wall_nudge_IN * wall_factor
+            BS_steer_UP += (
+                (center - fish.BF_position_UP).normalized() * BS_wall_nudge_IN * wall_factor
+            )
 
     var depth_ratio := 0.0
     if BS_environment_IN != null:
-        depth_ratio = fish.BF_depth_UP / BS_environment_IN.TE_size_IN.z
+        depth_ratio = fish.BF_position_UP.z / BS_environment_IN.TE_size_IN.z
     var max_speed: float = lerp(
         BS_config_IN.BC_depth_speed_front, BS_config_IN.BC_depth_speed_back, depth_ratio
     )
-    var desired_vel: Vector2 = (fish.BF_velocity_UP + BS_steer_UP).limit_length(max_speed)
+    var desired_vel: Vector3 = (fish.BF_velocity_UP + BS_steer_UP).limit_length(max_speed)
 
     if (
         fish.BF_archetype_IN != null
         and fish.BF_archetype_IN.FA_movement_mode_IN == FishArchetype.MovementMode.FLIP_TURN_ENABLED
     ):
-        var angle_diff: float = abs(fish.BF_velocity_UP.angle_to(desired_vel))
+        var angle_diff: float = abs(fish.BF_velocity_UP.xy.angle_to(desired_vel.xy))
         if (
             angle_diff > fish.BF_archetype_IN.FA_flip_turn_threshold_IN
             and fish.BF_flip_timer_UP <= 0.0
@@ -371,7 +379,9 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
         desired_vel, BS_config_IN.BC_max_force_IN * delta
     )
-    fish.position += fish.BF_velocity_UP * delta
+    fish.BF_position_UP += fish.BF_velocity_UP * delta
+    fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
+    fish.BF_depth_UP = fish.BF_position_UP.z
 
     # hard‐wall deceleration
     if BS_environment_IN != null:
@@ -381,23 +391,25 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         var eff_min_y2 = b2.position.y + BS_hard_margin_IN
         var eff_max_y2 = b2.position.y + b2.size.y - BS_hard_margin_IN
 
-        if fish.position.x < eff_min_x2:
-            fish.position.x = eff_min_x2
+        if fish.BF_position_UP.x < eff_min_x2:
+            fish.BF_position_UP.x = eff_min_x2
             if fish.BF_velocity_UP.x < 0:
                 fish.BF_velocity_UP.x = min(fish.BF_velocity_UP.x + BS_hard_decel_IN * delta, 0)
-        elif fish.position.x > eff_max_x2:
-            fish.position.x = eff_max_x2
+        elif fish.BF_position_UP.x > eff_max_x2:
+            fish.BF_position_UP.x = eff_max_x2
             if fish.BF_velocity_UP.x > 0:
                 fish.BF_velocity_UP.x = max(fish.BF_velocity_UP.x - BS_hard_decel_IN * delta, 0)
 
-        if fish.position.y < eff_min_y2:
-            fish.position.y = eff_min_y2
+        if fish.BF_position_UP.y < eff_min_y2:
+            fish.BF_position_UP.y = eff_min_y2
             if fish.BF_velocity_UP.y < 0:
                 fish.BF_velocity_UP.y = min(fish.BF_velocity_UP.y + BS_hard_decel_IN * delta, 0)
-        elif fish.position.y > eff_max_y2:
-            fish.position.y = eff_max_y2
+        elif fish.BF_position_UP.y > eff_max_y2:
+            fish.BF_position_UP.y = eff_max_y2
             if fish.BF_velocity_UP.y > 0:
                 fish.BF_velocity_UP.y = max(fish.BF_velocity_UP.y - BS_hard_decel_IN * delta, 0)
+
+    fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
 
     if BS_environment_IN != null:
         if abs(fish.BF_depth_UP - fish.BF_target_depth_SH) < 0.1:
@@ -430,10 +442,12 @@ func _BS_apply_behavior_IN(fish: BoidFish, _delta: float) -> void:
         BoidFish.FishBehavior.IDLE:
             BS_steer_UP *= fish.BF_archetype_IN.FA_idle_jitter_IN
         BoidFish.FishBehavior.CHASE:
-            var target := fish.position
+            var target := Vector3(
+                fish.BF_position_UP.x, fish.BF_position_UP.y, fish.BF_position_UP.z
+            )
             if BS_fish_nodes_SH.size() > 0:
-                target = BS_fish_nodes_SH[0].position
-            var chase_vec := (target - fish.position).normalized()
+                target = BS_fish_nodes_SH[0].BF_position_UP
+            var chase_vec := (target - fish.BF_position_UP).normalized()
             BS_steer_UP += chase_vec * fish.BF_archetype_IN.FA_burst_speed_IN
 
 
@@ -445,37 +459,54 @@ func _BS_apply_boundary_IN(fish: BoidFish, _delta: float) -> void:
     var max_x := b.position.x + b.size.x
     var min_y := b.position.y
     var max_y := b.position.y + b.size.y
+    var min_z := b.position.z
+    var max_z := b.position.z + b.size.z
     var max_push := 20.0
     match BS_config_IN.BS_boundary_mode_IN:
         1:
-            var edge_force := Vector2.ZERO
+            var edge_force := Vector3.ZERO
             edge_force.x += (
-                clamp(min_x - fish.position.x, -max_push, 0.0) * BS_config_IN.BC_soft_contain_k
+                clamp(min_x - fish.BF_position_UP.x, -max_push, 0.0)
+                * BS_config_IN.BC_soft_contain_k
             )
             edge_force.x += (
-                clamp(max_x - fish.position.x, 0.0, max_push) * BS_config_IN.BC_soft_contain_k
+                clamp(max_x - fish.BF_position_UP.x, 0.0, max_push) * BS_config_IN.BC_soft_contain_k
             )
             edge_force.y += (
-                clamp(min_y - fish.position.y, -max_push, 0.0) * BS_config_IN.BC_soft_contain_k
+                clamp(min_y - fish.BF_position_UP.y, -max_push, 0.0)
+                * BS_config_IN.BC_soft_contain_k
             )
             edge_force.y += (
-                clamp(max_y - fish.position.y, 0.0, max_push) * BS_config_IN.BC_soft_contain_k
+                clamp(max_y - fish.BF_position_UP.y, 0.0, max_push) * BS_config_IN.BC_soft_contain_k
+            )
+            edge_force.z += (
+                clamp(min_z - fish.BF_position_UP.z, -max_push, 0.0)
+                * BS_config_IN.BC_soft_contain_k
+            )
+            edge_force.z += (
+                clamp(max_z - fish.BF_position_UP.z, 0.0, max_push) * BS_config_IN.BC_soft_contain_k
             )
             BS_steer_UP += edge_force
         2:
-            if fish.position.x < min_x or fish.position.x > max_x:
+            if fish.BF_position_UP.x < min_x or fish.BF_position_UP.x > max_x:
                 fish.BF_velocity_UP.x *= -BS_config_IN.BC_reflect_damping
-            if fish.position.y < min_y or fish.position.y > max_y:
+            if fish.BF_position_UP.y < min_y or fish.BF_position_UP.y > max_y:
                 fish.BF_velocity_UP.y *= -BS_config_IN.BC_reflect_damping
+            if fish.BF_position_UP.z < min_z or fish.BF_position_UP.z > max_z:
+                fish.BF_velocity_UP.z *= -BS_config_IN.BC_reflect_damping
         3:
-            if fish.position.x < min_x:
-                fish.position.x = max_x
-            elif fish.position.x > max_x:
-                fish.position.x = min_x
-            if fish.position.y < min_y:
-                fish.position.y = max_y
-            elif fish.position.y > max_y:
-                fish.position.y = min_y
+            if fish.BF_position_UP.x < min_x:
+                fish.BF_position_UP.x = max_x
+            elif fish.BF_position_UP.x > max_x:
+                fish.BF_position_UP.x = min_x
+            if fish.BF_position_UP.y < min_y:
+                fish.BF_position_UP.y = max_y
+            elif fish.BF_position_UP.y > max_y:
+                fish.BF_position_UP.y = min_y
+            if fish.BF_position_UP.z < min_z:
+                fish.BF_position_UP.z = max_z
+            elif fish.BF_position_UP.z > max_z:
+                fish.BF_position_UP.z = min_z
 
 
 func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
@@ -487,21 +518,27 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
     var max_x = b.position.x + b.size.x
     var min_y = b.position.y
     var max_y = b.position.y + b.size.y
+    var min_z = b.position.z
+    var max_z = b.position.z + b.size.z
     var margin = BS_boundary_margin_IN * 0.5
     var near_edge = (
-        fish.position.x < min_x + margin
-        or fish.position.x > max_x - margin
-        or fish.position.y < min_y + margin
-        or fish.position.y > max_y - margin
+        fish.BF_position_UP.x < min_x + margin
+        or fish.BF_position_UP.x > max_x - margin
+        or fish.BF_position_UP.y < min_y + margin
+        or fish.BF_position_UP.y > max_y - margin
+        or fish.BF_position_UP.z < min_z + margin
+        or fish.BF_position_UP.z > max_z - margin
     )
     var outside = (
-        fish.position.x < min_x
-        or fish.position.x > max_x
-        or fish.position.y < min_y
-        or fish.position.y > max_y
+        fish.BF_position_UP.x < min_x
+        or fish.BF_position_UP.x > max_x
+        or fish.BF_position_UP.y < min_y
+        or fish.BF_position_UP.y > max_y
+        or fish.BF_position_UP.z < min_z
+        or fish.BF_position_UP.z > max_z
     )
     if near_edge or outside:
-        var push_dir = (Vector2(center.x, center.y) - fish.position).normalized()
+        var push_dir = (center - fish.BF_position_UP).normalized()
         fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
             push_dir * BS_config_IN.BC_max_speed_IN, delta * 2.0
         )

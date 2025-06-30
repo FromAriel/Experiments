@@ -27,3 +27,5 @@
 - Boids now spawn at the tank center and fade in gradually from depth.
 - Added optional flip-turn behavior with sprite deformation and direction flip
   to smooth out sharp reversals near walls.
+- Switched boid simulation math to Vector3 for depth-aware steering while
+  keeping 2D rendering.

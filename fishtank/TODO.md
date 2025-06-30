@@ -19,3 +19,4 @@
 - [ ] Tune boundary modes and group centering.
 - [x] Implement flip-turn movement mode for smoother reversals.
 - [x] Animate fish reveal and ensure spawn uses tank center.
+- [x] Upgrade boid math to Vector3 for depth-aware flocking.
