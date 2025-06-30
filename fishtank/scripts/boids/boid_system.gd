@@ -545,9 +545,8 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
         or fish.BF_position_UP.y > max_y
     )
     if near_edge or outside:
-        var push_dir = (
-            (Vector2(center.x, center.y) - Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y))
-            . normalized()
+        var push_dir: Vector3 = (
+            (Vector3(center.x, center.y, fish.BF_position_UP.z) - fish.BF_position_UP).normalized()
         )
         fish.BF_velocity_UP = fish.BF_velocity_UP.move_toward(
             push_dir * BS_config_IN.BC_max_speed_IN, delta * 2.0

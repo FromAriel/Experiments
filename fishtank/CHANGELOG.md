@@ -28,3 +28,5 @@
 - Added optional flip-turn behavior with sprite deformation and direction flip
   to smooth out sharp reversals near walls.
 - Converted boid movement math to operate in 3D while retaining 2D rendering.
+
+- Fixed 3D push-back vector in sanity check to prevent Vector2/Vector3 mix errors.
