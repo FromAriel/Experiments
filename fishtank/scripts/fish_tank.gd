@@ -37,6 +37,8 @@ func _ready() -> void:
     if FT_boid_system_UP.BS_config_IN == null:
         FT_boid_system_UP.BS_config_IN = BoidSystemConfig.new()
 
+    FT_boid_system_UP.BS_environment_IN = FT_environment_IN
+
     FT_boid_system_UP.BS_spawn_population_IN(FT_archetypes_UP)
 
     if FT_overlay_label_UP != null:

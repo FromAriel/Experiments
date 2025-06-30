@@ -6,7 +6,7 @@
 #                   • _BS_update_fish_IN() – group‐preferred flocking, soft & hard walls
 # Critical Consts  • BS_neighbor_radius_IN: float
 # Dependencies     • boid_system_config.gd, fish_archetype.gd, boid_fish.gd
-# Last Major Rev   • 25-07-05 – combines fallback scene, color groups, z-depth, robust spawn
+# Last Major Rev   • 25-07-06 – adds reveal animation and spawn fix
 ###############################################################
 # gdlint:disable = class-variable-name,function-name,function-variable-name,loop-variable-name
 
@@ -36,6 +36,8 @@ extends Node2D
 
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
+@export var BS_reveal_batch_IN: int = 3
+@export var BS_reveal_interval_IN: float = 0.2
 var BS_fish_nodes_SH: Array[BoidFish] = []
 # gdlint:ignore-start
 
@@ -50,6 +52,8 @@ var BS_group_colors := [
 ]
 var BS_rng_UP := RandomNumberGenerator.new()
 var BS_grid_SH: Dictionary = {}
+var BS_reveal_timer_UP: Timer
+var BS_reveal_index_UP: int = 0
 
 # gdlint:ignore-end
 
@@ -104,10 +108,23 @@ func BS_spawn_population_IN(archetypes: Array[FishArchetype]) -> void:
     )
     for i in range(count):
         var arch: FishArchetype = archetypes[BS_rng_UP.randi_range(0, archetypes.size() - 1)]
-        _BS_spawn_fish_IN(arch)
+        var fish = _BS_spawn_fish_IN(arch)
+        fish.scale = Vector2.ONE * 0.1
+        var c: Color = fish.modulate
+        c.a = 0.0
+        fish.modulate = c
+    BS_reveal_index_UP = 0
+    if BS_reveal_timer_UP == null:
+        BS_reveal_timer_UP = Timer.new()
+        BS_reveal_timer_UP.autostart = false
+        BS_reveal_timer_UP.one_shot = false
+        add_child(BS_reveal_timer_UP)
+        BS_reveal_timer_UP.connect("timeout", Callable(self, "_BS_on_reveal_timeout_IN"))
+    BS_reveal_timer_UP.wait_time = BS_reveal_interval_IN
+    BS_reveal_timer_UP.start()
 
 
-func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
+func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     var fish: BoidFish
     if BS_fish_scene_IN != null and is_instance_valid(BS_fish_scene_IN):
         fish = BS_fish_scene_IN.instantiate() as BoidFish
@@ -131,6 +148,19 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     fish.BF_archetype_IN = arch
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
+    return fish
+
+
+func _BS_on_reveal_timeout_IN() -> void:
+    for _i in range(BS_reveal_batch_IN):
+        if BS_reveal_index_UP >= BS_fish_nodes_SH.size():
+            BS_reveal_timer_UP.stop()
+            return
+        var fish: BoidFish = BS_fish_nodes_SH[BS_reveal_index_UP]
+        var tw := create_tween()
+        tw.tween_property(fish, "scale", Vector2.ONE, 0.5)
+        tw.tween_property(fish, "modulate:a", 1.0, 0.5)
+        BS_reveal_index_UP += 1
 
 
 func _physics_process(delta: float) -> void:
