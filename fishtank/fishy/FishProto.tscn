@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource path="res://fishy/fish_proto.gd" type="Script" id=1]
+[ext_resource path="res://fishy/default_config.tres" type="FishProtoConfig" id=2]
+
+[node name="FishProto" type="Node2D"]
+script = ExtResource( 1 )
+FP_config_IN = ExtResource( 2 )
+position = Vector2(400, 300)
