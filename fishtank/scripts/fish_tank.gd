@@ -1,12 +1,12 @@
 ###############################################################
-# gdlint:disable = class-variable-name,function-name,function-variable-name
 # fishtank/scripts/fish_tank.gd
 # Key Classes      • FishTank – root controller for the aquarium
 # Key Functions    • _ready() – initialize tank and debug overlay
 #                   FT_apply_depth_IN() – apply pseudo-3D transform
 # Dependencies     • archetype_loader.gd, tank_environment.gd
-# Last Major Rev   • 24-06-30 – add debug overlay and depth logic
+# Last Major Rev   • 24-07-05 – robust node look-ups, auto-create overlay & system
 ###############################################################
+# gdlint:disable = class-variable-name,function-name,function-variable-name
 
 class_name FishTank
 extends Node2D
@@ -16,17 +16,50 @@ var FT_overlay_label_UP: Label
 
 
 func _ready() -> void:
-    FT_overlay_label_UP = $DebugOverlay/DebugLabel
+    _FT_ensure_debug_overlay_IN()
+
     if FT_environment_IN == null:
         FT_environment_IN = TankEnvironment.new()
+
     _FT_update_environment_bounds_IN()
+
+    # --- Load archetypes ----------------------------------------------------
     var FT_loader_IN := ArchetypeLoader.new()
     var FT_archetypes_UP := FT_loader_IN.AL_load_archetypes_IN("res://data/archetypes.json")
-    var FT_boid_system_UP: BoidSystem = $BoidSystem
+
+    # --- Boid system --------------------------------------------------------
+    var FT_boid_system_UP: BoidSystem = get_node_or_null("BoidSystem")
+    if FT_boid_system_UP == null:
+        FT_boid_system_UP = BoidSystem.new()
+        FT_boid_system_UP.name = "BoidSystem"
+        add_child(FT_boid_system_UP)
+
     if FT_boid_system_UP.BS_config_IN == null:
         FT_boid_system_UP.BS_config_IN = BoidSystemConfig.new()
+
     FT_boid_system_UP.BS_spawn_population_IN(FT_archetypes_UP)
-    FT_overlay_label_UP.text = "Loaded %d archetypes" % FT_archetypes_UP.size()
+
+    if FT_overlay_label_UP != null:
+        FT_overlay_label_UP.text = "Loaded %d archetypes" % FT_archetypes_UP.size()
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+func _FT_ensure_debug_overlay_IN() -> void:
+    FT_overlay_label_UP = get_node_or_null("DebugOverlay/DebugLabel") as Label
+    if FT_overlay_label_UP != null:
+        return  # overlay already present
+
+    var overlay := CanvasLayer.new()
+    overlay.name = "DebugOverlay"
+    add_child(overlay)
+
+    FT_overlay_label_UP = Label.new()
+    FT_overlay_label_UP.name = "DebugLabel"
+    FT_overlay_label_UP.position = Vector2(10, 10)
+    FT_overlay_label_UP.text = "Debug overlay online"
+    overlay.add_child(FT_overlay_label_UP)
 
 
 func FT_apply_depth_IN(node: Node2D, depth: float) -> void:
@@ -56,14 +89,13 @@ func _FT_update_environment_bounds_IN() -> void:
             )
             return
 
+    # Fallback – use viewport
     var FT_rect_UP: Rect2 = get_viewport_rect()
     FT_environment_IN.TE_size_IN = Vector3(
         FT_rect_UP.size.x, FT_rect_UP.size.y, FT_environment_IN.TE_size_IN.z
     )
     FT_environment_IN.TE_boundaries_SH = AABB(
-        Vector3(
-            FT_rect_UP.position.x, FT_rect_UP.position.y, -FT_environment_IN.TE_size_IN.z / 2.0
-        ),
+        Vector3(FT_rect_UP.position.x, FT_rect_UP.position.y, -FT_environment_IN.TE_size_IN.z / 2.0),
         FT_environment_IN.TE_size_IN
     )
 # gdlint:enable = class-variable-name,function-name,function-variable-name

@@ -3,19 +3,28 @@
 # Key Classes      • ShapeGenerator – generates placeholder textures
 # Key Functions    • SG_generate_shapes_IN() – writes ellipse and triangle images
 # Dependencies     • None
-# Last Major Rev   • 24-06-30 – initial creation
+# Last Major Rev   • 24-07-05 – ensure output dir exists, guard errors
 ###############################################################
 # gdlint:disable = function-variable-name,function-name,loop-variable-name
 
 class_name ShapeGenerator
 extends Node
 
+const SG_ART_DIR := "res://art"
+
 
 func SG_generate_shapes_IN() -> void:
+    # Make sure the art directory exists (important on a fresh checkout / export).
+    var SG_dir_err := DirAccess.make_dir_recursive(SG_ART_DIR)
+    if SG_dir_err != OK and SG_dir_err != ERR_ALREADY_EXISTS:
+        push_error("ShapeGenerator: Cannot create directory %s (err %d)" % [SG_ART_DIR, SG_dir_err])
+        return
+
     var SG_ellipse_image_UP := _SG_create_ellipse_IN(64, 32, Color.WHITE)
-    SG_ellipse_image_UP.save_png("res://art/ellipse_placeholder.png")
+    SG_ellipse_image_UP.save_png("%s/ellipse_placeholder.png" % SG_ART_DIR)
+
     var SG_triangle_image_UP := _SG_create_triangle_IN(64, 64, Color.WHITE)
-    SG_triangle_image_UP.save_png("res://art/triangle_placeholder.png")
+    SG_triangle_image_UP.save_png("%s/triangle_placeholder.png" % SG_ART_DIR)
 
 
 func _SG_create_ellipse_IN(width: int, height: int, color: Color) -> Image:
