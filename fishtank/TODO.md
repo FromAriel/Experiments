@@ -16,3 +16,4 @@
 - [ ] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
 - [ ] Integrate TankCollider for graceful wall constraints.
+- [x] Implement advanced boid steering with boundary modes and depth engine.

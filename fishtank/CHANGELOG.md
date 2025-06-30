@@ -24,3 +24,5 @@
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
 - Added `TankCollider` node and collider-based confinement to keep fish
   from exiting the tank while gliding smoothly along walls.
+- Added advanced boid features: deterministic wander, depth-based speed,
+  selectable boundary modes, and per-archetype behavior tuning.

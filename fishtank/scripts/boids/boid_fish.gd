@@ -9,6 +9,8 @@
 class_name BoidFish
 extends Node2D
 
+enum FishBehavior { SCHOOL, DART, IDLE, CHASE }
+
 const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 
 var BF_velocity_UP: Vector2 = Vector2.ZERO
@@ -17,6 +19,10 @@ var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
 var BF_depth_UP: float = 0.0
 var BF_environment_IN: TankEnvironment
+var BF_behavior_SH: int = FishBehavior.SCHOOL
+var BF_target_depth_SH: float = 0.0
+var BF_wander_phase_UP: float = 0.0
+var BF_depth_lerp_speed_IN: float = 1.5
 
 
 func _ready() -> void:
@@ -24,12 +30,22 @@ func _ready() -> void:
     _BF_ensure_visual_IN()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if BF_velocity_UP != Vector2.ZERO:
-        rotation = BF_velocity_UP.angle()
+        var turn_speed := 5.0
+        if BF_archetype_IN != null:
+            turn_speed = BF_archetype_IN.FA_turn_speed_IN
+        rotation = lerp_angle(rotation, BF_velocity_UP.angle(), turn_speed * delta)
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
+
+    var anim := get_node_or_null("AnimationPlayer") as AnimationPlayer
+    if anim != null and BF_environment_IN != null:
+        var cfg_speed := 200.0
+        if BF_archetype_IN != null:
+            cfg_speed = BF_archetype_IN.FA_burst_speed_IN
+        anim.speed_scale = BF_velocity_UP.length() / max(cfg_speed, 1.0)
 
 
 # --------------------------------------------------------------
@@ -51,17 +67,11 @@ func _BF_ensure_visual_IN() -> void:
 
 
 func _BF_apply_depth_IN() -> void:
-    var BF_ratio_UP: float = clamp(
-        (BF_environment_IN.TE_size_IN.z - BF_depth_UP) / BF_environment_IN.TE_size_IN.z,
-        0.0,
-        1.0,
+    var BF_ratio_UP: float = clamp(BF_depth_UP / BF_environment_IN.TE_size_IN.z, 0.0, 1.0)
+    scale = Vector2.ONE * lerp(1.0, 0.5, BF_ratio_UP)
+    modulate = Color(
+        1.0 - BF_ratio_UP * 0.5,
+        1.0 - BF_ratio_UP * 0.5,
+        1.0 - BF_ratio_UP * 0.5,
+        lerp(1.0, 0.4, BF_ratio_UP),
     )
-
-    # Scale
-    var BF_scale_UP: float = lerp(0.5, 1.0, BF_ratio_UP)
-    scale = Vector2.ONE * BF_scale_UP
-
-    # Tint / opacity
-    var BF_col := modulate
-    BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
-    modulate = BF_col
