@@ -20,6 +20,8 @@ const FlockParameters = preload("res://scripts/boids/flock_parameters.gd")
 @export var speed_mult: float = 1.0
 @export var agility_mult: float = 1.0
 @export var preferred_depth: float = 0.0
+@export var boundary_margin: float = 50.0
+@export var boundary_force: float = 100.0
 
 var velocity: Vector2 = Vector2.ZERO
 var acceleration: Vector2 = Vector2.ZERO
@@ -65,6 +67,7 @@ func _physics_process(delta: float) -> void:
 
     # --- RANDOM WANDER ---
     _apply_wander()
+    _apply_boundary_force()
 
     # --- DRAG ---
     acceleration -= velocity * drag
@@ -164,3 +167,25 @@ func _apply_wander() -> void:
     var jitter = Vector2(_rng.randf_range(-1.0, 1.0), _rng.randf_range(-1.0, 1.0)) * wander_strength
     acceleration += jitter
     _wander_accel = jitter
+
+
+# --------------------- BOUNDARY REPULSION -----------------------
+func _apply_boundary_force() -> void:
+    if fish == null:
+        return
+    var pos: Vector2 = fish.global_position
+    var max_x: float = fish.tank_size.x
+    var max_y: float = fish.tank_size.y
+    if pos.x < boundary_margin:
+        var d = (boundary_margin - pos.x) / boundary_margin
+        acceleration.x += boundary_force * d
+    elif pos.x > max_x - boundary_margin:
+        var d = (pos.x - (max_x - boundary_margin)) / boundary_margin
+        acceleration.x -= boundary_force * d
+
+    if pos.y < boundary_margin:
+        var dy = (boundary_margin - pos.y) / boundary_margin
+        acceleration.y += boundary_force * dy
+    elif pos.y > max_y - boundary_margin:
+        var dy = (pos.y - (max_y - boundary_margin)) / boundary_margin
+        acceleration.y -= boundary_force * dy
