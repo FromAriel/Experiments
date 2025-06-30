@@ -24,3 +24,5 @@
   Updated `FishArchetype` with a matching `FA_behavior_IN` field.
 - Added `TankCollider` node and collider-based confinement to keep fish
   from exiting the tank while gliding smoothly along walls.
+- New spawning routine instantiates fish at the tank center and fades them
+  in gradually so they appear from the depths.

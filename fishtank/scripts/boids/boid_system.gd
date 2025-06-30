@@ -36,6 +36,10 @@ extends Node2D
 
 @export var BS_grid_cell_size_IN: float = 100.0
 @export var BS_collider_IN: TankCollider
+@export var BS_reveal_batch_size_IN: int = 4
+@export var BS_reveal_delay_IN: float = 0.2
+@export var BS_reveal_duration_IN: float = 0.5
+@export var BS_initial_scale_IN: float = 0.2
 var BS_fish_nodes_SH: Array[BoidFish] = []
 # gdlint:ignore-start
 
@@ -105,9 +109,11 @@ func BS_spawn_population_IN(archetypes: Array[FishArchetype]) -> void:
     for i in range(count):
         var arch: FishArchetype = archetypes[BS_rng_UP.randi_range(0, archetypes.size() - 1)]
         _BS_spawn_fish_IN(arch)
+    _BS_prepare_spawn_reveal_IN()
+    call_deferred("_BS_reveal_population_IN")
 
 
-func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
+func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     var fish: BoidFish
     if BS_fish_scene_IN != null and is_instance_valid(BS_fish_scene_IN):
         fish = BS_fish_scene_IN.instantiate() as BoidFish
@@ -131,6 +137,29 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> void:
     fish.BF_archetype_IN = arch
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
+    return fish
+
+
+func _BS_prepare_spawn_reveal_IN() -> void:
+    for fish in BS_fish_nodes_SH:
+        fish.scale = Vector2.ONE * BS_initial_scale_IN
+        var col := fish.modulate
+        col.a = 0.0
+        fish.modulate = col
+
+
+func _BS_reveal_population_IN() -> void:
+    var idx := 0
+    while idx < BS_fish_nodes_SH.size():
+        for i in range(BS_reveal_batch_size_IN):
+            if idx >= BS_fish_nodes_SH.size():
+                break
+            var fish: BoidFish = BS_fish_nodes_SH[idx]
+            var tw := create_tween()
+            tw.tween_property(fish, "scale", Vector2.ONE, BS_reveal_duration_IN)
+            tw.parallel().tween_property(fish, "modulate:a", 1.0, BS_reveal_duration_IN)
+            idx += 1
+        await get_tree().create_timer(BS_reveal_delay_IN).timeout
 
 
 func _physics_process(delta: float) -> void:
