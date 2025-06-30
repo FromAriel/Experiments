@@ -1,0 +1,12 @@
+[gd_resource type="FishProtoConfig" load_steps=2 format=3]
+
+[resource]
+FPC_head_mass_IN = 2.0
+FPC_body_mass_IN = 1.0
+FPC_tail_mass_IN = 0.5
+FPC_head_stiffness_IN = 200.0
+FPC_tail_stiffness_IN = 25.0
+FPC_damping_IN = 5.0
+FPC_body_segments_IN = 4
+FPC_tail_segments_IN = 6
+FPC_segment_spacing_IN = 16.0
