@@ -315,6 +315,20 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     )
     BS_steer_UP += wander_vec
 
+    fish.BF_z_steer_target_UP = Vector2(BS_steer_UP.x, BS_steer_UP.y).angle()
+    if fish.BF_archetype_IN != null:
+        fish.BF_z_angle_UP = lerp_angle(
+            fish.BF_z_angle_UP,
+            fish.BF_z_steer_target_UP,
+            fish.BF_archetype_IN.FA_z_steer_weight_IN * delta,
+        )
+    else:
+        fish.BF_z_angle_UP = lerp_angle(
+            fish.BF_z_angle_UP,
+            fish.BF_z_steer_target_UP,
+            delta,
+        )
+
     # soft‐wall repulsion with slowdown and center bias
     var wall_factor = 0.0
     if BS_environment_IN != null:
