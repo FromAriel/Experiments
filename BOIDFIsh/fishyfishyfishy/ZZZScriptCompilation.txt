@@ -1,0 +1,872 @@
+=== Script Compilation ===
+
+
+--- Script: res://scripts/boids/boid_fish.gd ---
+extends RefCounted
+class_name BoidFish
+## Pure-logic fish; no nodes, no rendering – holds state and behaviour.
+
+# --------------------------------------------------------------------- #
+#  Runtime state                                                        #
+# --------------------------------------------------------------------- #
+var BF_head_pos_UP: Vector3 = Vector3.ZERO
+var BF_tail_pos_UP: Vector3 = Vector3.ZERO
+var BF_velocity_UP: Vector3 = Vector3.ZERO
+var BF_accel_UP: Vector3 = Vector3.ZERO
+
+# --------------------------------------------------------------------- #
+#  Constants / Inspector                                                #
+# --------------------------------------------------------------------- #
+var BF_archetype_IN: FishArchetype
+var BF_species_id_SH: int = 0
+const BF_SEGMENT_RATIO_SH: float = 0.25
+
+# Steering radii (in pixels, 3-D space).
+const BF_SEPARATION_RADIUS_SH: float = 120.0
+const BF_ALIGNMENT_RADIUS_SH: float = 180.0
+const BF_COHESION_RADIUS_SH: float = 180.0
+
+# Steering weights.
+const BF_SEPARATION_WEIGHT_SH: float = 1.6
+const BF_ALIGNMENT_WEIGHT_SH: float = 1.0
+const BF_COHESION_WEIGHT_SH: float = 0.9
+const BF_DEPTH_PREF_WEIGHT_SH: float = 0.35
+const BF_WALL_AVOID_WEIGHT_SH: float = 2.0
+
+# Wall avoid margin (distance from tank wall that triggers soft push).
+const BF_WALL_MARGIN_SH: float = 60.0
+
+# Clamp for the resulting acceleration (prevents “teleport” jumps).
+const BF_MAX_FORCE_SH: float = 250.0
+
+# --------------------------------------------------------------------- #
+#  Construction                                                         #
+# --------------------------------------------------------------------- #
+func _init(
+        archetype: FishArchetype,
+        head_pos: Vector3,
+        initial_velocity: Vector3,
+        species_id: int
+) -> void:
+    BP_validate_inputs(archetype)
+
+    BF_archetype_IN = archetype
+    BF_head_pos_UP = head_pos
+    BF_velocity_UP = initial_velocity
+    BF_species_id_SH = species_id
+
+    var segment_length: float = BF_archetype_IN.FA_size_vec3_IN.z * BF_SEGMENT_RATIO_SH
+    if initial_velocity.length() > 0.0:
+        BF_tail_pos_UP = BF_head_pos_UP - initial_velocity.normalized() * segment_length
+    else:
+        BF_tail_pos_UP = BF_head_pos_UP - Vector3.FORWARD * segment_length
+
+
+# --------------------------------------------------------------------- #
+#  Public API                                                           #
+# --------------------------------------------------------------------- #
+func update_behavior(delta: float, boid_system: BoidSystem) -> void:
+    # ---------------------------------------------------------------- #
+    #  1. Query neighbours via spatial hash                            #
+    # ---------------------------------------------------------------- #
+    var neighbours: Array[BoidFish] = boid_system.get_neighbors(self, BF_ALIGNMENT_RADIUS_SH)
+
+    # Vectors accumulating the various steering components.
+    var sep: Vector3 = Vector3.ZERO
+    var ali: Vector3 = Vector3.ZERO
+    var coh: Vector3 = Vector3.ZERO
+
+    # Counters for averaging.
+    var count_sep: int = 0
+    var count_ali: int = 0
+    var count_coh: int = 0
+
+    for other: BoidFish in neighbours:
+        var offset: Vector3 = BF_head_pos_UP - other.BF_head_pos_UP
+        var dist: float = offset.length()
+
+        if dist <= 0.0:
+            continue
+        else:
+            pass
+
+        # Separation.
+        if dist < BF_SEPARATION_RADIUS_SH:
+            sep += offset.normalized() / dist
+            count_sep += 1
+        else:
+            pass
+
+        # Alignment.
+        if dist < BF_ALIGNMENT_RADIUS_SH:
+            ali += other.BF_velocity_UP
+            count_ali += 1
+        else:
+            pass
+
+        # Cohesion.
+        if dist < BF_COHESION_RADIUS_SH:
+            coh += other.BF_head_pos_UP
+            count_coh += 1
+        else:
+            pass
+
+    # Average and convert into steering vectors (desired − current vel).
+    var steer_sep: Vector3 = Vector3.ZERO
+    if count_sep > 0:
+        sep /= float(count_sep)
+        steer_sep = sep.normalized() * BF_archetype_IN.FA_max_speed_IN - BF_velocity_UP
+    else:
+        pass
+
+    var steer_ali: Vector3 = Vector3.ZERO
+    if count_ali > 0:
+        ali /= float(count_ali)
+        steer_ali = ali.normalized() * BF_archetype_IN.FA_max_speed_IN - BF_velocity_UP
+    else:
+        pass
+
+    var steer_coh: Vector3 = Vector3.ZERO
+    if count_coh > 0:
+        coh /= float(count_coh)
+        var to_center: Vector3 = coh - BF_head_pos_UP
+        steer_coh = to_center.normalized() * BF_archetype_IN.FA_max_speed_IN - BF_velocity_UP
+    else:
+        pass
+
+    # ---------------------------------------------------------------- #
+    #  2. Depth preference (Z-axis)                                     #
+    # ---------------------------------------------------------------- #
+    var preferred_z: float = boid_system.FB_tank_size_IN.z * BF_archetype_IN.FA_depth_pref_IN
+    var depth_error: float = preferred_z - BF_head_pos_UP.z
+    var steer_depth: Vector3 = Vector3(0.0, 0.0, depth_error) * BF_DEPTH_PREF_WEIGHT_SH
+
+    # ---------------------------------------------------------------- #
+    #  3. Wall avoidance – soft push as fish approaches boundaries      #
+    # ---------------------------------------------------------------- #
+    var steer_wall: Vector3 = Vector3.ZERO
+    var size: Vector3 = boid_system.FB_tank_size_IN
+    var margin: float = BF_WALL_MARGIN_SH
+    var push: float = BF_archetype_IN.FA_max_speed_IN
+
+    if BF_head_pos_UP.x < margin:
+        steer_wall.x += push
+    else:
+        pass
+    if BF_head_pos_UP.x > size.x - margin:
+        steer_wall.x -= push
+    else:
+        pass
+
+    if BF_head_pos_UP.y < margin:
+        steer_wall.y += push
+    else:
+        pass
+    if BF_head_pos_UP.y > size.y - margin:
+        steer_wall.y -= push
+    else:
+        pass
+
+    if BF_head_pos_UP.z < margin:
+        steer_wall.z += push
+    else:
+        pass
+    if BF_head_pos_UP.z > size.z - margin:
+        steer_wall.z -= push
+    else:
+        pass
+
+    steer_wall *= BF_WALL_AVOID_WEIGHT_SH
+
+    # ---------------------------------------------------------------- #
+    #  4. Combine all forces & clamp                                    #
+    # ---------------------------------------------------------------- #
+    var total_force: Vector3 = Vector3.ZERO
+    total_force += steer_sep * BF_SEPARATION_WEIGHT_SH
+    total_force += steer_ali * BF_ALIGNMENT_WEIGHT_SH
+    total_force += steer_coh * BF_COHESION_WEIGHT_SH
+    total_force += steer_depth
+    total_force += steer_wall
+
+    # Clamp the final acceleration (max force).
+    if total_force.length() > BF_MAX_FORCE_SH:
+        total_force = total_force.normalized() * BF_MAX_FORCE_SH
+    else:
+        pass
+
+    BF_accel_UP = total_force
+
+
+func integrate(delta: float) -> void:
+    # Semi-implicit Euler.
+    BF_velocity_UP += BF_accel_UP * delta
+
+    var speed: float = BF_velocity_UP.length()
+    var max_speed: float = BF_archetype_IN.FA_max_speed_IN
+    if speed > max_speed:
+        BF_velocity_UP = BF_velocity_UP.normalized() * max_speed
+    else:
+        pass
+
+    BF_head_pos_UP += BF_velocity_UP * delta
+
+    # Maintain fixed tail distance.
+    var desired_tail: Vector3 = BF_head_pos_UP - BF_velocity_UP.normalized() * (
+        BF_archetype_IN.FA_size_vec3_IN.z * BF_SEGMENT_RATIO_SH
+    )
+    BF_tail_pos_UP = BF_tail_pos_UP.lerp(desired_tail, 0.5)
+
+
+# --------------------------------------------------------------------- #
+#  Internal helpers                                                     #
+# --------------------------------------------------------------------- #
+func BP_validate_inputs(archetype: FishArchetype) -> void:
+    if archetype == null:
+        push_error("BoidFish created without a valid FishArchetype.")
+    else:
+        pass
+
+
+--- Script: res://scripts/boids/boid_system.gd ---
+# =====================================================================
+#  File: res://scripts/boids/boid_system.gd
+#  Description: Pure-logic boid simulation (Godot 4.4.1-ready)
+#               * Adds safe fallback when no FishArchetype resources
+#                 are assigned in the Inspector.
+#               * Retains existing behaviour; no 3.x remnants.
+# =====================================================================
+
+extends Node
+class_name BoidSystem
+## Fixed-timestep simulation of all fish (pure logic).
+
+# --------------------------------------------------------------------- #
+#  Constants / Inspector                                                #
+# --------------------------------------------------------------------- #
+const FB_FIXED_DT_SH: float  = 1.0 / 120.0          # Simulation step (s).
+const FB_CELL_SIZE_SH: float = 100.0                # Spatial-hash cell size.
+
+@export_category("Tank")
+@export var FB_tank_size_IN: Vector3 = Vector3(1920.0, 1080.0, 1080.0)
+
+@export_category("Archetypes")
+@export var FB_archetypes_IN: Array[FishArchetype] = []   # Filled in Editor.
+
+# --------------------------------------------------------------------- #
+#  Runtime data                                                         #
+# --------------------------------------------------------------------- #
+var FB_fish_array_UP: Array[BoidFish]          = []        # All fish.
+var FB_spatial_hash_UP: Dictionary             = {}        # Vector3i → PackedInt32Array
+var FB_rand_SH: RandomNumberGenerator          = RandomNumberGenerator.new()
+var FB_accumulated_time_UP: float              = 0.0
+var FB_last_snapshot_UP: Array                 = []        # Immutable frame snapshot.
+
+# --------------------------------------------------------------------- #
+#  Lifecycle                                                            #
+# --------------------------------------------------------------------- #
+func _ready() -> void:
+    FB_rand_SH.randomize()
+    _ensure_archetypes()                                  # Provide fallback.
+
+
+func _physics_process(delta: float) -> void:
+    FB_accumulated_time_UP += delta
+
+    while FB_accumulated_time_UP >= FB_FIXED_DT_SH:
+        _step_sim(FB_FIXED_DT_SH)
+        FB_accumulated_time_UP -= FB_FIXED_DT_SH
+
+
+# --------------------------------------------------------------------- #
+#  Public API                                                           #
+# --------------------------------------------------------------------- #
+func set_fish_count(count: int) -> void:
+    var target: int  = max(count, 0)
+    var current: int = FB_fish_array_UP.size()
+
+    if target > current:
+        _add_fish(target - current)
+    else:
+        _remove_fish(current - target)
+
+
+func get_snapshot() -> Array:
+    return FB_last_snapshot_UP.duplicate()
+
+
+func get_neighbors(fish: BoidFish, radius: float) -> Array[BoidFish]:
+    ## Returns neighbouring fish within *radius* of *fish*.
+    var results: Array[BoidFish] = []
+
+    var center_cell: Vector3i = _position_to_hash(fish.BF_head_pos_UP)
+    var cells_offset: int     = int(ceil(radius / FB_CELL_SIZE_SH))
+
+    for dz: int in range(-cells_offset, cells_offset + 1):
+        for dy: int in range(-cells_offset, cells_offset + 1):
+            for dx: int in range(-cells_offset, cells_offset + 1):
+                var cell: Vector3i = center_cell + Vector3i(dx, dy, dz)
+
+                if FB_spatial_hash_UP.has(cell):
+                    var indices: PackedInt32Array = FB_spatial_hash_UP[cell]
+                    for idx: int in indices:
+                        var other: BoidFish = FB_fish_array_UP[idx]
+
+                        if other == fish:
+                            continue
+                        else:
+                            pass
+
+                        if fish.BF_head_pos_UP.distance_to(other.BF_head_pos_UP) <= radius:
+                            results.append(other)
+                        else:
+                            pass
+                else:
+                    pass
+
+    return results
+
+
+# --------------------------------------------------------------------- #
+#  Internal simulation helpers                                          #
+# --------------------------------------------------------------------- #
+func _ensure_archetypes() -> void:
+    ## Guarantees at least one archetype exists to avoid runtime errors.
+    if FB_archetypes_IN.is_empty():
+        push_warning("BoidSystem: No FishArchetype resources assigned – generating default archetype.")
+        var default_arch: FishArchetype = FishArchetype.new()   # Uses class defaults.
+        FB_archetypes_IN.append(default_arch)
+    else:
+        pass
+
+
+func _add_fish(amount: int) -> void:
+    if amount <= 0:
+        return
+    else:
+        pass
+
+    _ensure_archetypes()
+
+    for _i in range(amount):
+        # -------------------------------------------------------------- #
+        #  Randomly choose an archetype                                  #
+        # -------------------------------------------------------------- #
+        var arch_index: int         = FB_rand_SH.randi_range(0, FB_archetypes_IN.size() - 1)
+        var archetype: FishArchetype = FB_archetypes_IN[arch_index]
+
+        # -------------------------------------------------------------- #
+        #  Random starting position & velocity                           #
+        # -------------------------------------------------------------- #
+        var head_pos: Vector3 = Vector3(
+            FB_rand_SH.randf_range(0.0, FB_tank_size_IN.x),
+            FB_rand_SH.randf_range(0.0, FB_tank_size_IN.y),
+            FB_rand_SH.randf_range(0.0, FB_tank_size_IN.z)
+        )
+
+        var velocity: Vector3 = Vector3(
+            FB_rand_SH.randf_range(-1.0, 1.0),
+            FB_rand_SH.randf_range(-1.0, 1.0),
+            FB_rand_SH.randf_range(-1.0, 1.0)
+        ).normalized() * archetype.FA_max_speed_IN * 0.5
+
+        var fish: BoidFish = BoidFish.new(archetype, head_pos, velocity, arch_index)
+        FB_fish_array_UP.append(fish)
+
+
+func _remove_fish(amount: int) -> void:
+    if amount <= 0:
+        return
+    else:
+        pass
+
+    var new_size: int = max(FB_fish_array_UP.size() - amount, 0)
+    FB_fish_array_UP.resize(new_size)
+
+
+func _step_sim(dt: float) -> void:
+    _update_spatial_hash()
+
+    for fish: BoidFish in FB_fish_array_UP:
+        fish.update_behavior(dt, self)
+
+    for fish: BoidFish in FB_fish_array_UP:
+        fish.integrate(dt)
+
+    _take_snapshot()
+
+
+func _update_spatial_hash() -> void:
+    FB_spatial_hash_UP.clear()
+
+    for index: int in range(FB_fish_array_UP.size()):
+        var fish: BoidFish    = FB_fish_array_UP[index]
+        var cell: Vector3i    = _position_to_hash(fish.BF_head_pos_UP)
+
+        if FB_spatial_hash_UP.has(cell) == false:
+            FB_spatial_hash_UP[cell] = PackedInt32Array()
+        else:
+            pass
+
+        var arr: PackedInt32Array = FB_spatial_hash_UP[cell]
+        arr.push_back(index)
+        FB_spatial_hash_UP[cell] = arr
+
+
+func _position_to_hash(pos: Vector3) -> Vector3i:
+    var xi: int = int(floor(pos.x / FB_CELL_SIZE_SH))
+    var yi: int = int(floor(pos.y / FB_CELL_SIZE_SH))
+    var zi: int = int(floor(pos.z / FB_CELL_SIZE_SH))
+    return Vector3i(xi, yi, zi)
+
+
+func _take_snapshot() -> void:
+    FB_last_snapshot_UP.clear()
+
+    for fish: BoidFish in FB_fish_array_UP:
+        FB_last_snapshot_UP.append({
+            "head":       fish.BF_head_pos_UP,
+            "tail":       fish.BF_tail_pos_UP,
+            "species_id": fish.BF_species_id_SH
+        })
+
+
+--- Script: res://scripts/core/game_manager.gd ---
+extends Node
+class_name GameManager
+## Singleton that exposes user settings & debug flags.
+
+# --------------------------------------------------------------------- #
+#  Inspector – User-Facing Settings                                     #
+# --------------------------------------------------------------------- #
+@export_range(50, 600, 1) var GM_fish_count_IN: int = 300
+@export_range(0.5, 1.5, 0.01) var GM_depth_scale_IN: float = 1.0
+@export_enum("Community", "Reef", "Night") var GM_theme_IN: String = "Community"
+
+# --------------------------------------------------------------------- #
+#  Inspector – Debug Flags                                              #
+# --------------------------------------------------------------------- #
+@export_group("Debug Flags")
+@export var GM_debug_enabled_SH: bool = false
+@export var GM_draw_spines_SH: bool = false
+@export var GM_log_fish_SH: bool = false
+@export var GM_dump_placeholders_SH: bool = false
+@export var GM_show_grid_SH: bool = false
+
+# --------------------------------------------------------------------- #
+#  Runtime references                                                   #
+# --------------------------------------------------------------------- #
+var GM_boid_system_RD: BoidSystem
+var GM_renderer_RD: FishRenderer
+
+# --------------------------------------------------------------------- #
+#  Signals                                                              #
+# --------------------------------------------------------------------- #
+signal fish_count_changed(new_count: int)
+signal depth_scale_changed(new_scale: float)
+signal theme_changed(new_theme: String)
+signal debug_toggled(enabled: bool)
+
+# --------------------------------------------------------------------- #
+#  Lifecycle                                                            #
+# --------------------------------------------------------------------- #
+func _ready() -> void:
+    GM_boid_system_RD = get_node_or_null("FishBoidSim")
+    GM_renderer_RD = get_node_or_null("FishRenderer")
+
+    if GM_boid_system_RD == null:
+        push_error("GameManager could not find FishBoidSim child node.")
+    else:
+        GM_boid_system_RD.set_fish_count(GM_fish_count_IN)
+
+    if GM_renderer_RD == null:
+        push_error("GameManager could not find FishRenderer child node.")
+    else:
+        GM_renderer_RD.set_depth_scale(GM_depth_scale_IN)
+
+
+# --------------------------------------------------------------------- #
+#  Input – hidden F3 debug toggle                                       #
+# --------------------------------------------------------------------- #
+func _input(event: InputEvent) -> void:
+    if event is InputEventKey and event.is_pressed():
+        if event.keycode == KEY_F3:
+            GM_debug_enabled_SH = !GM_debug_enabled_SH
+            debug_toggled.emit(GM_debug_enabled_SH)
+        else:
+            pass
+    else:
+        pass
+
+
+# --------------------------------------------------------------------- #
+#  Setters (called by UI or hotkeys)                                    #
+# --------------------------------------------------------------------- #
+func set_fish_count(count: int) -> void:
+    GM_fish_count_IN = clamp(count, 50, 600)
+
+    if GM_boid_system_RD != null:
+        GM_boid_system_RD.set_fish_count(GM_fish_count_IN)
+    else:
+        pass
+
+    fish_count_changed.emit(GM_fish_count_IN)
+
+
+func set_depth_scale(scale: float) -> void:
+    GM_depth_scale_IN = clamp(scale, 0.5, 1.5)
+
+    if GM_renderer_RD != null:
+        GM_renderer_RD.set_depth_scale(GM_depth_scale_IN)
+    else:
+        pass
+
+    depth_scale_changed.emit(GM_depth_scale_IN)
+
+
+func set_theme(theme: String) -> void:
+    GM_theme_IN = theme
+    theme_changed.emit(theme)
+
+
+--- Script: res://scripts/data/fish_archetype.gd ---
+extends Resource
+class_name FishArchetype
+#@icon("res://icon.svg") # Placeholder icon for the inspector.
+
+#/* -------------------------------------------------------------------- *
+# *  FishArchetype – tweakable per-species parameters                    *
+# * -------------------------------------------------------------------- */
+
+@export_category("Size & Movement")
+@export var FA_size_vec3_IN: Vector3 = Vector3(120.0, 40.0, 120.0)
+@export var FA_max_speed_IN: float = 140.0
+@export var FA_wander_weight_IN: float = 1.0
+@export_enum(
+    "SCHOOL",
+    "SHOAL",
+    "LONER",
+    "BOTTOM_DWELLER",
+    "CRUISER"
+)
+var FA_flock_type_IN: String = "SCHOOL"
+@export_range(0.0, 1.0, 0.01) var FA_depth_pref_IN: float = 0.5
+
+@export_category("Soft-Body Deformation")
+@export var FA_z_steer_weight_IN: float = 1.0
+@export var FA_deform_min_x_IN: float = 0.85
+@export var FA_deform_max_y_IN: float = 1.15
+@export var FA_flip_thresh_IN: float = 0.0
+
+@export_category("Rendering")
+@export var FA_palette_id_IN: int = 0
+
+
+--- Script: res://scripts/renderer/fish_renderer.gd ---
+# ===============================================================
+#  File:  res://scripts/renderer/fish_renderer.gd
+#  Desc:  2-D batched fish renderer with optional debug overlay.
+#         ✔ Depth-based scale & tint  (fake 3-D)
+#         ✔ Inspector-tweakable point radius + spine width
+#         ✔ Godot 4.4.1-ready
+# ===============================================================
+
+extends Node2D
+class_name FishRenderer
+
+@export var FR_sprite_texture_IN : Texture2D
+@export var FR_front_scale_SH    : float = 1.0
+@export var FR_back_scale_SH     : float = 0.4
+
+const FR_NEAR_BRIGHT_SH : float = 1.00
+const FR_FAR_BRIGHT_SH  : float = 0.55
+
+@export_group("Debug Visuals")
+@export_range(1.0, 20.0, 0.5, "suffix:px")
+var FR_dbg_point_radius_IN : float = 4.0
+@export_range(1.0, 10.0, 0.5, "suffix:px")
+var FR_dbg_line_width_IN   : float = 2.0
+@export var FR_dbg_color_IN : Color = Color.YELLOW
+@export_group("")
+
+var FR_boid_system_RD        : BoidSystem
+var FR_multimesh_SH          : MultiMesh             = MultiMesh.new()
+var FR_multimesh_instance_SH : MultiMeshInstance2D
+var _gm : GameManager
+
+# ------------------------------------------------------------------ #
+func _ready() -> void:
+    FR_boid_system_RD = get_node_or_null("../FishBoidSim")
+    if FR_boid_system_RD == null:
+        push_error("FishRenderer: sibling 'FishBoidSim' not found.")
+        return
+
+    _gm = get_tree().root.get_node_or_null("GameManager")
+
+    FR_multimesh_SH.transform_format = MultiMesh.TRANSFORM_2D
+    FR_multimesh_SH.use_colors       = true
+    var quad := QuadMesh.new(); quad.size = Vector2.ONE
+    FR_multimesh_SH.mesh = quad
+    FR_multimesh_SH.instance_count = 0
+
+    FR_multimesh_instance_SH = MultiMeshInstance2D.new()
+    FR_multimesh_instance_SH.multimesh = FR_multimesh_SH
+    if FR_sprite_texture_IN: FR_multimesh_instance_SH.texture = FR_sprite_texture_IN
+    else: push_warning("FishRenderer: FR_sprite_texture_IN is null – fish will show as solid quads.")
+    add_child(FR_multimesh_instance_SH)
+
+    set_process(true)
+
+func set_depth_scale(scale: float) -> void:
+    FR_front_scale_SH = scale
+    FR_back_scale_SH  = clamp(scale * 0.4, 0.05, scale)
+
+# ------------------------------------------------------------------ #
+func _process(_delta: float) -> void:
+    if FR_boid_system_RD == null: return
+
+    var snapshot : Array = FR_boid_system_RD.get_snapshot()
+    _resize_multimesh(snapshot.size())
+
+    var tank_depth : float = FR_boid_system_RD.FB_tank_size_IN.z
+    var i : int = 0
+
+    for item in snapshot:
+        var head : Vector3 = item["head"]
+        var tail : Vector3 = item["tail"]
+
+        var depth_ratio : float = head.z / max(tank_depth, 0.001)
+        var scale        : float = lerp(FR_front_scale_SH, FR_back_scale_SH, depth_ratio)
+        var brightness   : float = lerp(FR_NEAR_BRIGHT_SH,  FR_FAR_BRIGHT_SH, depth_ratio)
+
+        var head2 : Vector2 = Vector2(head.x, head.y)
+        var tail2 : Vector2 = Vector2(tail.x, tail.y)
+        var angle : float   = (head2 - tail2).angle()
+
+        var xf := Transform2D.IDENTITY
+        xf = xf.scaled(Vector2(scale, scale))
+        xf = xf.rotated(angle)
+        xf = xf.translated(head2)
+
+        FR_multimesh_SH.set_instance_transform_2d(i, xf)
+        FR_multimesh_SH.set_instance_color(i, Color(brightness, brightness, brightness, 1.0))
+        i += 1
+
+    if _gm and _gm.GM_debug_enabled_SH and _gm.GM_draw_spines_SH:
+        queue_redraw()
+
+# ------------------------------------------------------------------ #
+func _draw() -> void:
+    if not (_gm and _gm.GM_debug_enabled_SH and _gm.GM_draw_spines_SH):
+        return
+
+    # *** FIXED LINE (identity transform for drawing) ***
+    draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+    var snapshot : Array = FR_boid_system_RD.get_snapshot()
+    for item in snapshot:
+        var head : Vector3 = item["head"]
+        var tail : Vector3 = item["tail"]
+        var head2 : Vector2 = Vector2(head.x, head.y)
+        var tail2 : Vector2 = Vector2(tail.x, tail.y)
+
+        draw_line(tail2, head2, FR_dbg_color_IN, FR_dbg_line_width_IN, true)
+        draw_circle(head2, FR_dbg_point_radius_IN, FR_dbg_color_IN)
+        draw_circle(tail2, FR_dbg_point_radius_IN, FR_dbg_color_IN)
+
+# ------------------------------------------------------------------ #
+func _resize_multimesh(required: int) -> void:
+    if FR_multimesh_SH.instance_count != required:
+        FR_multimesh_SH.instance_count = required
+
+
+--- Script: res://scripts/tools/shape_generator.gd ---
+extends Object
+class_name ShapeGenerator
+## Creates simple placeholder textures entirely in memory.
+
+static func generate_ellipse_texture(
+        width: int,
+        height: int,
+        fill_color: Color = Color(1, 1, 1, 1)
+) -> Texture2D:
+    var img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
+    img.fill(Color(0, 0, 0, 0))                                                # Transparent background.
+
+    var center: Vector2 = Vector2(width * 0.5, height * 0.5)
+    var radius: Vector2 = Vector2(width * 0.5, height * 2)
+
+    for y: int in range(height):
+        for x: int in range(width):
+            var rel: Vector2 = Vector2(x, y) - center
+            var norm: Vector2 = Vector2(rel.x / radius.x, rel.y / radius.y)
+            if norm.length_squared() <= 1.0:
+                img.set_pixel(x, y, fill_color)
+            else:
+                pass                                                       # Keep pixel transparent.
+
+    var tex: ImageTexture = ImageTexture.create_from_image(img)
+
+    # Optional debug PNG dump.
+    if Engine.has_singleton("GameManager"):
+        var gm: GameManager = Engine.get_singleton("GameManager")
+        if gm.GM_debug_enabled_SH and gm.GM_dump_placeholders_SH:
+            var path: String = "user://ellipse_%dx%d.png" % [width, height]
+            img.save_png(path)
+        else:
+            pass
+    else:
+        pass
+
+    return tex
+
+
+--- Script: res://scripts/user_tools/ZZZTool_GD_Gather.gd ---
+@tool
+extends EditorScript
+
+# ==================================================
+#  File: GatherGDScripts.gd
+#  Description:
+#   - Recursively gathers all .gd files under res://
+#   - Excludes scripts beginning with "X_TOOL_"
+#   - Skips the Godot internal ".godot" directory
+#   - Writes contents to "res://ScriptCompilation.txt"
+# ==================================================
+
+var OUTPUT_FILE: String = "res://ZZZScriptCompilation.txt"
+
+
+func _run() -> void:
+    print("=== GatherGDScripts: START ===")
+
+    var out_file = FileAccess.open(OUTPUT_FILE, FileAccess.WRITE)
+    if not out_file:
+        push_error("Cannot open '%s' for writing." % OUTPUT_FILE)
+        return
+
+    out_file.store_line("=== Script Compilation ===\n")
+
+    var gd_paths = _find_gd_files("res://")
+    if gd_paths.size() == 0:
+        out_file.store_line("No .gd files found under res://.")
+        out_file.close()
+        return
+
+    for gd_file_path in gd_paths:
+        out_file.store_line("\n--- Script: %s ---" % gd_file_path)
+        var script_file = FileAccess.open(gd_file_path, FileAccess.READ)
+        if script_file:
+            var content = script_file.get_as_text()
+            out_file.store_line(content)
+            script_file.close()
+        else:
+            out_file.store_line("Could not open %s for reading." % gd_file_path)
+
+    out_file.close()
+
+    print("Wrote script compilation to: %s" % OUTPUT_FILE)
+    print("=== GatherGDScripts: DONE ===")
+
+
+func _find_gd_files(base_dir: String) -> Array:
+    var results = []
+    var dir = DirAccess.open(base_dir)
+    if not dir:
+        return results
+
+    dir.list_dir_begin()
+    while true:
+        var fname = dir.get_next()
+        if fname == "":
+            break
+
+        # Skip hidden/system files and Godot's internal directory
+        if fname.begins_with(".") or fname == ".godot":
+            continue
+
+        var full_path = base_dir.path_join(fname)
+        if dir.current_is_dir():
+            results += _find_gd_files(full_path)
+        else:
+            var low = fname.to_lower()
+            if low.ends_with(".gd") and not fname.begins_with("X_TOOL_"):
+                results.append(full_path)
+
+    dir.list_dir_end()
+    return results
+
+
+--- Script: res://scripts/user_tools/ZZZTool_SceneGather.gd ---
+@tool
+extends EditorScript
+class_name ZTOOL_GatherScenes
+
+## Location for the consolidated output.
+const OUTPUT_FILE := "res://ZTOOL_GatherScenes.txt"
+
+## Directory names you don’t want to scan (add more as needed).
+const SKIP_DIRS: PackedStringArray = [".godot", ".import", ".tmp", ".git"]  # editor cache / metadata  # import cache
+
+
+func _run() -> void:
+    # Gather every scene’s path + text.
+    var lines: Array[String] = []
+    _scan_dir("res://", lines)
+
+    # Join the lines and write once.
+    var file := FileAccess.open(OUTPUT_FILE, FileAccess.WRITE)
+    if file == null:
+        push_error(
+            (
+                "ZTOOL_GatherScenes: cannot open %s (error %d)"
+                % [OUTPUT_FILE, FileAccess.get_open_error()]
+            )
+        )
+        return
+
+    file.store_string("\n".join(lines))
+    file.close()
+    print("ZTOOL_GatherScenes: wrote %d scenes to %s" % [lines.size(), OUTPUT_FILE])
+
+
+## Recursively walks *dir_path*, appending results into *out_lines*.
+func _scan_dir(dir_path: String, out_lines: Array[String]) -> void:
+    var dir := DirAccess.open(dir_path)
+    if dir == null:
+        push_warning("Cannot open directory %s (error %d)" % [dir_path, DirAccess.get_open_error()])
+        return
+
+    dir.list_dir_begin()
+    while true:
+        var entry := dir.get_next()
+        if entry == "":
+            break  # done
+
+        if entry == "." or entry == "..":
+            continue
+
+        var sub_path := dir_path.path_join(entry)
+        if dir.current_is_dir():
+            # Skip engine / VCS / hidden folders.
+            if entry.begins_with(".") or SKIP_DIRS.has(entry):
+                continue
+            _scan_dir(sub_path, out_lines)  # descend
+        else:
+            var ext := entry.get_extension().to_lower()
+            if ext == "tscn" or ext == "scn":
+                out_lines.append("### SCENE: %s" % sub_path)
+                if ext == "tscn":
+                    var sf := FileAccess.open(sub_path, FileAccess.READ)
+                    if sf:
+                        out_lines.append(sf.get_as_text())
+                        sf.close()
+                    else:
+                        out_lines.append(
+                            "-- could not read (error %d)" % FileAccess.get_open_error()
+                        )
+                else:
+                    # Binary scenes are unreadable textually.
+                    out_lines.append("-- binary .scn file (content omitted)")
+                out_lines.append("")  # blank separator
+    dir.list_dir_end()
+
