@@ -6,6 +6,7 @@
 #               * Retains existing behaviour; no 3.x remnants.
 # =====================================================================
 
+# gdlint:disable = class-variable-name,function-name,class-definitions-order,no-else-return
 extends Node
 class_name BoidSystem
 ## Fixed-timestep simulation of all fish (pure logic).
@@ -13,33 +14,39 @@ class_name BoidSystem
 # --------------------------------------------------------------------- #
 #  Constants / Inspector                                                #
 # --------------------------------------------------------------------- #
-const FB_FIXED_DT_SH: float  = 1.0 / 120.0          # Simulation step (s).
-const FB_CELL_SIZE_SH: float = 100.0                # Spatial-hash cell size.
+const FB_FIXED_DT_SH: float = 1.0 / 120.0  # Simulation step (s).
+const FB_CELL_SIZE_SH: float = 100.0  # Spatial-hash cell size.
 
 @export_category("Tank")
 @export var FB_tank_size_IN: Vector3 = Vector3(1920.0, 1080.0, 1080.0)
 
 @export_category("Archetypes")
-@export var FB_archetypes_IN: Array[FishArchetype] = []   # Filled in Editor.
+@export var FB_archetypes_IN: Array[FishArchetype] = []  # Filled in Editor.
 
 # --------------------------------------------------------------------- #
 #  Runtime data                                                         #
 # --------------------------------------------------------------------- #
-var FB_fish_array_UP: Array[BoidFish]          = []        # All fish.
-var FB_spatial_hash_UP: Dictionary             = {}        # Vector3i → PackedInt32Array
-var FB_rand_SH: RandomNumberGenerator          = RandomNumberGenerator.new()
-var FB_accumulated_time_UP: float              = 0.0
-var FB_last_snapshot_UP: Array                 = []        # Immutable frame snapshot.
+var FB_fish_array_UP: Array[BoidFish] = []  # All fish.
+var FB_spatial_hash_UP: Dictionary = {}  # Vector3i → PackedInt32Array
+var FB_rand_SH: RandomNumberGenerator = RandomNumberGenerator.new()
+var FB_accumulated_time_UP: float = 0.0
+var FB_last_snapshot_UP: Array = []  # Immutable frame snapshot.
+var FB_gm_RD: GameManager
+
 
 # --------------------------------------------------------------------- #
 #  Lifecycle                                                            #
 # --------------------------------------------------------------------- #
 func _ready() -> void:
     FB_rand_SH.randomize()
-    _ensure_archetypes()                                  # Provide fallback.
+    _ensure_archetypes()  # Provide fallback.
+    FB_gm_RD = get_tree().root.get_node_or_null("GameManager")
+    _FB_update_tank_size_IN()
+    get_viewport().connect("size_changed", Callable(self, "_FB_update_tank_size_IN"))
 
 
 func _physics_process(delta: float) -> void:
+    _FB_update_tank_size_IN()
     FB_accumulated_time_UP += delta
 
     while FB_accumulated_time_UP >= FB_FIXED_DT_SH:
@@ -51,7 +58,7 @@ func _physics_process(delta: float) -> void:
 #  Public API                                                           #
 # --------------------------------------------------------------------- #
 func set_fish_count(count: int) -> void:
-    var target: int  = max(count, 0)
+    var target: int = max(count, 0)
     var current: int = FB_fish_array_UP.size()
 
     if target > current:
@@ -69,7 +76,7 @@ func get_neighbors(fish: BoidFish, radius: float) -> Array[BoidFish]:
     var results: Array[BoidFish] = []
 
     var center_cell: Vector3i = _position_to_hash(fish.BF_head_pos_UP)
-    var cells_offset: int     = int(ceil(radius / FB_CELL_SIZE_SH))
+    var cells_offset: int = int(ceil(radius / FB_CELL_SIZE_SH))
 
     for dz: int in range(-cells_offset, cells_offset + 1):
         for dy: int in range(-cells_offset, cells_offset + 1):
@@ -102,8 +109,10 @@ func get_neighbors(fish: BoidFish, radius: float) -> Array[BoidFish]:
 func _ensure_archetypes() -> void:
     ## Guarantees at least one archetype exists to avoid runtime errors.
     if FB_archetypes_IN.is_empty():
-        push_warning("BoidSystem: No FishArchetype resources assigned – generating default archetype.")
-        var default_arch: FishArchetype = FishArchetype.new()   # Uses class defaults.
+        push_warning(
+            "BoidSystem: No FishArchetype resources assigned – generating default archetype."
+        )
+        var default_arch: FishArchetype = FishArchetype.new()  # Uses class defaults.
         FB_archetypes_IN.append(default_arch)
     else:
         pass
@@ -121,7 +130,7 @@ func _add_fish(amount: int) -> void:
         # -------------------------------------------------------------- #
         #  Randomly choose an archetype                                  #
         # -------------------------------------------------------------- #
-        var arch_index: int         = FB_rand_SH.randi_range(0, FB_archetypes_IN.size() - 1)
+        var arch_index: int = FB_rand_SH.randi_range(0, FB_archetypes_IN.size() - 1)
         var archetype: FishArchetype = FB_archetypes_IN[arch_index]
 
         # -------------------------------------------------------------- #
@@ -133,11 +142,18 @@ func _add_fish(amount: int) -> void:
             FB_rand_SH.randf_range(0.0, FB_tank_size_IN.z)
         )
 
-        var velocity: Vector3 = Vector3(
-            FB_rand_SH.randf_range(-1.0, 1.0),
-            FB_rand_SH.randf_range(-1.0, 1.0),
-            FB_rand_SH.randf_range(-1.0, 1.0)
-        ).normalized() * archetype.FA_max_speed_IN * 0.5
+        var velocity: Vector3 = (
+            (
+                Vector3(
+                    FB_rand_SH.randf_range(-1.0, 1.0),
+                    FB_rand_SH.randf_range(-1.0, 1.0),
+                    FB_rand_SH.randf_range(-1.0, 1.0)
+                )
+                . normalized()
+            )
+            * archetype.FA_max_speed_IN
+            * 0.5
+        )
 
         var fish: BoidFish = BoidFish.new(archetype, head_pos, velocity, arch_index)
         FB_fish_array_UP.append(fish)
@@ -169,8 +185,8 @@ func _update_spatial_hash() -> void:
     FB_spatial_hash_UP.clear()
 
     for index: int in range(FB_fish_array_UP.size()):
-        var fish: BoidFish    = FB_fish_array_UP[index]
-        var cell: Vector3i    = _position_to_hash(fish.BF_head_pos_UP)
+        var fish: BoidFish = FB_fish_array_UP[index]
+        var cell: Vector3i = _position_to_hash(fish.BF_head_pos_UP)
 
         if FB_spatial_hash_UP.has(cell) == false:
             FB_spatial_hash_UP[cell] = PackedInt32Array()
@@ -193,8 +209,18 @@ func _take_snapshot() -> void:
     FB_last_snapshot_UP.clear()
 
     for fish: BoidFish in FB_fish_array_UP:
-        FB_last_snapshot_UP.append({
-            "head":       fish.BF_head_pos_UP,
-            "tail":       fish.BF_tail_pos_UP,
-            "species_id": fish.BF_species_id_SH
-        })
+        FB_last_snapshot_UP.append(
+            {
+                "head": fish.BF_head_pos_UP,
+                "tail": fish.BF_tail_pos_UP,
+                "species_id": fish.BF_species_id_SH
+            }
+        )
+
+
+func _FB_update_tank_size_IN() -> void:
+    var vp_size: Vector2 = get_viewport().get_visible_rect().size
+    var scale: float = 1.0
+    if FB_gm_RD:
+        scale = FB_gm_RD.GM_depth_scale_IN
+    FB_tank_size_IN = Vector3(vp_size.x, vp_size.y, vp_size.y * scale)
