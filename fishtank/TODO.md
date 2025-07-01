@@ -25,3 +25,4 @@
 
 - [x] Fix fish orientation drift
 - [x] Maintain dynamic squash alignment with orientation
+- [x] Squash now responds to turning anywhere, not just near walls

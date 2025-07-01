@@ -34,3 +34,4 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Squash effect based on turn angle now applies even away from walls.
