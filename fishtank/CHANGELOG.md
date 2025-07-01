@@ -34,3 +34,4 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Tracked head and tail positions for 3D orientation-based deformation.

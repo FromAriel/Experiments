@@ -25,3 +25,4 @@
 
 - [x] Fix fish orientation drift
 - [x] Maintain dynamic squash alignment with orientation
+- [x] Track head and tail positions to compute 3D orientation

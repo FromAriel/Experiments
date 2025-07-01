@@ -22,6 +22,7 @@ const TankEnvironment = preload("res://scripts/data/tank_environment.gd")
 # Exports
 # --------------------------------------------------------------
 @export var BF_depth_lerp_speed_IN: float = 1.0
+@export var BF_body_length_IN: float = 20.0
 
 # --------------------------------------------------------------
 # Vars
@@ -43,6 +44,8 @@ var BF_z_steer_target_UP: float = 0.0
 var BF_z_last_angle_UP: float = 0.0
 var BF_z_flip_applied_SH: bool = false
 var BF_rot_target_UP: float = 0.0
+var BF_head_pos_UP: Vector3 = Vector3.ZERO
+var BF_tail_pos_UP: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
@@ -52,6 +55,10 @@ func _ready() -> void:
     rng.randomize()
     BF_wander_phase_UP = rng.randf_range(0.0, TAU)
     BF_target_depth_SH = BF_position_UP.z
+    BF_head_pos_UP = BF_position_UP
+    BF_tail_pos_UP = (
+        BF_position_UP - (Vector3(cos(rotation), sin(rotation), 0.0) * BF_body_length_IN)
+    )
     if BF_archetype_IN != null:
         BF_behavior_SH = BF_archetype_IN.FA_behavior_IN
 
@@ -85,6 +92,10 @@ func _process(delta: float) -> void:
         else:
             BF_z_flip_applied_SH = false
     BF_z_last_angle_UP = BF_z_angle_UP
+    BF_head_pos_UP = BF_position_UP
+    BF_tail_pos_UP = (
+        BF_position_UP - (Vector3(cos(BF_z_angle_UP), sin(BF_z_angle_UP), 0.0) * BF_body_length_IN)
+    )
 
 
 # --------------------------------------------------------------
