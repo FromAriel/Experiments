@@ -68,7 +68,7 @@ func _process(delta: float) -> void:
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
 
-    var squash_intensity = abs(BF_z_angle_UP) / PI
+    var squash_intensity = abs(BF_z_angle_UP) / (PI * 0.5)
     var sx = 1.0
     var sy = 1.0
     if BF_archetype_IN != null:
