@@ -21,3 +21,4 @@
 - [x] Upgrade internal boid math to Vector3 for depth-aware movement.
 - [x] Animate fish reveal and ensure spawn uses tank center.
 - [x] Fix runtime error from Vector2 argument to move_toward.
+- [x] Simulated Z-axis turning and deformation.

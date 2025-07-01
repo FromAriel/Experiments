@@ -53,4 +53,8 @@ enum MovementMode { NORMAL, FLIP_TURN_ENABLED }
 @export var FA_flip_turn_threshold_IN: float = deg_to_rad(160.0)
 @export var FA_flip_duration_IN: float = 0.4
 @export var FA_flip_speed_reduction_IN: float = 0.3
+@export var FA_z_steer_weight_IN: float = 5.0
+@export var FA_z_deform_min_x_IN: float = 0.6
+@export var FA_z_deform_max_y_IN: float = 1.4
+@export var FA_z_flip_threshold_IN: float = 0.9
 # gdlint:enable = class-variable-name

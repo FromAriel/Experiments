@@ -38,6 +38,10 @@ var BF_wander_phase_UP: float = 0.0
 var BF_flip_timer_UP: float = 0.0
 var BF_flip_applied_SH: bool = false
 var BF_flip_duration_IN: float = 0.4
+var BF_z_angle_UP: float = 0.0
+var BF_z_steer_target_UP: float = 0.0
+var BF_z_last_angle_UP: float = 0.0
+var BF_z_flip_applied_SH: bool = false
 
 
 func _ready() -> void:
@@ -66,6 +70,24 @@ func _process(delta: float) -> void:
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
+
+    var squash_intensity = abs(BF_z_angle_UP) / PI
+    var sx = 1.0
+    var sy = 1.0
+    if BF_archetype_IN != null:
+        sx = lerp(1.0, BF_archetype_IN.FA_z_deform_min_x_IN, squash_intensity)
+        sy = lerp(1.0, BF_archetype_IN.FA_z_deform_max_y_IN, squash_intensity)
+    scale = Vector2(scale.x * sx, scale.y * sy)
+    var sprite: Sprite2D = get_node_or_null("Sprite2D")
+    if BF_archetype_IN != null:
+        if squash_intensity > BF_archetype_IN.FA_z_flip_threshold_IN and not BF_z_flip_applied_SH:
+            if sign(BF_z_angle_UP) != sign(BF_z_last_angle_UP):
+                if sprite:
+                    sprite.flip_h = not sprite.flip_h
+                BF_z_flip_applied_SH = true
+        else:
+            BF_z_flip_applied_SH = false
+    BF_z_last_angle_UP = BF_z_angle_UP
 
 
 # --------------------------------------------------------------
