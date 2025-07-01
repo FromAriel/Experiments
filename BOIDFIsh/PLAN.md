@@ -304,7 +304,7 @@ All debug code is stripped from release builds via `if` guards.
 ######################### ################################# ############################### 
 ######################### ################################# ############################### 
 
-# 12 Fish refrence data
+# 12 Fish Reference data
 
 
 | Ecological niche                 | Species (common → latin)                                                              | Qty                           | Size range                   | Why they work here                                                               |
