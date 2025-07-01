@@ -165,6 +165,7 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     var ci = fish.BF_group_id_SH % BS_group_colors.size()
     fish.modulate = BS_group_colors[ci]
     fish.BF_archetype_IN = arch
+    fish.BF_heading_UP = Vector3.RIGHT
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
     return fish
@@ -359,20 +360,6 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             var to_center := (center - fish.BF_position_UP).normalized()
             BS_steer_UP += to_center * BS_wall_nudge_IN * wall_factor
 
-    fish.BF_z_steer_target_UP = Vector2(BS_steer_UP.x, BS_steer_UP.y).angle()
-    if fish.BF_archetype_IN != null:
-        fish.BF_z_angle_UP = lerp_angle(
-            fish.BF_z_angle_UP,
-            fish.BF_z_steer_target_UP,
-            fish.BF_archetype_IN.FA_z_steer_weight_IN * delta,
-        )
-    else:
-        fish.BF_z_angle_UP = lerp_angle(
-            fish.BF_z_angle_UP,
-            fish.BF_z_steer_target_UP,
-            delta,
-        )
-
     var depth_ratio := 0.0
     if BS_environment_IN != null:
         depth_ratio = fish.BF_position_UP.z / BS_environment_IN.TE_size_IN.z
@@ -460,6 +447,22 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             1.0 - ratio * 0.5,
             1.0 - ratio * 0.5,
             lerp(1.0, 0.4, ratio),
+        )
+
+    if fish.BF_velocity_UP.length_squared() > 0.001:
+        fish.BF_heading_UP = fish.BF_velocity_UP.normalized()
+    fish.BF_z_steer_target_UP = Vector2(fish.BF_heading_UP.x, fish.BF_heading_UP.y).angle()
+    if fish.BF_archetype_IN != null:
+        fish.BF_z_angle_UP = lerp_angle(
+            fish.BF_z_angle_UP,
+            fish.BF_z_steer_target_UP,
+            fish.BF_archetype_IN.FA_z_steer_weight_IN * delta,
+        )
+    else:
+        fish.BF_z_angle_UP = lerp_angle(
+            fish.BF_z_angle_UP,
+            fish.BF_z_steer_target_UP,
+            delta,
         )
 
 
