@@ -34,3 +34,4 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Depth updates now scale with XY speed, using `move_toward` for smoother vertical motion. Removed tinting from `BoidSystem`.
