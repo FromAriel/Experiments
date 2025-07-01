@@ -34,3 +34,4 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Added pitch tracking so vertical motion deforms sprites with realistic squash.

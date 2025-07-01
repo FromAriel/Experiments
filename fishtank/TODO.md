@@ -25,3 +25,4 @@
 
 - [x] Fix fish orientation drift
 - [x] Maintain dynamic squash alignment with orientation
+- [x] Apply pitch-based sprite squash during depth changes
