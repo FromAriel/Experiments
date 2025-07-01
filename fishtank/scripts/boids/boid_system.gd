@@ -397,7 +397,14 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     fish.BF_position_UP += fish.BF_velocity_UP * delta
     fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
     if fish.BF_velocity_UP != Vector3.ZERO:
-        fish.BF_z_steer_target_UP = Vector2(fish.BF_velocity_UP.x, fish.BF_velocity_UP.y).angle()
+        fish.BF_z_steer_target_UP = (
+            Vector2(
+                fish.BF_velocity_UP.x,
+                fish.BF_velocity_UP.y,
+            )
+            . angle()
+        )
+        fish.BF_rot_target_UP = fish.BF_z_steer_target_UP
         if fish.BF_archetype_IN != null:
             fish.BF_z_angle_UP = lerp_angle(
                 fish.BF_z_angle_UP,
