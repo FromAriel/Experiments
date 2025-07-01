@@ -1,0 +1,10 @@
+{
+  "archetypes": [
+    "res://data/schooler.tres",
+    "res://data/cruiser.tres",
+    "res://data/glider.tres",
+    "res://data/loner.tres",
+    "res://data/bottom_dweller.tres",
+    "res://data/custodian.tres"
+  ]
+}
