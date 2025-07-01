@@ -188,6 +188,7 @@ func _physics_process(delta: float) -> void:
         _BS_update_fish_IN(fish, delta)
         _BS_apply_boundary_IN(fish, delta)
         if BS_collider_IN != null:
+            BS_collider_IN.TC_apply_avoidance_IN(fish, delta)
             BS_collider_IN.TC_confine_IN(fish, delta, BS_hard_decel_IN)
         _BS_apply_sanity_check_IN(fish, delta)
 
@@ -545,18 +546,14 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
         or fish.BF_position_UP.y > max_y
     )
     if near_edge or outside:
-
-        var center3 :Vector3= b.position + b.size * 0.5
-        var push3 :Vector3= (center3 - fish.BF_position_UP).normalized()
-
+        var center3: Vector3 = b.position + b.size * 0.5
+        var push3: Vector3 = (center3 - fish.BF_position_UP).normalized()
 
         fish.BF_velocity_UP = (
             fish
             . BF_velocity_UP
             . move_toward(
-
                 push3 * BS_config_IN.BC_max_speed_IN,
-
                 delta * 2.0,
             )
         )

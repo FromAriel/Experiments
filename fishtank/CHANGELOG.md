@@ -29,3 +29,4 @@
   to smooth out sharp reversals near walls.
 - Converted boid movement math to operate in 3D while retaining 2D rendering.
 - Resolved Vector3 move_toward crash when fish hit tank edges.
+- Added randomized wall avoidance and center impulse so fish no longer slide along tank boundaries.
