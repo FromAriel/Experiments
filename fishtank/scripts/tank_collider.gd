@@ -4,7 +4,7 @@
 # Key Functions    • TC_confine_IN() – constrain fish to tank
 # Editor Exports   • TC_margin_IN: float
 # Dependencies     • boid_fish.gd
-# Last Major Rev   • 24-07-06 – initial collider script
+# Last Major Rev   • 25-07-06 – added bounce reflection
 ###############################################################
 class_name TankCollider
 extends Node2D
@@ -12,6 +12,7 @@ extends Node2D
 # gdlint:disable = class-variable-name,function-name
 
 @export var TC_margin_IN: float = 30.0
+@export var TC_bounce_damping_IN: float = 0.8
 @onready var TC_shape_UP: RectangleShape2D = null
 
 
@@ -33,24 +34,28 @@ func TC_get_rect_IN() -> Rect2:
     return Rect2(pos, TC_shape_UP.extents * 2.0)
 
 
-func TC_confine_IN(fish: BoidFish, delta: float, decel: float) -> void:
+func TC_confine_IN(fish: BoidFish, _delta: float, _decel: float) -> void:
     var rect: Rect2 = TC_get_rect_IN()
     var pos: Vector2 = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
     var vel: Vector3 = fish.BF_velocity_UP
 
     if pos.x < rect.position.x + TC_margin_IN:
-        vel.x = move_toward(vel.x, 0.0, decel * delta)
-        pos.x = max(pos.x, rect.position.x)
+        pos.x = rect.position.x + TC_margin_IN
+        if vel.x < 0.0:
+            vel.x = abs(vel.x) * TC_bounce_damping_IN
     elif pos.x > rect.position.x + rect.size.x - TC_margin_IN:
-        vel.x = move_toward(vel.x, 0.0, decel * delta)
-        pos.x = min(pos.x, rect.position.x + rect.size.x)
+        pos.x = rect.position.x + rect.size.x - TC_margin_IN
+        if vel.x > 0.0:
+            vel.x = -abs(vel.x) * TC_bounce_damping_IN
 
     if pos.y < rect.position.y + TC_margin_IN:
-        vel.y = move_toward(vel.y, 0.0, decel * delta)
-        pos.y = max(pos.y, rect.position.y)
+        pos.y = rect.position.y + TC_margin_IN
+        if vel.y < 0.0:
+            vel.y = abs(vel.y) * TC_bounce_damping_IN
     elif pos.y > rect.position.y + rect.size.y - TC_margin_IN:
-        vel.y = move_toward(vel.y, 0.0, decel * delta)
-        pos.y = min(pos.y, rect.position.y + rect.size.y)
+        pos.y = rect.position.y + rect.size.y - TC_margin_IN
+        if vel.y > 0.0:
+            vel.y = -abs(vel.y) * TC_bounce_damping_IN
 
     fish.BF_position_UP.x = pos.x
     fish.BF_position_UP.y = pos.y
