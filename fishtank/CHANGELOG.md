@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Adjusted wall boundary margin to clamp against tank size, fixing fish sticking.
 - Initial project skeleton.
 - Added empty `ui/` and `tools/` directories and updated README.
 - Introduced Mono solution with `FishTank.sln` and `FishTank.csproj`.

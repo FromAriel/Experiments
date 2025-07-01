@@ -324,10 +324,14 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         var eff_min_y = b.position.y + BS_hard_margin_IN
         var eff_max_y = b.position.y + b.size.y - BS_hard_margin_IN
 
-        var soft_min_x = eff_min_x + BS_boundary_margin_IN
-        var soft_max_x = eff_max_x - BS_boundary_margin_IN
-        var soft_min_y = eff_min_y + BS_boundary_margin_IN
-        var soft_max_y = eff_max_y - BS_boundary_margin_IN
+        var avail_x = (eff_max_x - eff_min_x) * 0.5
+        var avail_y = (eff_max_y - eff_min_y) * 0.5
+        var margin_x = min(BS_boundary_margin_IN, avail_x)
+        var margin_y = min(BS_boundary_margin_IN, avail_y)
+        var soft_min_x = eff_min_x + margin_x
+        var soft_max_x = eff_max_x - margin_x
+        var soft_min_y = eff_min_y + margin_y
+        var soft_max_y = eff_max_y - margin_y
 
         var push = Vector3.ZERO
 
@@ -531,7 +535,9 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
     var max_x = b.position.x + b.size.x
     var min_y = b.position.y
     var max_y = b.position.y + b.size.y
-    var margin = BS_boundary_margin_IN * 0.5
+    var avail_x2 = (max_x - min_x) * 0.5
+    var avail_y2 = (max_y - min_y) * 0.5
+    var margin = min(BS_boundary_margin_IN * 0.5, min(avail_x2, avail_y2))
     var near_edge = (
         fish.BF_position_UP.x < min_x + margin
         or fish.BF_position_UP.x > max_x - margin
@@ -545,18 +551,14 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
         or fish.BF_position_UP.y > max_y
     )
     if near_edge or outside:
-
-        var center3 :Vector3= b.position + b.size * 0.5
-        var push3 :Vector3= (center3 - fish.BF_position_UP).normalized()
-
+        var center3: Vector3 = b.position + b.size * 0.5
+        var push3: Vector3 = (center3 - fish.BF_position_UP).normalized()
 
         fish.BF_velocity_UP = (
             fish
             . BF_velocity_UP
             . move_toward(
-
                 push3 * BS_config_IN.BC_max_speed_IN,
-
                 delta * 2.0,
             )
         )
