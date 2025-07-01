@@ -33,3 +33,4 @@
 - Added visual z-axis turning with deformation and flip support.
 
 - Corrected fish rotation to follow travel direction.
+- Ensured dynamic squash realigns to current orientation.
