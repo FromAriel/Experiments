@@ -1,3 +1,7 @@
 [gd_resource type="Resource" format=3 uid="uid://d3tdk2gy7yj5v"]
 
 [resource]
+FA_z_steer_weight_IN = 5.0
+FA_z_deform_min_x_IN = 0.7
+FA_z_deform_max_y_IN = 1.3
+FA_z_flip_threshold_IN = 0.9
