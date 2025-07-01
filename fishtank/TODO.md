@@ -16,7 +16,7 @@
 - [x] Improve boid flocking with wander and spatial grid.
 - [x] Add FishBehavior enum and behavior fields to fish boids.
 - [x] Integrate TankCollider for graceful wall constraints.
-- [ ] Tune boundary modes and group centering.
+ - [x] Tune boundary modes and group centering.
 - [x] Implement flip-turn movement mode for smoother reversals.
 - [x] Upgrade internal boid math to Vector3 for depth-aware movement.
 - [x] Animate fish reveal and ensure spawn uses tank center.

@@ -526,37 +526,24 @@ func _BS_apply_sanity_check_IN(fish: BoidFish, delta: float) -> void:
     if BS_environment_IN == null:
         return
     var b = BS_environment_IN.TE_boundaries_SH
-    var center = b.position + b.size * 0.5
     var min_x = b.position.x
     var max_x = b.position.x + b.size.x
     var min_y = b.position.y
     var max_y = b.position.y + b.size.y
-    var margin = BS_boundary_margin_IN * 0.5
-    var near_edge = (
-        fish.BF_position_UP.x < min_x + margin
-        or fish.BF_position_UP.x > max_x - margin
-        or fish.BF_position_UP.y < min_y + margin
-        or fish.BF_position_UP.y > max_y - margin
-    )
     var outside = (
         fish.BF_position_UP.x < min_x
         or fish.BF_position_UP.x > max_x
         or fish.BF_position_UP.y < min_y
         or fish.BF_position_UP.y > max_y
     )
-    if near_edge or outside:
-
-        var center3 :Vector3= b.position + b.size * 0.5
-        var push3 :Vector3= (center3 - fish.BF_position_UP).normalized()
-
-
+    if outside:
+        var center3: Vector3 = b.position + b.size * 0.5
+        var push3: Vector3 = (center3 - fish.BF_position_UP).normalized()
         fish.BF_velocity_UP = (
             fish
             . BF_velocity_UP
             . move_toward(
-
                 push3 * BS_config_IN.BC_max_speed_IN,
-
                 delta * 2.0,
             )
         )
