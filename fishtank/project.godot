@@ -22,3 +22,9 @@ settings/stdout/print_fps=true
 [dotnet]
 
 project/assembly_name="Fishtank"
+
+[editor]
+
+movie_writer/movie_file="J:/GODOT4.41 Projects/RenderOutput/Fishtank.png"
+movie_writer/disable_vsync=true
+movie_writer/fps=2
