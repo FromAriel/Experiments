@@ -31,3 +31,5 @@
 - Resolved Vector3 move_toward crash when fish hit tank edges.
 - Added bounce reflection in TankCollider to prevent wall sticking.
 - Added visual z-axis turning with deformation and flip support.
+
+- Corrected fish rotation to follow travel direction.
