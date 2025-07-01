@@ -43,6 +43,9 @@ var BF_z_steer_target_UP: float = 0.0
 var BF_z_last_angle_UP: float = 0.0
 var BF_z_flip_applied_SH: bool = false
 var BF_rot_target_UP: float = 0.0
+var BF_pitch_UP: float = 0.0
+var BF_head_pos_UP: Vector3 = Vector3.ZERO
+var BF_tail_pos_UP: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
@@ -68,7 +71,7 @@ func _process(delta: float) -> void:
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
 
-    var squash_intensity = abs(BF_z_angle_UP) / PI
+    var squash_intensity = abs(BF_pitch_UP) / PI
     var sx = 1.0
     var sy = 1.0
     if BF_archetype_IN != null:

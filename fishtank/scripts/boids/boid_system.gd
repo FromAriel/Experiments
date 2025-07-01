@@ -386,6 +386,9 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
         if fish.BF_flip_timer_UP > 0.0:
             max_speed *= fish.BF_archetype_IN.FA_flip_speed_reduction_IN
             desired_vel = desired_vel.limit_length(max_speed)
+    var prev_head := fish.BF_head_pos_UP
+    if prev_head == Vector3.ZERO:
+        prev_head = fish.BF_position_UP
     fish.BF_velocity_UP = (
         fish
         . BF_velocity_UP
@@ -396,6 +399,19 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     )
     fish.BF_position_UP += fish.BF_velocity_UP * delta
     fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
+    fish.BF_tail_pos_UP = fish.BF_tail_pos_UP.move_toward(prev_head, 5.0 * delta)
+    fish.BF_head_pos_UP = fish.BF_position_UP
+    var pitch_target := atan2(
+        fish.BF_head_pos_UP.z - fish.BF_tail_pos_UP.z,
+        (
+            Vector2(
+                fish.BF_head_pos_UP.x - fish.BF_tail_pos_UP.x,
+                fish.BF_head_pos_UP.y - fish.BF_tail_pos_UP.y,
+            )
+            . length()
+        ),
+    )
+    fish.BF_pitch_UP = lerp_angle(fish.BF_pitch_UP, pitch_target, 5.0 * delta)
     if fish.BF_velocity_UP != Vector3.ZERO:
         fish.BF_z_steer_target_UP = (
             Vector2(
