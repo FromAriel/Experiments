@@ -1,0 +1,5 @@
+# .codexignore — Ignore these directories from Codex indexing these are closed for edits.
+
+# Ignore full Godot projects (experimental / auxiliary)
+fishtank/
+FISHYX3/
