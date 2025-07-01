@@ -34,3 +34,5 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Improved depth handling: vertical movement now uses `move_toward` with
+  speed-based step size, and tint logic moved to `FishTank`.
