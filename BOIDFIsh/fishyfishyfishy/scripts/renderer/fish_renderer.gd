@@ -1,3 +1,4 @@
+# gdlint:disable = class-variable-name,function-name,class-definitions-order
 # ===============================================================
 #  File:  res://scripts/renderer/fish_renderer.gd
 #  Desc:  2-D batched fish renderer with optional debug overlay.
@@ -132,15 +133,21 @@ func _draw() -> void:
     draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
     var snapshot: Array = FR_boid_system_RD.get_snapshot()
+    var tank_depth: float = FR_boid_system_RD.FB_tank_size_IN.z
     for item in snapshot:
         var head: Vector3 = item["head"]
         var tail: Vector3 = item["tail"]
+
+        var depth_ratio: float = head.z / max(tank_depth, 0.001)
+        var scale: float = lerp(FR_front_scale_SH, FR_back_scale_SH, depth_ratio)
+
         var head2: Vector2 = Vector2(head.x, head.y)
         var tail2: Vector2 = Vector2(tail.x, tail.y)
+        var tail2_scaled: Vector2 = head2 + (tail2 - head2) * scale
 
-        draw_line(tail2, head2, FR_dbg_color_IN, FR_dbg_line_width_IN, true)
-        draw_circle(head2, FR_dbg_point_radius_IN, FR_dbg_color_IN)
-        draw_circle(tail2, FR_dbg_point_radius_IN, FR_dbg_color_IN)
+        draw_line(tail2_scaled, head2, FR_dbg_color_IN, FR_dbg_line_width_IN * scale, true)
+        draw_circle(head2, FR_dbg_point_radius_IN * scale, FR_dbg_color_IN)
+        draw_circle(tail2_scaled, FR_dbg_point_radius_IN * scale, FR_dbg_color_IN)
 
 
 # ------------------------------------------------------------------ #
