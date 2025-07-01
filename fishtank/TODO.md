@@ -22,5 +22,4 @@
 - [x] Animate fish reveal and ensure spawn uses tank center.
 - [x] Fix runtime error from Vector2 argument to move_toward.
 - [x] Simulated Z-axis turning and deformation.
-
-- [ ] Fix fish orientation drift
+- [x] Fix fish orientation drift

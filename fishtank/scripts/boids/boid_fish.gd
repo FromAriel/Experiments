@@ -39,7 +39,6 @@ var BF_flip_timer_UP: float = 0.0
 var BF_flip_applied_SH: bool = false
 var BF_flip_duration_IN: float = 0.4
 var BF_z_angle_UP: float = 0.0
-var BF_z_steer_target_UP: float = 0.0
 var BF_z_last_angle_UP: float = 0.0
 var BF_z_flip_applied_SH: bool = false
 
@@ -67,6 +66,7 @@ func _process(delta: float) -> void:
             Vector2(BF_velocity_UP.x, BF_velocity_UP.y).angle(),
             turn_speed * delta,
         )
+    BF_z_angle_UP = rotation
 
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
