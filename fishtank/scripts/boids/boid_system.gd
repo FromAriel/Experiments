@@ -165,6 +165,8 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
     var ci = fish.BF_group_id_SH % BS_group_colors.size()
     fish.modulate = BS_group_colors[ci]
     fish.BF_archetype_IN = arch
+    fish.BF_head_point_UP = fish.BF_position_UP
+    fish.BF_tail_point_UP = fish.BF_position_UP - Vector3.RIGHT
     add_child(fish)
     BS_fish_nodes_SH.append(fish)
     return fish
@@ -417,6 +419,20 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
                 fish.BF_z_steer_target_UP,
                 delta,
             )
+
+        fish.BF_tail_point_UP = fish.BF_head_point_UP
+        fish.BF_head_point_UP = fish.BF_position_UP
+        var orient_vec := fish.BF_head_point_UP - fish.BF_tail_point_UP
+        if orient_vec.length() > 0.0:
+            var pitch := asin(clamp(orient_vec.z / orient_vec.length(), -1.0, 1.0))
+            if fish.BF_archetype_IN != null:
+                fish.BF_z_pitch_UP = lerp(
+                    fish.BF_z_pitch_UP,
+                    pitch,
+                    fish.BF_archetype_IN.FA_z_steer_weight_IN * delta,
+                )
+            else:
+                fish.BF_z_pitch_UP = lerp(fish.BF_z_pitch_UP, pitch, delta)
 
     # hard‐wall deceleration
     if BS_environment_IN != null:

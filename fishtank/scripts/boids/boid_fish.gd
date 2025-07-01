@@ -43,6 +43,9 @@ var BF_z_steer_target_UP: float = 0.0
 var BF_z_last_angle_UP: float = 0.0
 var BF_z_flip_applied_SH: bool = false
 var BF_rot_target_UP: float = 0.0
+var BF_z_pitch_UP: float = 0.0
+var BF_head_point_UP: Vector3 = Vector3.ZERO
+var BF_tail_point_UP: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
@@ -52,6 +55,8 @@ func _ready() -> void:
     rng.randomize()
     BF_wander_phase_UP = rng.randf_range(0.0, TAU)
     BF_target_depth_SH = BF_position_UP.z
+    BF_head_point_UP = BF_position_UP
+    BF_tail_point_UP = BF_position_UP - Vector3.RIGHT
     if BF_archetype_IN != null:
         BF_behavior_SH = BF_archetype_IN.FA_behavior_IN
 
@@ -68,7 +73,7 @@ func _process(delta: float) -> void:
     if BF_environment_IN != null:
         _BF_apply_depth_IN()
 
-    var squash_intensity = abs(BF_z_angle_UP) / PI
+    var squash_intensity = clamp(abs(BF_z_pitch_UP) / (PI * 0.5), 0.0, 1.0)
     var sx = 1.0
     var sy = 1.0
     if BF_archetype_IN != null:
