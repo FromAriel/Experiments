@@ -456,17 +456,12 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     if BS_environment_IN != null:
         if abs(fish.BF_position_UP.z - fish.BF_target_depth_SH) < 0.1:
             fish.BF_target_depth_SH = BS_rng_UP.randf_range(0.0, BS_environment_IN.TE_size_IN.z)
-        fish.BF_position_UP.z = lerp(
+        var xy_speed := Vector2(fish.BF_velocity_UP.x, fish.BF_velocity_UP.y).length()
+        var max_z_step := xy_speed * delta
+        fish.BF_position_UP.z = move_toward(
             fish.BF_position_UP.z,
             fish.BF_target_depth_SH,
-            fish.BF_depth_lerp_speed_IN * delta,
-        )
-        var ratio := fish.BF_position_UP.z / BS_environment_IN.TE_size_IN.z
-        fish.modulate = Color(
-            1.0 - ratio * 0.5,
-            1.0 - ratio * 0.5,
-            1.0 - ratio * 0.5,
-            lerp(1.0, 0.4, ratio),
+            max_z_step,
         )
 
 
