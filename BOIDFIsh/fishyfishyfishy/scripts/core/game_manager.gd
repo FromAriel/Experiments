@@ -26,6 +26,7 @@ extends Node
 # --------------------------------------------------------------------- #
 var GM_boid_system_RD: BoidSystem
 var GM_renderer_RD: FishRenderer
+@export var GM_archetype_file_IN: String = "res://data/archetypes.json"
 
 # --------------------------------------------------------------------- #
 #  Signals                                                              #
@@ -54,6 +55,8 @@ func _ready() -> void:
         push_error("GameManager could not find FishRenderer child node.")
     else:
         GM_renderer_RD.set_depth_scale(GM_depth_scale_IN)
+
+    _GM_load_archetypes()
 
 
 # --------------------------------------------------------------------- #
@@ -98,3 +101,23 @@ func set_depth_scale(scale: float) -> void:
 func set_theme(theme: String) -> void:
     GM_theme_IN = theme
     theme_changed.emit(theme)
+
+
+func _GM_load_archetypes() -> void:
+    if GM_boid_system_RD == null:
+        return
+
+    var archetypes: Array[FishArchetype] = []
+    if FileAccess.file_exists(GM_archetype_file_IN):
+        var f = FileAccess.open(GM_archetype_file_IN, FileAccess.READ)
+        var json = JSON.new()
+        if json.parse(f.get_as_text()) == OK:
+            var data = json.data
+            if typeof(data) == TYPE_DICTIONARY and data.has("archetypes"):
+                for path in data["archetypes"]:
+                    var res = load(path)
+                    if res:
+                        archetypes.append(res)
+
+    if not archetypes.is_empty():
+        GM_boid_system_RD.FB_archetypes_IN = archetypes
