@@ -417,6 +417,13 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
                 fish.BF_z_steer_target_UP,
                 delta,
             )
+        var forward_vec := Vector3(
+            cos(fish.BF_rot_target_UP) * cos(fish.BF_z_angle_UP),
+            sin(fish.BF_rot_target_UP) * cos(fish.BF_z_angle_UP),
+            sin(fish.BF_z_angle_UP),
+        )
+        fish.BF_head_point_UP = fish.BF_position_UP + forward_vec * 0.5
+        fish.BF_tail_point_UP = fish.BF_position_UP - forward_vec * 0.5
 
     # hard‐wall deceleration
     if BS_environment_IN != null:

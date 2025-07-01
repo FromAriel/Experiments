@@ -2,6 +2,7 @@
 
 This directory houses a modular aquarium simulation scaffold built with Godot 4.4.
 It is organized for extensibility and data-driven development.
+Each fish records head and tail points in 3D space so sprite deformation can mimic depth when turning.
 
 ## Directory Layout
 - `data/` – JSON and resource files describing archetypes and tank settings
