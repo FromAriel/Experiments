@@ -34,3 +34,4 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Squash deformation now mirrors vertical turns, not just wall collisions.
