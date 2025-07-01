@@ -43,11 +43,13 @@ var BF_z_steer_target_UP: float = 0.0
 var BF_z_last_angle_UP: float = 0.0
 var BF_z_flip_applied_SH: bool = false
 var BF_rot_target_UP: float = 0.0
+var BF_default_scale_IN: Vector2 = Vector2.ONE
 
 
 func _ready() -> void:
     set_process(true)
     _BF_ensure_visual_IN()
+    BF_default_scale_IN = scale
     var rng := RandomNumberGenerator.new()
     rng.randomize()
     BF_wander_phase_UP = rng.randf_range(0.0, TAU)
@@ -65,19 +67,20 @@ func _process(delta: float) -> void:
             turn_speed = BF_archetype_IN.FA_turn_speed_IN
         rotation = lerp_angle(rotation, BF_rot_target_UP, turn_speed * delta)
 
+    var depth_scale := 1.0
     if BF_environment_IN != null:
-        _BF_apply_depth_IN()
+        depth_scale = _BF_apply_depth_IN()
 
-    var squash_intensity = abs(BF_z_angle_UP) / PI
-    var sx = 1.0
-    var sy = 1.0
+    var BF_intensity_UP: float = abs(BF_z_angle_UP) / PI
+    var sx := 1.0
+    var sy := 1.0
     if BF_archetype_IN != null:
-        sx = lerp(1.0, BF_archetype_IN.FA_z_deform_min_x_IN, squash_intensity)
-        sy = lerp(1.0, BF_archetype_IN.FA_z_deform_max_y_IN, squash_intensity)
-    scale = Vector2(scale.x * sx, scale.y * sy)
+        sx = lerp(1.0, BF_archetype_IN.FA_z_deform_min_x_IN, BF_intensity_UP)
+        sy = lerp(1.0, BF_archetype_IN.FA_z_deform_max_y_IN, BF_intensity_UP)
+    scale = BF_default_scale_IN * depth_scale * Vector2(sx, sy)
     var sprite: Sprite2D = get_node_or_null("Sprite2D")
     if BF_archetype_IN != null:
-        if squash_intensity > BF_archetype_IN.FA_z_flip_threshold_IN and not BF_z_flip_applied_SH:
+        if BF_intensity_UP > BF_archetype_IN.FA_z_flip_threshold_IN and not BF_z_flip_applied_SH:
             if sign(BF_z_angle_UP) != sign(BF_z_last_angle_UP):
                 if sprite:
                     sprite.flip_h = not sprite.flip_h
@@ -105,7 +108,7 @@ func _BF_ensure_visual_IN() -> void:
     add_child(sprite)
 
 
-func _BF_apply_depth_IN() -> void:
+func _BF_apply_depth_IN() -> float:
     var BF_ratio_UP: float = clamp(
         (BF_environment_IN.TE_size_IN.z - BF_position_UP.z) / BF_environment_IN.TE_size_IN.z,
         0.0,
@@ -114,12 +117,12 @@ func _BF_apply_depth_IN() -> void:
 
     # Scale
     var BF_scale_UP: float = lerp(0.5, 1.0, BF_ratio_UP)
-    scale = Vector2.ONE * BF_scale_UP
 
     # Tint / opacity
     var BF_col := modulate
     BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
     modulate = BF_col
+    return BF_scale_UP
 
 
 func _BF_start_flip_turn_IN(duration: float) -> void:
@@ -132,22 +135,8 @@ func _BF_update_flip_turn_IN(delta: float) -> void:
     BF_flip_timer_UP = max(BF_flip_timer_UP - delta, 0.0)
     var half := BF_flip_duration_IN * 0.5
     var sprite: Sprite2D = get_node_or_null("Sprite2D")
-    var sx := 1.0
-    var sy := 1.0
-    if BF_flip_timer_UP > half:
-        var t := 1.0 - (BF_flip_timer_UP - half) / half
-        sx = lerp(1.0, 0.6, t)
-        sy = lerp(1.0, 1.4, t)
-    else:
-        if not BF_flip_applied_SH:
-            BF_flip_applied_SH = true
-            if sprite:
-                sprite.flip_h = not sprite.flip_h
-            BF_velocity_UP = -BF_velocity_UP
-        var t2 := 1.0 - BF_flip_timer_UP / half
-        sx = lerp(0.6, 1.0, t2)
-        sy = lerp(1.4, 1.0, t2)
-    if sprite:
-        sprite.scale = Vector2(sx, sy)
-    if BF_flip_timer_UP == 0.0 and sprite:
-        sprite.scale = Vector2.ONE
+    if BF_flip_timer_UP <= half and not BF_flip_applied_SH:
+        BF_flip_applied_SH = true
+        if sprite:
+            sprite.flip_h = not sprite.flip_h
+        BF_velocity_UP = -BF_velocity_UP
