@@ -1,5 +1,6 @@
-extends Node
+# gdlint:disable = class-variable-name,function-name,class-definitions-order
 class_name GameManager
+extends Node
 ## Singleton that exposes user settings & debug flags.
 
 # --------------------------------------------------------------------- #
@@ -8,6 +9,7 @@ class_name GameManager
 @export_range(50, 600, 1) var GM_fish_count_IN: int = 300
 @export_range(0.5, 1.5, 0.01) var GM_depth_scale_IN: float = 1.0
 @export_enum("Community", "Reef", "Night") var GM_theme_IN: String = "Community"
+@export var GM_archetypes_override_IN: Array[FishArchetype] = []
 
 # --------------------------------------------------------------------- #
 #  Inspector – Debug Flags                                              #
@@ -33,6 +35,7 @@ signal depth_scale_changed(new_scale: float)
 signal theme_changed(new_theme: String)
 signal debug_toggled(enabled: bool)
 
+
 # --------------------------------------------------------------------- #
 #  Lifecycle                                                            #
 # --------------------------------------------------------------------- #
@@ -43,6 +46,8 @@ func _ready() -> void:
     if GM_boid_system_RD == null:
         push_error("GameManager could not find FishBoidSim child node.")
     else:
+        if not GM_archetypes_override_IN.is_empty():
+            GM_boid_system_RD.FB_archetypes_IN = GM_archetypes_override_IN.duplicate()
         GM_boid_system_RD.set_fish_count(GM_fish_count_IN)
 
     if GM_renderer_RD == null:
