@@ -38,6 +38,12 @@ extends Node2D
 @export var BS_collider_IN: TankCollider
 @export var BS_reveal_batch_IN: int = 3
 @export var BS_reveal_interval_IN: float = 0.2
+
+# Depth scaling parameters used by BoidFish
+@export var BS_depth_scale_far_IN: float = 0.5
+@export var BS_depth_scale_near_IN: float = 1.0
+@export var BS_depth_alpha_far_IN: float = 0.4
+@export var BS_depth_alpha_near_IN: float = 1.0
 var BS_fish_nodes_SH: Array[BoidFish] = []
 # gdlint:ignore-start
 
@@ -160,6 +166,7 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
             0.0,
         )
         fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
+    fish.BF_boid_system_IN = self
     # assign group and tint
     fish.BF_group_id_SH = BS_rng_UP.randi_range(0, BS_group_count_IN - 1)
     var ci = fish.BF_group_id_SH % BS_group_colors.size()

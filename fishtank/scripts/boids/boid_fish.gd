@@ -32,6 +32,7 @@ var BF_archetype_IN: FishArchetype
 var BF_group_id_SH: int = 0
 var BF_isolated_timer_UP: float = 0.0
 var BF_environment_IN: TankEnvironment
+var BF_boid_system_IN: BoidSystem
 var BF_behavior_SH: int = FishBehavior.SCHOOL
 var BF_target_depth_SH: float = 0.0
 var BF_wander_phase_UP: float = 0.0
@@ -112,13 +113,21 @@ func _BF_apply_depth_IN() -> void:
         1.0,
     )
 
-    # Scale
-    var BF_scale_UP: float = lerp(0.5, 1.0, BF_ratio_UP)
+    var BF_scale_min := 0.5
+    var BF_scale_max := 1.0
+    var BF_alpha_min := 0.4
+    var BF_alpha_max := 1.0
+    if BF_boid_system_IN != null:
+        BF_scale_min = BF_boid_system_IN.BS_depth_scale_far_IN
+        BF_scale_max = BF_boid_system_IN.BS_depth_scale_near_IN
+        BF_alpha_min = BF_boid_system_IN.BS_depth_alpha_far_IN
+        BF_alpha_max = BF_boid_system_IN.BS_depth_alpha_near_IN
+
+    var BF_scale_UP: float = lerp(BF_scale_min, BF_scale_max, BF_ratio_UP)
     scale = Vector2.ONE * BF_scale_UP
 
-    # Tint / opacity
     var BF_col := modulate
-    BF_col.a = lerp(0.4, 1.0, BF_ratio_UP)
+    BF_col.a = lerp(BF_alpha_min, BF_alpha_max, BF_ratio_UP)
     modulate = BF_col
 
 
