@@ -359,20 +359,6 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
             var to_center := (center - fish.BF_position_UP).normalized()
             BS_steer_UP += to_center * BS_wall_nudge_IN * wall_factor
 
-    fish.BF_z_steer_target_UP = Vector2(BS_steer_UP.x, BS_steer_UP.y).angle()
-    if fish.BF_archetype_IN != null:
-        fish.BF_z_angle_UP = lerp_angle(
-            fish.BF_z_angle_UP,
-            fish.BF_z_steer_target_UP,
-            fish.BF_archetype_IN.FA_z_steer_weight_IN * delta,
-        )
-    else:
-        fish.BF_z_angle_UP = lerp_angle(
-            fish.BF_z_angle_UP,
-            fish.BF_z_steer_target_UP,
-            delta,
-        )
-
     var depth_ratio := 0.0
     if BS_environment_IN != null:
         depth_ratio = fish.BF_position_UP.z / BS_environment_IN.TE_size_IN.z
@@ -410,6 +396,22 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     )
     fish.BF_position_UP += fish.BF_velocity_UP * delta
     fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
+
+    var dir := fish.BF_velocity_UP
+    if dir.length_squared() > 0.0001:
+        fish.BF_z_steer_target_UP = atan2(dir.z, Vector2(dir.x, dir.y).length())
+        if fish.BF_archetype_IN != null:
+            fish.BF_z_angle_UP = lerp_angle(
+                fish.BF_z_angle_UP,
+                fish.BF_z_steer_target_UP,
+                fish.BF_archetype_IN.FA_z_steer_weight_IN * delta,
+            )
+        else:
+            fish.BF_z_angle_UP = lerp_angle(
+                fish.BF_z_angle_UP,
+                fish.BF_z_steer_target_UP,
+                delta,
+            )
 
     # hard‐wall deceleration
     if BS_environment_IN != null:
