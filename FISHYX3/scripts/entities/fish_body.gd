@@ -4,6 +4,7 @@
 #  • Added wrap-around edges (no corner-lock)
 #  • Added HARD SPEED CAP so no fish can exceed max_safe_speed
 ###############################################################
+# gdlint:disable = class-variable-name,function-name
 
 class_name FishBody
 extends Node2D
@@ -11,10 +12,10 @@ extends Node2D
 # ------------------------------------------------------------------
 #  CONSTANTS
 # ------------------------------------------------------------------
-const MIN_SCALE := 0.6
-const MAX_SCALE := 1.0
-const MIN_ALPHA := 0.5
-const MAX_ALPHA := 1.0
+@export var min_depth_scale: float = 0.6
+@export var max_depth_scale: float = 1.0
+@export var min_depth_alpha: float = 0.5
+@export var max_depth_alpha: float = 1.0
 
 # ------------------------------------------------------------------
 #  EXPORTED TUNABLES
@@ -159,9 +160,9 @@ func _physics_process(_delta: float) -> void:
 # ------------------------------------------------------------------
 func _update_depth_visuals() -> void:
     var t: float = clamp((tank_size.z - z_depth) / tank_size.z, 0.0, 1.0)
-    var sc: float = lerp(MIN_SCALE, MAX_SCALE, t)
+    var sc: float = lerp(min_depth_scale, max_depth_scale, t)
     scale = Vector2(sc, sc)
-    var a: float = lerp(MIN_ALPHA, MAX_ALPHA, t)
+    var a: float = lerp(min_depth_alpha, max_depth_alpha, t)
     modulate.a = a
 
 
