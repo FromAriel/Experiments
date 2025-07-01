@@ -29,3 +29,4 @@
   to smooth out sharp reversals near walls.
 - Converted boid movement math to operate in 3D while retaining 2D rendering.
 - Resolved Vector3 move_toward crash when fish hit tank edges.
+- Added bounce reflection in TankCollider to prevent wall sticking.
