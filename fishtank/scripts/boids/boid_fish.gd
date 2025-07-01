@@ -42,6 +42,7 @@ var BF_z_angle_UP: float = 0.0
 var BF_z_steer_target_UP: float = 0.0
 var BF_z_last_angle_UP: float = 0.0
 var BF_z_flip_applied_SH: bool = false
+var BF_rot_target_UP: float = 0.0
 
 
 func _ready() -> void:
@@ -64,7 +65,7 @@ func _process(delta: float) -> void:
             turn_speed = BF_archetype_IN.FA_turn_speed_IN
         rotation = lerp_angle(
             rotation,
-            Vector2(BF_velocity_UP.x, BF_velocity_UP.y).angle(),
+            BF_rot_target_UP,
             turn_speed * delta,
         )
 
