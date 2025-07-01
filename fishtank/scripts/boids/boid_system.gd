@@ -161,6 +161,8 @@ func _BS_spawn_fish_IN(arch: FishArchetype) -> BoidFish:
         )
         fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
     # assign group and tint
+    fish.BF_head_pos_UP = fish.BF_position_UP
+    fish.BF_tail_pos_UP = fish.BF_position_UP
     fish.BF_group_id_SH = BS_rng_UP.randi_range(0, BS_group_count_IN - 1)
     var ci = fish.BF_group_id_SH % BS_group_colors.size()
     fish.modulate = BS_group_colors[ci]
@@ -396,6 +398,32 @@ func _BS_update_fish_IN(fish: BoidFish, delta: float) -> void:
     )
     fish.BF_position_UP += fish.BF_velocity_UP * delta
     fish.position = Vector2(fish.BF_position_UP.x, fish.BF_position_UP.y)
+    fish.BF_head_pos_UP = fish.BF_position_UP
+    var tail_target := fish.BF_position_UP - fish.BF_velocity_UP.normalized() * 10.0
+    fish.BF_tail_pos_UP = (
+        fish
+        . BF_tail_pos_UP
+        . move_toward(
+            tail_target,
+            50.0 * delta,
+        )
+    )
+    var horiz_len := (
+        Vector2(
+            fish.BF_head_pos_UP.x - fish.BF_tail_pos_UP.x,
+            fish.BF_head_pos_UP.y - fish.BF_tail_pos_UP.y,
+        )
+        . length()
+    )
+    var pitch_target := atan2(
+        fish.BF_head_pos_UP.z - fish.BF_tail_pos_UP.z,
+        horiz_len,
+    )
+    fish.BF_pitch_UP = lerp_angle(
+        fish.BF_pitch_UP,
+        pitch_target,
+        5.0 * delta,
+    )
     if fish.BF_velocity_UP != Vector3.ZERO:
         fish.BF_z_steer_target_UP = (
             Vector2(

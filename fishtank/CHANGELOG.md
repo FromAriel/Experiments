@@ -34,3 +34,4 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Fish now track vertical pitch and squash stretches during dives.
