@@ -34,3 +34,5 @@
 
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
+- Smoothed depth movement using `move_toward` with xy speed and removed
+  tint/scale logic from `BoidSystem`.
