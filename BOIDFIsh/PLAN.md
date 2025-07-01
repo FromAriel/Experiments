@@ -1,3 +1,123 @@
+
+# 🌊 “Virtual Wall Aquarium” — High-Level Design Document
+
+> **Purpose** Deliver a gorgeous, maintenance-free display tank that lives entirely on a monitor.
+> **Hook** All the depth, life and shimmer of a 960-gallon lobby show-piece — without the plumbing.
+
+---
+
+## 1. Vision & Experience
+
+* **What guests see**
+  A floor-to-ceiling screen filled with vibrant fish that weave in and out of the scene, scale convincingly with depth, glint under virtual lighting, and interact just enough to feel alive (schooling splits, lazy drifters, sudden darting).
+
+* **What owners get**
+  *Zero* wet maintenance. A single executable runs at a locked 60 FPS on any mid-range PC and mirrors to LED panels or a 4-k projector. Settings allow one-click swaps between “calm clinic,” “reef frenzy,” or “night-light” moods.
+
+---
+
+## 2. Signature Features
+
+| Pillar                      | How We Hit It                                                                                                           |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Full 3-D flocking logic** | Each fish moves through real XYZ space (Reynolds boids + head/tail segment). Avoids “paper-flat” overlaps.              |
+| **2-D fake-3-D rendering**  | Only `(x, y)`, depth ratio, yaw – plus sprite squash – reach the GPU. Lets us draw hundreds of fish cheaply.            |
+| **Soft-body fish shader**   | Head & tail positions feed a custom shader that bends, tints and highlights the sprite on the fly; no baked animations. |
+| **Depth cues**              | Automatic scale, brightness fall-off and subtle color shift make near fish pop and far fish recede.                     |
+| **Species realism**         | Six archetypes (schooler, cruiser, glider, loner, bottom-dweller, custodian) tuned with real behaviour ranges.          |
+| **Adaptive tank**           | Tank dimensions track window size; user slider scales “depth” 0 .5 × – 1 .5 × height.                                   |
+| **Maintenance-mode logs**   | Toggle a dev overlay that draws spines, cell grids, and dumps CSVs for a chosen fish — only when the debug flag is on.  |
+
+---
+
+## 3. Visual & Audio Style
+
+* **Art direction** – high-saturation “aquarium lighting,” crisp dark backdrop, gentle caustic overlay.
+* **Sprites** – painterly but semi-real (think *Abzû* meets *Aquarium Live Wallpaper*).
+* **Shader flourishes** – eye glint pass, rim-light that scales with depth, per-species hue variation.
+* **Ambient loop** – low-pass filtered bubbling + soft room tone; optional kid-friendly voice IDs on click.
+
+---
+
+## 4. Fish Casting (Default Mix)
+
+| Layer / Role       | Species Group                     | Qty (at 960 gal) | Behaviour Profile                                    |
+| ------------------ | --------------------------------- | ---------------- | ---------------------------------------------------- |
+| Glitter cloud      | Cardinal & Rummy-nose tetras      | 150              | Tight school, mid-speed, depth 0.3 – 0.7             |
+| Mid accents        | Boesemani rainbows                | 20               | Constant cruisers, occasional burst, depth 0.2 – 0.6 |
+| Graceful gliders   | Marble angelfish                  | 8                | Slow turns, mild territory, depth 0.4 – 0.8          |
+| Showpiece drifters | Pearl gouramis                    | 10               | Surface skimmers, gentle yaw, depth 0.0 – 0.3        |
+| Bottom parade      | Sterbai corys                     | 30               | Ground-hugging hops, shoal loosely, depth 0.9        |
+| Custodians         | Bristlenose plecos + Amano shrimp | 6 + 200          | Mostly stick to décor; occasional wall shift         |
+
+*(Quantities scale down automatically on smaller monitor windows.)*
+
+---
+
+## 5. Technical Blueprint (Bird’s-Eye)
+
+```
+ ┌────────────┐  fixed-Δt  ┌───────────────┐  per-frame  ┌───────────────┐
+ │ BoidSim    │──────────►│ Snap-Buffer   │────────────►│ Renderer2D    │
+ │  (Head▶Tail)│ fish[]    │  immutable    │             │  sprites + FX │
+ └────────────┘            └───────────────┘             └───────────────┘
+```
+
+1. **BoidSim** (120 Hz) updates real 3-D positions, velocities, behaviours.
+2. **Snap-Buffer** copies bare-bones state (head/tail, species id).
+3. **Renderer2D** (60 Hz) projects to screen, feeds shader with:
+
+   * `head_xy`, `tail_xy`, depth ratio
+   * yaw Δ for squash, species palette id.
+
+---
+
+## 6. User-Facing Controls
+
+| Setting       | Where                          | Range / Options |
+| ------------- | ------------------------------ | --------------- |
+| Fish count    | GameManager → **“Population”** | 50 – 600        |
+| Depth scale   | “Tank Depth”                   | 0.5 – 1.5       |
+| Preset themes | “Community / Reef / Night”     | Buttons         |
+| Debug overlay | Hidden hotkey <kbd>F3</kbd>    | On / Off        |
+
+All inspector properties nest under a single **GameManager** node for clarity.
+
+---
+
+## 7. Performance & Fallbacks
+
+| Tier               | Target HW         | Strategy                                |
+| ------------------ | ----------------- | --------------------------------------- |
+| **High** (default) | GTX 1660, Ryzen 5 | 120 Hz sim, soft-body shader, 400 fish  |
+| **Medium**         | Integrated GPU    | 90 Hz sim, sprite-only deform, 250 fish |
+| **Low**            | Small kiosks      | 60 Hz sim, cull distant fish, 150 fish  |
+
+The engine auto-detects dropped frames and steps down one tier; user may override.
+
+---
+
+## 8. Roadmap Milestones
+
+1. **MVP loop** – single goldfish archetype, placeholder ellipse sprite, depth scale OK.
+2. **Species library** – six archetypes, parameter CSV, random variant tint.
+3. **Shader deformation** – head-tail input, squash & rim light.
+4. **Behaviour richness** – flock splitting, wall grazing, bottom patrol.
+5. **Theme presets + UI** – “clinic calm,” “tropical party,” “after-hours dim.”
+6. **Release 1.0** – installer, idle-safety watchdog, kiosk mode.
+
+---
+
+## 9. Success Criteria
+
+* 60 FPS sustained with 400 fish on a 1080p office PC.
+* Casual viewer can’t tell sprites from a lightweight 3-D model.
+* Facility staff perform zero intervention beyond occasional software update.
+* Kids stop in the hallway and point — mission accomplished.
+
+---
+
+**“A screen-clean aquarium, forever crystal-clear.”**
 # Fish Tank Boid Simulation — **Full Technical Spec v 0.3.1**
 
 > **Scope** A real-time “wall display” aquarium that simulates **250 – 400** fish in full 3-D boid space, then renders them as 2-D sprites with depth scaling, yaw squash and optional soft-body mesh.
