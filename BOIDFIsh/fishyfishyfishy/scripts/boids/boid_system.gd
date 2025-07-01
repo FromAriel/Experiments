@@ -109,13 +109,38 @@ func get_neighbors(fish: BoidFish, radius: float) -> Array[BoidFish]:
 func _ensure_archetypes() -> void:
     ## Guarantees at least one archetype exists to avoid runtime errors.
     if FB_archetypes_IN.is_empty():
-        push_warning(
-            "BoidSystem: No FishArchetype resources assigned – generating default archetype."
-        )
-        var default_arch: FishArchetype = FishArchetype.new()  # Uses class defaults.
-        FB_archetypes_IN.append(default_arch)
+        _load_archetypes_from_dir("res://archetypes")
+        if FB_archetypes_IN.is_empty():
+            push_warning(
+                "BoidSystem: No FishArchetype resources assigned – generating default archetype."
+            )
+            var default_arch: FishArchetype = FishArchetype.new()  # Uses class defaults.
+            FB_archetypes_IN.append(default_arch)
+        else:
+            pass
     else:
         pass
+
+
+func _load_archetypes_from_dir(path: String) -> void:
+    var dir := DirAccess.open(path)
+    if dir == null:
+        return
+    dir.list_dir_begin()
+    var file := dir.get_next()
+    while file != "":
+        if file.begins_with("."):
+            pass
+        elif dir.current_is_dir():
+            _load_archetypes_from_dir(path + "/" + file)
+        elif file.get_extension() == "tres":
+            var res := load(path + "/" + file)
+            if res is FishArchetype:
+                FB_archetypes_IN.append(res)
+            else:
+                pass
+        file = dir.get_next()
+    dir.list_dir_end()
 
 
 func _add_fish(amount: int) -> void:
