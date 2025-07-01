@@ -85,7 +85,7 @@ to enable maximum verbosity and get detailed diagnostic output.
 .codex/fix_indent.sh $(git diff --name-only --cached -- '*.gd') >/dev/null
 
 # Report any lint warnings (non-blocking)
-gdlint $(git diff --name-only --cached -- '*.gd') --quiet || true
+gdlint $(git diff --name-only --cached -- '*.gd')  || true
 
 # C# style check (fail only on real violations)
 dotnet format --verify-no-changes --nologo --severity hidden || {
@@ -103,8 +103,8 @@ If they are not found create them. Update TODO.md and CHANGE_LOG.md before you a
 
 ```bash
 # CI validates quietly and only emits errors
-godot --headless --editor --import --quit --path . --quiet
-godot --headless --check-only --quit --path . --quiet
+godot --headless --editor --import --quit --path . 
+godot --headless --check-only --quit --path . 
 dotnet build --no-restore --nologo   # errors go to CI log
 ```
 
@@ -112,7 +112,7 @@ dotnet build --no-restore --nologo   # errors go to CI log
 
 ```bash
 # Run only if tests exist, suppress regular output
-godot --headless -s res://tests/ --quiet || true
+godot --headless -s res://tests/  || true
 dotnet test --logger "console;verbosity=quiet" || true
 ```
 
