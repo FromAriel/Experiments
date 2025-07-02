@@ -93,18 +93,20 @@ func _process(_delta: float) -> void:
         var head2: Vector2 = Vector2(head.x, head.y)
         var tail2: Vector2 = Vector2(tail.x, tail.y)
         var angle: float = (head2 - tail2).angle()
+        var length_px: float = head2.distance_to(tail2)
+
+        var species_id: int = int(item["species_id"])
+        var arch_index: int = clamp(species_id, 0, FR_boid_system_RD.FB_archetypes_IN.size() - 1)
+        var arch: FishArchetype = FR_boid_system_RD.FB_archetypes_IN[arch_index]
 
         var xf := Transform2D.IDENTITY
-        xf = xf.scaled(Vector2(scale, scale))
+        xf = xf.scaled(Vector2(arch.FA_size_vec3_IN.x * scale, length_px * scale))
         xf = xf.rotated(angle)
-        xf = xf.translated(head2)
+        xf = xf.translated((head2 + tail2) * 0.5)
 
         FR_multimesh_SH.set_instance_transform_2d(i, xf)
 
-        var species_id: int = int(item["species_id"])
-        var palette_idx: int = 0
-        if species_id < FR_boid_system_RD.FB_archetypes_IN.size():
-            palette_idx = FR_boid_system_RD.FB_archetypes_IN[species_id].FA_palette_id_IN
+        var palette_idx: int = arch.FA_palette_id_IN
 
         var base_col: Color = FR_PALETTES_SH[palette_idx % FR_PALETTES_SH.size()]
         FR_rng_SH.seed = species_id * 4096 + i
