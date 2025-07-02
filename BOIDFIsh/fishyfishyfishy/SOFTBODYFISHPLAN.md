@@ -1,42 +1,64 @@
+
+# Softbody Physics in Godot
 Imagine you’re holding a clear rubber toy filled with water: squeeze one side and ripples travel through, but the blob always finds its way back to its original shape.
 That’s exactly what the *SlimeGod* soft-body creature is doing—but in 2-D pixels instead of latex and water.
 
 ---
 
-### 1.  Dots on a Ring
+## 1.  Dots on a Ring
 
 Picture the slime’s outline as a necklace of evenly spaced beads. Each bead marks a control point on the creature’s skin. The engine tracks two things for every bead: **where it is** and **how fast it’s moving**.
 
-### 2.  Invisible Springs
+### Fish Geometry (anchor points)  
+Use the following loop of 2-D coordinates (units are Godot world units).  
+Treat each as an **anchor particle**; connect contiguous points with springs and also add optional diagonals for extra stiffness.
+
+| Index | Coord (x, y) | Label / anatomical role |
+|-------|--------------|-------------------------|
+| 0 | (4, 5.5)  | **Head / nose** – primary rigid driver |
+| 1 | (6, 6.6)  | Upper-front body (dorsal shoulder) |
+| 2 | (9, 7.0)  | Upper mid-back (mid-spine) |
+| 3 | (12, 5.4) | Rear upper body (posterior spine) |
+| 4 | (14, 6.75)| **Top tail root** (dorsal peduncle) |
+| 5 | (15, 7.0) | **Tail tip – upper lobe** |
+| 6 | (15, 3.0) | **Tail tip – lower lobe** |
+| 7 | (14, 3.25)| **Bottom tail root** (ventral peduncle) |
+| 8 | (12, 4.6) | Rear lower body |
+| 9 | (9, 3.0)  | Lower mid-back (belly) |
+|10 | (6, 3.4)  | Lower-front belly |
+|11 | (4, 4.5)  | Lower jaw / chin |
+|12 | (4, 5.5)  | (Repeat head to close loop) |
+
+## 2.  Invisible Springs
 
 Now connect every bead to its immediate neighbours with invisible springs, and tether each bead to an ideal position on an imaginary “perfect” outline.
 On every animation frame the springs tug wayward beads back toward their neighbours, while a second “radial” pull keeps the whole ring roughly circular (or fish-shaped, or heart-shaped—whatever silhouette you define).
 
-### 3.  A Pulse of Life
+## 3.  A Pulse of Life
 
 To stop the blob from looking robotic, its ideal outline isn’t static. A gentle “breathing” wave inflates and deflates the ring, a low-frequency wobble ripples along the perimeter, and a sprinkle of noise adds tiny jitters. Together those motions create that endearing jelly-creature vibe.
 
-### 4.  Gravity and Ground
+## 4.  Gravity and Ground
 
 Beads along the belly are flagged as “floor nodes.” They feel a downward tug plus a sticky pull toward a virtual floor height, so the slime squashes convincingly when it lands.
 
-### 5.  Damping—The Brakes
+## 5.  Damping—The Brakes
 
 Without restraint those forces would fling beads into chaos. A damping rule trims each bead’s velocity every frame. The faster a bead is moving, the harder it’s braked, keeping motion bouncy yet contained.
 
-### 6.  From Beads to Skin
+## 6.  From Beads to Skin
 
 Once the beads settle, the engine draws a smooth curve through them, much as you might trace a fluid line around pins hammered into a board. That curve is instantly triangulated into a solid polygon—essentially the slime’s skin.
 
-### 7.  Lighting and Sheen
+## 7.  Lighting and Sheen
 
 A dedicated shader paints that polygon with vertical gradients, rim highlights, and optional ripples. Light direction is tied to the mouse pointer, so the slime gleams where you hover, giving it a reactive, almost sentient presence.
 
-### 8.  Optional Turbo-Mode
+## 8.  Optional Turbo-Mode
 
 If many slimes fill the screen, the math can migrate from Godot’s scripting language to native C#, performing the same calculations several times faster without changing behaviour.
 
-### 9.  Why It’s Flexible
+## 9.  Why It’s Flexible
 
 Because the system only cares about *where the beads start* and *which ones count as the floor*, you can swap the baseline circle for any outline: a flopping koi, a wobbling jellyfish, even a rubbery star. The same spring-radial-damping recipe keeps the new creature cohesive and lively.
 
