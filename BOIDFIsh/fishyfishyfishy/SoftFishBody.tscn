@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://softfishbody"]
+
+[ext_resource type="Script" path="res://scripts/softbody/fish_soft_body.gd" id="1_bwmf7"]
+[ext_resource type="Script" path="res://scripts/softbody/tail_controller.gd" id="2_bwmf7"]
+
+[node name="FishSoftBody" type="Node2D"]
+script = ExtResource("1_bwmf7")
+
+[node name="TailController" type="Node2D" parent="."]
+script = ExtResource("2_bwmf7")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+
+
