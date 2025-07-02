@@ -35,3 +35,4 @@
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
 - Added inspector options for depth scale and opacity ranges in BoidSystem.
+- Updated fish_renderer to scale sprites based on head-to-tail distance.
