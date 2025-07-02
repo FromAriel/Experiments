@@ -16,6 +16,7 @@ class_name FishRenderer
 
 const FR_NEAR_BRIGHT_SH: float = 1.00
 const FR_FAR_BRIGHT_SH: float = 0.55
+const FR_BASE_SIZE_SH: Vector2 = Vector2(80.0, 20.0)
 
 @export_group("Debug Visuals")
 @export_range(1.0, 20.0, 0.5, "suffix:px") var FR_dbg_point_radius_IN: float = 4.0
@@ -51,7 +52,7 @@ func _ready() -> void:
     FR_multimesh_SH.transform_format = MultiMesh.TRANSFORM_2D
     FR_multimesh_SH.use_colors = true
     var quad := QuadMesh.new()
-    quad.size = Vector2.ONE
+    quad.size = FR_BASE_SIZE_SH
     FR_multimesh_SH.mesh = quad
     FR_multimesh_SH.instance_count = 0
 
