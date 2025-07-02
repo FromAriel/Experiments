@@ -85,6 +85,7 @@ func _process(_delta: float) -> void:
     for item in snapshot:
         var head: Vector3 = item["head"]
         var tail: Vector3 = item["tail"]
+        var species_id: int = int(item["species_id"])
 
         var depth_ratio: float = head.z / max(tank_depth, 0.001)
         var scale: float = lerp(FR_front_scale_SH, FR_back_scale_SH, depth_ratio)
@@ -93,15 +94,24 @@ func _process(_delta: float) -> void:
         var head2: Vector2 = Vector2(head.x, head.y)
         var tail2: Vector2 = Vector2(tail.x, tail.y)
         var angle: float = (head2 - tail2).angle()
+        var length: float = head2.distance_to(tail2)
+
+        var arch: FishArchetype
+        if species_id < FR_boid_system_RD.FB_archetypes_IN.size():
+            arch = FR_boid_system_RD.FB_archetypes_IN[species_id]
+        else:
+            arch = null
+
+        var width: float = 1.0
+        if arch != null:
+            width = arch.FA_size_vec3_IN.x
 
         var xf := Transform2D.IDENTITY
-        xf = xf.scaled(Vector2(scale, scale))
+        xf = xf.scaled(Vector2(width * scale, length * scale))
         xf = xf.rotated(angle)
-        xf = xf.translated(head2)
+        xf = xf.translated((head2 + tail2) * 0.5)
 
         FR_multimesh_SH.set_instance_transform_2d(i, xf)
-
-        var species_id: int = int(item["species_id"])
         var palette_idx: int = 0
         if species_id < FR_boid_system_RD.FB_archetypes_IN.size():
             palette_idx = FR_boid_system_RD.FB_archetypes_IN[species_id].FA_palette_id_IN
@@ -143,11 +153,16 @@ func _draw() -> void:
 
         var head2: Vector2 = Vector2(head.x, head.y)
         var tail2: Vector2 = Vector2(tail.x, tail.y)
-        var tail2_scaled: Vector2 = head2 + (tail2 - head2) * scale
+        var length: float = head2.distance_to(tail2)
+        var dir: Vector2 = (head2 - tail2).normalized()
+        var mid: Vector2 = (head2 + tail2) * 0.5
+        var half_vec: Vector2 = dir * length * scale * 0.5
+        var head_scaled: Vector2 = mid + half_vec
+        var tail_scaled: Vector2 = mid - half_vec
 
-        draw_line(tail2_scaled, head2, FR_dbg_color_IN, FR_dbg_line_width_IN * scale, true)
-        draw_circle(head2, FR_dbg_point_radius_IN * scale, FR_dbg_color_IN)
-        draw_circle(tail2_scaled, FR_dbg_point_radius_IN * scale, FR_dbg_color_IN)
+        draw_line(tail_scaled, head_scaled, FR_dbg_color_IN, FR_dbg_line_width_IN * scale, true)
+        draw_circle(head_scaled, FR_dbg_point_radius_IN * scale, FR_dbg_color_IN)
+        draw_circle(tail_scaled, FR_dbg_point_radius_IN * scale, FR_dbg_color_IN)
 
 
 # ------------------------------------------------------------------ #

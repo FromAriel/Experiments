@@ -35,3 +35,4 @@
 - Corrected fish rotation to follow travel direction.
 - Ensured dynamic squash realigns to current orientation.
 - Added inspector options for depth scale and opacity ranges in BoidSystem.
+- FishRenderer instances now scale width by archetype size and length by head-to-tail distance.
