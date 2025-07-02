@@ -3,4 +3,5 @@
 - Review performance at larger fish counts.
 - Create built-in archetypes folder and load defaults automatically.
 - [x] Scale debug overlay by depth to match fish size.
+- [ ] Experiment with SoftFishBody scene for soft-body simulation.
 
