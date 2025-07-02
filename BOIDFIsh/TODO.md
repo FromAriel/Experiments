@@ -4,3 +4,5 @@
 - Create built-in archetypes folder and load defaults automatically.
 - [x] Scale debug overlay by depth to match fish size.
 
+
+- [ ] Tune SoftFishBody physics parameters.
