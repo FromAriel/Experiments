@@ -53,6 +53,11 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_last_valid_UP: Array[Vector2] = []
+
+@export var FB_bisection_steps_IN: int = 3
+@export var FB_tessellate_pts_IN: int = 32
+@export var FB_debug_fallback_IN: bool = false
 
 
 func _ready() -> void:
@@ -84,6 +89,7 @@ func _init_nodes() -> void:
     FB_tail_node_RD.position = (
         (FB_rest_nodes_SH[FB_TAIL_IDXS[0]] + FB_rest_nodes_SH[FB_TAIL_IDXS[1]]) * 0.5
     )
+    FB_last_valid_UP = FB_nodes_UP.duplicate()
 
 
 func _process(delta: float) -> void:
@@ -129,12 +135,49 @@ func _physics_step(delta: float) -> void:
         FB_node_vels_UP[b] -= force
 
 
+func _fb_is_valid_polygon(points: Array[Vector2]) -> bool:
+    var tris := Geometry2D.triangulate_polygon(PackedVector2Array(points))
+    return tris.size() >= 3
+
+
+func _fb_try_bisection(last_valid: Array[Vector2], invalid: Array[Vector2]) -> Array[Vector2]:
+    var hi := invalid.duplicate()
+    for _i in FB_bisection_steps_IN:
+        var mid: Array[Vector2] = []
+        for j in last_valid.size():
+            mid.append(last_valid[j].lerp(hi[j], 0.5))
+        if _fb_is_valid_polygon(mid):
+            return mid
+        hi = mid
+    return null
+
+
 func _draw() -> void:
-    var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
+    var nodes: Array[Vector2] = FB_nodes_UP
+    var render_pts: Array[Vector2]
+    if _fb_is_valid_polygon(nodes):
+        FB_last_valid_UP = nodes.duplicate()
+        render_pts = nodes
+    else:
+        var fallback := _fb_try_bisection(FB_last_valid_UP, nodes)
+        if fallback:
+            if FB_debug_fallback_IN:
+                print("Softbody fallback polygon used")
+            FB_last_valid_UP = fallback.duplicate()
+            render_pts = fallback
+        else:
+            if FB_debug_fallback_IN:
+                print("Using last valid polygon")
+            render_pts = FB_last_valid_UP
+
+    var curve := Curve2D.new()
+    for pt in render_pts:
+        curve.add_point(pt)
+    var smooth: PackedVector2Array = curve.tessellate(FB_tessellate_pts_IN)
     var uvs: PackedVector2Array = PackedVector2Array()
-    for p in FB_nodes_UP:
+    for p in smooth:
         uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    draw_polygon(smooth, [], uvs)
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 
