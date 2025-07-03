@@ -53,6 +53,12 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_last_valid_nodes_SH: Array[Vector2] = []
+var FB_draw_nodes_UP: Array[Vector2] = []
+
+@export var FB_max_bisections_IN: int = 3
+@export var FB_tessellation_IN: int = 32
+@export var FB_debug_log_IN: bool = false
 
 
 func _ready() -> void:
@@ -62,6 +68,8 @@ func _ready() -> void:
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
     set_process_input(true)
+    FB_last_valid_nodes_SH = FB_nodes_UP.duplicate()
+    FB_draw_nodes_UP = FB_nodes_UP.duplicate()
 
 
 func _init_nodes() -> void:
@@ -90,6 +98,22 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+
+    if _is_valid_polygon(FB_nodes_UP):
+        FB_last_valid_nodes_SH = FB_nodes_UP.duplicate()
+        FB_draw_nodes_UP = FB_nodes_UP.duplicate()
+    else:
+        var fallback: Array[Vector2] = _try_bisection_fallback(FB_last_valid_nodes_SH, FB_nodes_UP)
+        if fallback.size() > 0:
+            FB_last_valid_nodes_SH = fallback.duplicate()
+            FB_draw_nodes_UP = fallback
+            if FB_debug_log_IN:
+                print("bisection fallback triggered")
+        else:
+            FB_draw_nodes_UP = FB_last_valid_nodes_SH
+            if FB_debug_log_IN:
+                print("polygon invalid – using last valid shape")
+
     queue_redraw()
 
 
@@ -129,12 +153,38 @@ func _physics_step(delta: float) -> void:
         FB_node_vels_UP[b] -= force
 
 
+func _is_valid_polygon(nodes: Array[Vector2]) -> bool:
+    var pts := PackedVector2Array(nodes)
+    if pts.size() < 3:
+        return false
+    if pts[0] == pts[pts.size() - 1]:
+        pts.remove_at(pts.size() - 1)
+    return Geometry2D.triangulate_polygon(pts).size() > 0
+
+
+func _try_bisection_fallback(last_valid: Array[Vector2], current: Array[Vector2]) -> Array[Vector2]:
+    var a := last_valid
+    var b := current
+    for _i in FB_max_bisections_IN:
+        var mid: Array[Vector2] = []
+        for j in range(a.size()):
+            mid.append(a[j].lerp(b[j], 0.5))
+        if _is_valid_polygon(mid):
+            return mid
+        b = mid
+    return []
+
+
 func _draw() -> void:
-    var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
+    var curve := Curve2D.new()
+    curve.closed = true
+    for i in range(FB_draw_nodes_UP.size() - 1):
+        curve.add_point(FB_draw_nodes_UP[i])
+    var smooth_points: PackedVector2Array = curve.tessellate(FB_tessellation_IN)
     var uvs: PackedVector2Array = PackedVector2Array()
-    for p in FB_nodes_UP:
+    for p in smooth_points:
         uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    draw_polygon(smooth_points, [], uvs)
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 
