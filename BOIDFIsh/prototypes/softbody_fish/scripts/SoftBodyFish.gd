@@ -42,6 +42,9 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_wobble_amp_IN: float = 0.4
 @export var FB_breath_amp_IN: float = 0.2
 @export var FB_gizmo_radius_IN: float = 20.0
+@export var FB_max_bisections_IN: int = 3
+@export var FB_curve_steps_IN: int = 32
+@export var FB_debug_fallback_IN: bool = false
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
 
@@ -53,6 +56,7 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_last_valid_UP: PackedVector2Array = PackedVector2Array()
 
 
 func _ready() -> void:
@@ -62,6 +66,7 @@ func _ready() -> void:
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
     set_process_input(true)
+    FB_last_valid_UP = PackedVector2Array(FB_nodes_UP)
 
 
 func _init_nodes() -> void:
@@ -84,6 +89,7 @@ func _init_nodes() -> void:
     FB_tail_node_RD.position = (
         (FB_rest_nodes_SH[FB_TAIL_IDXS[0]] + FB_rest_nodes_SH[FB_TAIL_IDXS[1]]) * 0.5
     )
+    FB_last_valid_UP = PackedVector2Array(FB_nodes_UP)
 
 
 func _process(delta: float) -> void:
@@ -131,12 +137,45 @@ func _physics_step(delta: float) -> void:
 
 func _draw() -> void:
     var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
+    var safe: PackedVector2Array = _FB_get_safe_shape_IN(points)
+    var curve := Curve2D.new()
+    for pt in safe:
+        curve.add_point(pt)
+    var smooth := curve.tessellate(FB_curve_steps_IN)
     var uvs: PackedVector2Array = PackedVector2Array()
-    for p in FB_nodes_UP:
+    for p in smooth:
         uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    draw_polygon(smooth, [], uvs)
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
+
+
+func _FB_polygon_valid_IN(pts: PackedVector2Array) -> bool:
+    if pts.size() < 3:
+        return false
+    var tris := Geometry2D.triangulate_polygon(pts)
+    return tris.size() >= 3
+
+
+func _FB_get_safe_shape_IN(pts: PackedVector2Array) -> PackedVector2Array:
+    if _FB_polygon_valid_IN(pts):
+        FB_last_valid_UP = pts.duplicate()
+        return pts
+    var low: PackedVector2Array = FB_last_valid_UP.duplicate()
+    var high: PackedVector2Array = pts.duplicate()
+    for _i in range(FB_max_bisections_IN):
+        var mid := PackedVector2Array()
+        for j in range(low.size()):
+            mid.append(low[j].lerp(high[j], 0.5))
+        if _FB_polygon_valid_IN(mid):
+            FB_last_valid_UP = mid.duplicate()
+            if FB_debug_fallback_IN:
+                print("SoftBodyFish: fallback resolved after", _i + 1)
+            return mid
+        high = mid
+    if FB_debug_fallback_IN:
+        print("SoftBodyFish: fallback used last valid shape")
+    return FB_last_valid_UP
 
 
 func _input(event: InputEvent) -> void:
