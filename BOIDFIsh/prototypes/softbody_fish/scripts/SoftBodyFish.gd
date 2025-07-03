@@ -31,6 +31,8 @@ const FB_SCALE: float = 15.0
 const FB_HEAD_IDX: int = 0
 const FB_TAIL_IDXS: Array[int] = [5, 6]
 const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
+const FB_HANDLE_SCALE: float = 0.4
+const FB_TESS_STEPS: int = 32
 
 @export var FB_spring_strength_IN: float = 10.0
 @export var FB_head_strength_IN: float = 12.0
@@ -53,6 +55,8 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_curve_SH: Curve2D = Curve2D.new()
+var FB_last_poly_UP: PackedVector2Array = PackedVector2Array()
 
 
 func _ready() -> void:
@@ -129,12 +133,33 @@ func _physics_step(delta: float) -> void:
         FB_node_vels_UP[b] -= force
 
 
+func _update_curve() -> PackedVector2Array:
+    FB_curve_SH.clear_points()
+    var count: int = FB_nodes_UP.size()
+    for i in count:
+        var prev: Vector2 = FB_nodes_UP[(i - 1 + count) % count]
+        var next: Vector2 = FB_nodes_UP[(i + 1) % count]
+        var this_p: Vector2 = FB_nodes_UP[i]
+        var in_h: Vector2 = (prev - this_p) * FB_HANDLE_SCALE
+        var out_h: Vector2 = (next - this_p) * FB_HANDLE_SCALE
+        FB_curve_SH.add_point(this_p, in_h, out_h)
+    FB_curve_SH.closed = true
+    return FB_curve_SH.tessellate(FB_TESS_STEPS)
+
+
 func _draw() -> void:
-    var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
+    var poly: PackedVector2Array = _update_curve()
     var uvs: PackedVector2Array = PackedVector2Array()
-    for p in FB_nodes_UP:
+    for p in poly:
         uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    if Geometry2D.triangulate_polygon(poly).size() > 0:
+        FB_last_poly_UP = poly
+        draw_polygon(poly, [], uvs)
+    elif FB_last_poly_UP.size() > 0:
+        var uv_fallback: PackedVector2Array = PackedVector2Array()
+        for p in FB_last_poly_UP:
+            uv_fallback.append(p * 0.05 + Vector2(0.5, 0.5))
+        draw_polygon(FB_last_poly_UP, [], uv_fallback)
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 
