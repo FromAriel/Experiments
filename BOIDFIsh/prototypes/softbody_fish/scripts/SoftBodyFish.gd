@@ -42,6 +42,8 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_wobble_amp_IN: float = 0.4
 @export var FB_breath_amp_IN: float = 0.2
 @export var FB_gizmo_radius_IN: float = 20.0
+@export var FB_handle_ratio_IN: float = 0.4
+@export_range(8, 64) var FB_tessellation_steps_IN: int = 36
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
 
@@ -53,10 +55,14 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_curve_WORK: Curve2D
+var FB_safe_poly_SH: PackedVector2Array = PackedVector2Array()
 
 
 func _ready() -> void:
     _init_nodes()
+    FB_curve_WORK = Curve2D.new()
+    FB_safe_poly_SH = PackedVector2Array(FB_nodes_UP)
     position = get_viewport_rect().size * 0.5
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
@@ -130,11 +136,30 @@ func _physics_step(delta: float) -> void:
 
 
 func _draw() -> void:
-    var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
+    var count: int = FB_nodes_UP.size()
+    FB_curve_WORK.clear_points()
+    for i in count:
+        var this_p: Vector2 = FB_nodes_UP[i]
+        var prev: Vector2 = FB_nodes_UP[(i - 1 + count) % count]
+        var next: Vector2 = FB_nodes_UP[(i + 1) % count]
+        var in_h: Vector2 = (prev - this_p) * FB_handle_ratio_IN
+        var out_h: Vector2 = (next - this_p) * FB_handle_ratio_IN
+        FB_curve_WORK.add_point(this_p, in_h, out_h)
+    FB_curve_WORK.add_point(
+        FB_nodes_UP[0],
+        (FB_nodes_UP[count - 1] - FB_nodes_UP[0]) * FB_handle_ratio_IN,
+        (FB_nodes_UP[1] - FB_nodes_UP[0]) * FB_handle_ratio_IN
+    )
+    var poly: PackedVector2Array = FB_curve_WORK.tessellate(FB_tessellation_steps_IN)
+    var tris := Geometry2D.triangulate_polygon(poly)
+    if tris.size() == 0:
+        poly = FB_safe_poly_SH
+    else:
+        FB_safe_poly_SH = poly
     var uvs: PackedVector2Array = PackedVector2Array()
-    for p in FB_nodes_UP:
+    for p in poly:
         uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    draw_polygon(poly, [], uvs)
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 

@@ -7,4 +7,6 @@
 - Added softbody fish prototype under `prototypes/softbody_fish`.
 - Softbody fish can be dragged via head and tail gizmos; spring strength controls
   for head and tail added.
+- Softbody fish outline now uses Catmull-Rom curve smoothing with adjustable
+  handle ratio and tessellation steps.
 
