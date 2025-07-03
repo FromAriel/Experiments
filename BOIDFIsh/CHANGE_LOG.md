@@ -5,4 +5,5 @@
 - Added built-in archetypes loading and override property in GameManager.
 - Debug overlay scales with depth to match fish size.
 - Added softbody fish prototype under `prototypes/softbody_fish`.
+- Enlarged softbody fish, added draggable head/tail controls and extra cross-braces.
 
