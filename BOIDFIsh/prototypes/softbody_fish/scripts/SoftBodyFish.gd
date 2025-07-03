@@ -42,6 +42,8 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_wobble_amp_IN: float = 0.4
 @export var FB_breath_amp_IN: float = 0.2
 @export var FB_gizmo_radius_IN: float = 20.0
+@export_range(0.1, 0.8, 0.05) var FB_handle_frac_IN: float = 0.4
+@export_range(8, 64, 1) var FB_tessellation_steps_IN: int = 32
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
 
@@ -53,6 +55,10 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_curve_UP: Curve2D = Curve2D.new()
+var FB_poly_cache_UP: PackedVector2Array = PackedVector2Array()
+var FB_uv_cache_UP: PackedVector2Array = PackedVector2Array()
+var FB_last_valid_SH: PackedVector2Array = PackedVector2Array()
 
 
 func _ready() -> void:
@@ -129,12 +135,37 @@ func _physics_step(delta: float) -> void:
         FB_node_vels_UP[b] -= force
 
 
+func _FB_update_polygon_IN() -> void:
+    FB_curve_UP.clear_points()
+    var count: int = FB_nodes_UP.size()
+    for i in count:
+        var prev: Vector2 = FB_nodes_UP[(i - 1 + count) % count]
+        var next: Vector2 = FB_nodes_UP[(i + 1) % count]
+        var pos: Vector2 = FB_nodes_UP[i]
+        var in_handle: Vector2 = (prev - pos) * FB_handle_frac_IN
+        var out_handle: Vector2 = (next - pos) * FB_handle_frac_IN
+        FB_curve_UP.add_point(pos, in_handle, out_handle)
+    FB_curve_UP.closed = true
+
+    var pts: PackedVector2Array = FB_curve_UP.tessellate(FB_tessellation_steps_IN)
+    var check := Geometry2D.triangulate_polygon(pts)
+    if check.size() > 0:
+        FB_poly_cache_UP = pts
+        FB_uv_cache_UP.resize(pts.size())
+        for i in pts.size():
+            FB_uv_cache_UP[i] = pts[i] * 0.05 + Vector2(0.5, 0.5)
+        FB_last_valid_SH = FB_poly_cache_UP
+    elif FB_last_valid_SH.size() > 0:
+        FB_poly_cache_UP = FB_last_valid_SH
+        FB_uv_cache_UP.resize(FB_poly_cache_UP.size())
+        for i in FB_poly_cache_UP.size():
+            FB_uv_cache_UP[i] = FB_poly_cache_UP[i] * 0.05 + Vector2(0.5, 0.5)
+
+
 func _draw() -> void:
-    var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
-    var uvs: PackedVector2Array = PackedVector2Array()
-    for p in FB_nodes_UP:
-        uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    _FB_update_polygon_IN()
+    if FB_poly_cache_UP.size() > 2:
+        draw_polygon(FB_poly_cache_UP, [], FB_uv_cache_UP)
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 
