@@ -29,14 +29,14 @@ const FB_COORDS: Array[Vector2] = [
 ]
 const FB_SCALE: float = 15.0
 const FB_HEAD_IDX: int = 0
-const FB_TAIL_IDXS: Array[int] = [5, 6]
-const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
+const FB_TAIL_IDXS: Array[int] = [10, 12]
+const FB_DIAGONALS: Array = [[4, 18], [6, 16]]
 
-@export var FB_spring_strength_IN: float = 10.0
-@export var FB_head_strength_IN: float = 12.0
-@export var FB_tail_strength_IN: float = 8.0
-@export var FB_diag_strength_IN: float = 10.0
-@export var FB_radial_strength_IN: float = 5.0
+@export var FB_spring_strength_IN: float = 8.0
+@export var FB_head_strength_IN: float = 10.0
+@export var FB_tail_strength_IN: float = 6.0
+@export var FB_diag_strength_IN: float = 8.0
+@export var FB_radial_strength_IN: float = 4.0
 @export_range(0.5, 1.0, 0.01) var FB_damping_IN: float = 0.9
 @export var FB_gravity_IN: float = 0.0
 @export var FB_wobble_amp_IN: float = 0.4
@@ -68,8 +68,16 @@ func _init_nodes() -> void:
     FB_nodes_UP.clear()
     FB_node_vels_UP.clear()
     FB_rest_nodes_SH.clear()
+    var doubled: Array[Vector2] = []
+    for i in range(FB_COORDS.size() - 1):
+        var a: Vector2 = FB_COORDS[i]
+        var b: Vector2 = FB_COORDS[i + 1]
+        doubled.append(a)
+        doubled.append((a + b) * 0.5)
+    doubled.append(FB_COORDS[FB_COORDS.size() - 1])
+
     var scaled: Array[Vector2] = []
-    for pt in FB_COORDS:
+    for pt in doubled:
         scaled.append(pt * FB_SCALE)
     var centroid: Vector2 = Vector2.ZERO
     for i in range(scaled.size() - 1):
