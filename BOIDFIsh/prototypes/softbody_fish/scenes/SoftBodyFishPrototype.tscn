@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://csrtgiyj8h6y2"]
 
-[ext_resource type="Script" path="res://scripts/SoftBodyFish.gd" id="1"]
+[ext_resource type="Script" uid="uid://bfs1gt1t5adlf" path="res://scripts/SoftBodyFish.gd" id="1"]
 
 [node name="SoftBodyFish" type="Node2D"]
 script = ExtResource("1")
