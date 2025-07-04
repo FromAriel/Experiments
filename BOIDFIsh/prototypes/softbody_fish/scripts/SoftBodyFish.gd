@@ -14,28 +14,40 @@ extends Node2D
 
 const FB_COORDS: Array[Vector2] = [
     Vector2(4, 5.5),
+    Vector2(5, 6.05),
     Vector2(6, 6.6),
-    Vector2(9, 7.0),
+    Vector2(7.5, 6.8),
+    Vector2(9, 7),
+    Vector2(10.5, 6.2),
     Vector2(12, 5.4),
+    Vector2(13, 6.075),
     Vector2(14, 6.75),
-    Vector2(15, 7.0),
-    Vector2(15, 3.0),
+    Vector2(14.5, 6.875),
+    Vector2(15, 7),
+    Vector2(15, 5),
+    Vector2(15, 3),
+    Vector2(14.5, 3.125),
     Vector2(14, 3.25),
+    Vector2(13, 3.925),
     Vector2(12, 4.6),
-    Vector2(9, 3.0),
+    Vector2(10.5, 3.8),
+    Vector2(9, 3),
+    Vector2(7.5, 3.2),
     Vector2(6, 3.4),
+    Vector2(5, 3.95),
     Vector2(4, 4.5),
+    Vector2(4, 5),
     Vector2(4, 5.5)
 ]
 const FB_SCALE: float = 15.0
 const FB_HEAD_IDX: int = 0
-const FB_TAIL_IDXS: Array[int] = [5, 6]
-const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
+const FB_TAIL_IDXS: Array[int] = [10, 12]
+const FB_DIAGONALS: Array = [[4, 18], [6, 16]]
 
-@export var FB_spring_strength_IN: float = 10.0
+@export var FB_spring_strength_IN: float = 8.0
 @export var FB_head_strength_IN: float = 12.0
 @export var FB_tail_strength_IN: float = 8.0
-@export var FB_diag_strength_IN: float = 10.0
+@export var FB_diag_strength_IN: float = 8.0
 @export var FB_radial_strength_IN: float = 5.0
 @export_range(0.5, 1.0, 0.01) var FB_damping_IN: float = 0.9
 @export var FB_gravity_IN: float = 0.0
