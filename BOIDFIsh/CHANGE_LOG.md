@@ -8,4 +8,5 @@
 - Softbody fish can be dragged via head and tail gizmos; spring strength controls
   for head and tail added.
 - Softbody fish now uses twice as many points with lower spring strength for a smoother shape.
+- Updated softbody fish vertex coordinates for improved accuracy.
 
