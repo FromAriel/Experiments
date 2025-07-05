@@ -12,6 +12,7 @@ export_credentials.cfg
 **/bin/
 **/obj/
 mono_crash.*.json
+*.gd.uid
 
 FISHYX3/scripts/dummy/bin/
 FISHYX3/scripts/dummy/obj/
