@@ -49,6 +49,7 @@ const FB_SCALE: float = 15.0
 const FB_HEAD_IDX: int = 0
 const FB_TAIL_IDXS: Array[int] = [5, 6]
 const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
+const FB_MASK_SIZE: Vector2i = Vector2i(256, 256)
 
 @export var FB_spring_strength_IN: float = 8.0
 @export var FB_head_strength_IN: float = 9.5
@@ -62,6 +63,8 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_gizmo_radius_IN: float = 20.0
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
+@onready var FB_mask_viewport_RD: Viewport = $MaskViewport
+@onready var FB_mask_drawer_RD: FishMaskDrawer = $MaskViewport/MaskDrawer
 
 var FB_nodes_UP: Array[Vector2] = []
 var FB_node_vels_UP: Array[Vector2] = []
@@ -79,8 +82,12 @@ var _tri_indices: PackedInt32Array = PackedInt32Array()
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
+    FB_mask_viewport_RD.size = FB_MASK_SIZE
+    FB_mask_viewport_RD.render_target_update_mode = 3  # UPDATE_ALWAYS
+    FB_mask_drawer_RD.position = FB_MASK_SIZE * 0.5
     _mat = ShaderMaterial.new()
-    _mat.shader = load("res://shaders/soft_body_fish.gdshader")
+    _mat.shader = load("res://shaders/fish_feathered.gdshader")
+    _mat.set_shader_parameter("distance_map", FB_mask_viewport_RD.get_texture())
     material = _mat
     _precompute_triangles()
     set_process_input(true)
@@ -128,6 +135,7 @@ func _process(delta: float) -> void:
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
     queue_redraw()
+    _update_mask()
 
 
 func _physics_step(delta: float) -> void:
@@ -180,6 +188,14 @@ func _draw() -> void:
         )
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
+
+
+func _update_mask() -> void:
+    var pts: PackedVector2Array = PackedVector2Array()
+    var scale_factor: float = scale.x
+    for p in FB_nodes_UP:
+        pts.append(p * scale_factor + FB_MASK_SIZE * 0.5)
+    FB_mask_drawer_RD.FMD_set_mesh(pts, _tri_indices)
 
 
 func _input(event: InputEvent) -> void:
