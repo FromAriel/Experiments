@@ -10,4 +10,5 @@
 - Softbody fish now uses twice as many points with lower spring strength for a smoother shape.
 - Updated softbody fish vertex coordinates for improved accuracy.
 - Softbody fish renderer uses precomputed triangulation to avoid runtime errors.
+- Softbody fish shader now generates fake normals for a rounded look.
 
