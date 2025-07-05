@@ -5,8 +5,8 @@
 # Key Functions    • _physics_step() – per-node spring physics
 # Critical Consts  • FB_COORDS – initial node positions
 # Editor Exports   • FB_spring_strength_IN: float
-# Dependencies     • shaders/soft_body_fish.gdshader
-# Last Major Rev   • 24-04-30 – initial prototype
+# Dependencies     • shaders/soft_body_fish.gdshader, PillowNormalGenerator.gd
+# Last Major Rev   • 24-05-05 – pillow normals added
 ###############################################################
 # gdlint:disable = class-variable-name,function-name
 class_name SoftBodyFish
@@ -71,6 +71,9 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_pillow_gen_RD: PillowNormalGenerator
+
+const FB_NORM_VP_SIZE: float = 256.0
 
 # Pre-computed triangle indices.  Never empty unless initial triangulation failed.
 var _tri_indices: PackedInt32Array = PackedInt32Array()
@@ -79,11 +82,15 @@ var _tri_indices: PackedInt32Array = PackedInt32Array()
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
+    FB_pillow_gen_RD = PillowNormalGenerator.new()
+    add_child(FB_pillow_gen_RD)
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
+    _mat.set_shader_parameter("heightmap", FB_pillow_gen_RD.get_texture())
     material = _mat
     _precompute_triangles()
     set_process_input(true)
+    FB_pillow_gen_RD.update_polygon(FB_nodes_UP)
 
 
 func _precompute_triangles() -> void:
@@ -127,6 +134,7 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    FB_pillow_gen_RD.update_polygon(FB_nodes_UP)
     queue_redraw()
 
 
@@ -170,7 +178,7 @@ func _draw() -> void:
     var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
     var uvs: PackedVector2Array = PackedVector2Array()
     for p in FB_nodes_UP:
-        uvs.append(p * 0.05 + Vector2(0.5, 0.5))
+        uvs.append((p + Vector2(FB_NORM_VP_SIZE * 0.5, FB_NORM_VP_SIZE * 0.5)) / FB_NORM_VP_SIZE)
     if _tri_indices.is_empty():
         # Fallback if initial triangulation failed
         draw_polyline(points, Color.WHITE, 2.0, true)
