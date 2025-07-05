@@ -11,3 +11,4 @@ FB_gizmo_radius_IN = 4.795
 [node name="HeadControl" type="Node2D" parent="."]
 
 [node name="TailControl" type="Node2D" parent="."]
+
