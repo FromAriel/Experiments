@@ -76,12 +76,28 @@ var _mat: ShaderMaterial
 var _tri_indices: PackedInt32Array = PackedInt32Array()
 
 
+func _update_body_radius() -> void:
+    var min_x: float = INF
+    var max_x: float = -INF
+    var min_y: float = INF
+    var max_y: float = -INF
+    for p in FB_nodes_UP:
+        min_x = min(min_x, p.x)
+        max_x = max(max_x, p.x)
+        min_y = min(min_y, p.y)
+        max_y = max(max_y, p.y)
+    var radius_x: float = (max_x - min_x) * 0.025
+    var radius_y: float = (max_y - min_y) * 0.025
+    _mat.set_shader_parameter("body_radius", Vector2(radius_x, radius_y))
+
+
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
+    _update_body_radius()
     _precompute_triangles()
     set_process_input(true)
 
@@ -127,6 +143,7 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    _update_body_radius()
     queue_redraw()
 
 
