@@ -10,4 +10,5 @@
 - Softbody fish now uses twice as many points with lower spring strength for a smoother shape.
 - Updated softbody fish vertex coordinates for improved accuracy.
 - Softbody fish renderer uses precomputed triangulation to avoid runtime errors.
+- Softbody fish now uses dynamic pillow lighting from a viewport-generated heightmap.
 
