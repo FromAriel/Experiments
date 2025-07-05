@@ -49,6 +49,7 @@ const FB_SCALE: float = 15.0
 const FB_HEAD_IDX: int = 0
 const FB_TAIL_IDXS: Array[int] = [5, 6]
 const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
+const FB_MAP_SIZE: Vector2i = Vector2i(224, 96)
 
 @export var FB_spring_strength_IN: float = 8.0
 @export var FB_head_strength_IN: float = 9.5
@@ -62,6 +63,11 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_gizmo_radius_IN: float = 20.0
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
+var FB_height_vp_RD: Viewport
+var FB_silhouette_RD: Polygon2D
+var FB_blur_vp_RD: Viewport
+var FB_blur_sprite_RD: Sprite2D
+var FB_texel_size_SH: Vector2 = Vector2.ZERO
 
 var FB_nodes_UP: Array[Vector2] = []
 var FB_node_vels_UP: Array[Vector2] = []
@@ -78,11 +84,15 @@ var _tri_indices: PackedInt32Array = PackedInt32Array()
 
 func _ready() -> void:
     _init_nodes()
+    _init_viewports()
     position = get_viewport_rect().size * 0.5
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
+    _mat.set_shader_parameter("heightmap_tx", FB_blur_vp_RD.get_texture())
+    _mat.set_shader_parameter("heightmap_texel", FB_texel_size_SH)
     material = _mat
     _precompute_triangles()
+    _update_heightmap()
     set_process_input(true)
 
 
@@ -99,6 +109,35 @@ func _precompute_triangles() -> void:
         )
     # Note: we keep _tri_indices even if it is empty; the draw code below
     # checks the size to decide whether to use draw_polygon or draw_polyline.
+
+
+func _init_viewports() -> void:
+    FB_height_vp_RD = SubViewport.new()
+    FB_height_vp_RD.disable_3d = true
+    FB_height_vp_RD.transparent_bg = false
+    FB_height_vp_RD.size = FB_MAP_SIZE
+    add_child(FB_height_vp_RD)
+
+    FB_silhouette_RD = Polygon2D.new()
+    FB_silhouette_RD.color = Color.WHITE
+    FB_height_vp_RD.add_child(FB_silhouette_RD)
+
+    FB_blur_vp_RD = SubViewport.new()
+    FB_blur_vp_RD.disable_3d = true
+    FB_blur_vp_RD.transparent_bg = false
+    FB_blur_vp_RD.size = FB_MAP_SIZE
+    add_child(FB_blur_vp_RD)
+
+    FB_blur_sprite_RD = Sprite2D.new()
+    FB_blur_sprite_RD.texture = FB_height_vp_RD.get_texture()
+    var blur_mat: ShaderMaterial = ShaderMaterial.new()
+    blur_mat.shader = load("res://shaders/heightmap_blur.gdshader")
+    FB_texel_size_SH = Vector2(1.0 / float(FB_MAP_SIZE.x), 1.0 / float(FB_MAP_SIZE.y))
+    blur_mat.set_shader_parameter("source_tex", FB_height_vp_RD.get_texture())
+    blur_mat.set_shader_parameter("inv_size", FB_texel_size_SH)
+    FB_blur_sprite_RD.material = blur_mat
+    FB_blur_sprite_RD.position = FB_MAP_SIZE * 0.5
+    FB_blur_vp_RD.add_child(FB_blur_sprite_RD)
 
 
 func _init_nodes() -> void:
@@ -123,10 +162,19 @@ func _init_nodes() -> void:
     )
 
 
+func _update_heightmap() -> void:
+    var arr: PackedVector2Array = PackedVector2Array()
+    var off: Vector2 = FB_MAP_SIZE * 0.5
+    for p in FB_nodes_UP:
+        arr.append(p + off)
+    FB_silhouette_RD.polygon = arr
+
+
 func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    _update_heightmap()
     queue_redraw()
 
 
