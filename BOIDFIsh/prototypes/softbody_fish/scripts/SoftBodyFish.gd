@@ -75,6 +75,9 @@ var _mat: ShaderMaterial
 # Pre-computed triangle indices.  Never empty unless initial triangulation failed.
 var _tri_indices: PackedInt32Array = PackedInt32Array()
 
+var FB_uv_center_SH: Vector2 = Vector2.ZERO
+var FB_uv_extents_SH: Vector2 = Vector2.ONE
+
 
 func _ready() -> void:
     _init_nodes()
@@ -101,6 +104,21 @@ func _precompute_triangles() -> void:
     # checks the size to decide whether to use draw_polygon or draw_polyline.
 
 
+func _update_shader_bounds() -> void:
+    var min_uv: Vector2 = Vector2(INF, INF)
+    var max_uv: Vector2 = Vector2(-INF, -INF)
+    for p in FB_nodes_UP:
+        var uv: Vector2 = p * 0.05 + Vector2(0.5, 0.5)
+        min_uv.x = min(min_uv.x, uv.x)
+        min_uv.y = min(min_uv.y, uv.y)
+        max_uv.x = max(max_uv.x, uv.x)
+        max_uv.y = max(max_uv.y, uv.y)
+    FB_uv_center_SH = (min_uv + max_uv) * 0.5
+    FB_uv_extents_SH = (max_uv - min_uv) * 0.5
+    _mat.set_shader_parameter("uv_center", FB_uv_center_SH)
+    _mat.set_shader_parameter("uv_extents", FB_uv_extents_SH)
+
+
 func _init_nodes() -> void:
     FB_nodes_UP.clear()
     FB_node_vels_UP.clear()
@@ -125,6 +143,7 @@ func _init_nodes() -> void:
 
 func _process(delta: float) -> void:
     _physics_step(delta)
+    _update_shader_bounds()
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
     queue_redraw()
