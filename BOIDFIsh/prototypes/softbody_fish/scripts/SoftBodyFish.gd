@@ -5,12 +5,14 @@
 # Key Functions    • _physics_step() – per-node spring physics
 # Critical Consts  • FB_COORDS – initial node positions
 # Editor Exports   • FB_spring_strength_IN: float
-# Dependencies     • shaders/soft_body_fish.gdshader
+# Dependencies     • shaders/feathered_stroke.gdshader, scripts/DistanceMap.gd
 # Last Major Rev   • 24-04-30 – initial prototype
 ###############################################################
 # gdlint:disable = class-variable-name,function-name
 class_name SoftBodyFish
 extends Node2D
+
+const DistanceMap = preload("res://scripts/DistanceMap.gd")
 
 const FB_COORDS: Array[Vector2] = [
     Vector2(4.00, 5.50),
@@ -60,6 +62,11 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_wobble_amp_IN: float = 0.4
 @export var FB_breath_amp_IN: float = 0.2
 @export var FB_gizmo_radius_IN: float = 20.0
+@export var FB_stroke_width_IN: float = 0.25
+@export var FB_ring_spacing_IN: float = 0.0
+@export var FB_use_rings_IN: bool = false
+@export var FB_edge_color_IN: Color = Color(0.2, 0.4, 0.6)
+@export var FB_center_color_IN: Color = Color(0.8, 0.8, 0.9)
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
 
@@ -74,14 +81,23 @@ var _mat: ShaderMaterial
 
 # Pre-computed triangle indices.  Never empty unless initial triangulation failed.
 var _tri_indices: PackedInt32Array = PackedInt32Array()
+var _dist_map: DistanceMap
 
 
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
     _mat = ShaderMaterial.new()
-    _mat.shader = load("res://shaders/soft_body_fish.gdshader")
+    _mat.shader = load("res://shaders/feathered_stroke.gdshader")
     material = _mat
+    _dist_map = DistanceMap.new()
+    add_child(_dist_map)
+    _mat.set_shader_parameter("distance_map", _dist_map.distance_texture)
+    _mat.set_shader_parameter("edge_color", FB_edge_color_IN)
+    _mat.set_shader_parameter("center_color", FB_center_color_IN)
+    _mat.set_shader_parameter("stroke_width", FB_stroke_width_IN)
+    _mat.set_shader_parameter("ring_spacing", FB_ring_spacing_IN)
+    _mat.set_shader_parameter("use_rings", FB_use_rings_IN)
     _precompute_triangles()
     set_process_input(true)
 
@@ -127,6 +143,12 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    _dist_map.update_polygon(PackedVector2Array(FB_nodes_UP))
+    _mat.set_shader_parameter("stroke_width", FB_stroke_width_IN)
+    _mat.set_shader_parameter("ring_spacing", FB_ring_spacing_IN)
+    _mat.set_shader_parameter("use_rings", FB_use_rings_IN)
+    _mat.set_shader_parameter("edge_color", FB_edge_color_IN)
+    _mat.set_shader_parameter("center_color", FB_center_color_IN)
     queue_redraw()
 
 
