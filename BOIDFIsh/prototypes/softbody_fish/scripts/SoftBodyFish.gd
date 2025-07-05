@@ -169,8 +169,23 @@ func _physics_step(delta: float) -> void:
 func _draw() -> void:
     var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
     var uvs: PackedVector2Array = PackedVector2Array()
+
+    var min_p: Vector2 = Vector2.INF
+    var max_p: Vector2 = -Vector2.INF
     for p in FB_nodes_UP:
-        uvs.append(p * 0.05 + Vector2(0.5, 0.5))
+        min_p.x = min(min_p.x, p.x)
+        min_p.y = min(min_p.y, p.y)
+        max_p.x = max(max_p.x, p.x)
+        max_p.y = max(max_p.y, p.y)
+    var center: Vector2 = (min_p + max_p) * 0.5
+    var extents: Vector2 = (max_p - min_p) * 0.5
+    if extents.x == 0.0:
+        extents.x = 1.0
+    if extents.y == 0.0:
+        extents.y = 1.0
+    for p in FB_nodes_UP:
+        var uv: Vector2 = (p - center) / extents * 0.5 + Vector2(0.5, 0.5)
+        uvs.append(uv)
     if _tri_indices.is_empty():
         # Fallback if initial triangulation failed
         draw_polyline(points, Color.WHITE, 2.0, true)
