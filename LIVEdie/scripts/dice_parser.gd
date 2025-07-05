@@ -31,14 +31,9 @@ func evaluate(expr: String, seed: int = -1) -> Dictionary:
         dp_rng.seed = seed
     var parsed := _dp_parse_expression(clean)
     var total = _dp_eval_node(parsed)
-    var result := {"total": total, "rolls": parsed.get("rolls", [])}
-    if (
-        typeof(parsed) == TYPE_DICTIONARY
-        and parsed.has("condition")
-        and parsed["condition"] != null
-    ):
-        var cond = parsed["condition"]
-        result["success"] = _dp_eval_condition(total, cond)
+    var result := {
+        "total": total, "rolls": parsed.get("rolls", []), "successes": parsed.get("successes", null)
+    }
     return result
 
 
@@ -250,10 +245,22 @@ func _dp_eval_node(node):
             "/":
                 result = int(l / r)
         node["rolls"] = []
-        if typeof(node["left"]) == TYPE_DICTIONARY and node["left"].has("rolls"):
-            node["rolls"] += node["left"]["rolls"]
-        if typeof(node["right"]) == TYPE_DICTIONARY and node["right"].has("rolls"):
-            node["rolls"] += node["right"]["rolls"]
+        var succ_total := 0
+        var succ_found := false
+        if typeof(node["left"]) == TYPE_DICTIONARY:
+            if node["left"].has("rolls"):
+                node["rolls"] += node["left"]["rolls"]
+            if node["left"].has("successes") and node["left"]["successes"] != null:
+                succ_total += int(node["left"]["successes"])
+                succ_found = true
+        if typeof(node["right"]) == TYPE_DICTIONARY:
+            if node["right"].has("rolls"):
+                node["rolls"] += node["right"]["rolls"]
+            if node["right"].has("successes") and node["right"]["successes"] != null:
+                succ_total += int(node["right"]["successes"])
+                succ_found = true
+        if succ_found:
+            node["successes"] = succ_total
         return result
     elif node["type"] == "dice":
         var rolls := []
@@ -304,5 +311,13 @@ func _dp_eval_node(node):
         for v in rolls:
             sum += v
         node["rolls"] = rolls
+        if node.has("condition") and node["condition"] != null:
+            var cond = node["condition"]
+            var cond_str := str(cond["op"]) + str(cond["num"])
+            var success_count := 0
+            for val in rolls:
+                if _dp_check(val, cond_str):
+                    success_count += 1
+            node["successes"] = success_count
         return sum
     return 0
