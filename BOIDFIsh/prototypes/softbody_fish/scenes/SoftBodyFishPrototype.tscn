@@ -11,3 +11,18 @@ FB_gizmo_radius_IN = 4.795
 [node name="HeadControl" type="Node2D" parent="."]
 
 [node name="TailControl" type="Node2D" parent="."]
+
+[node name="HeightmapVP" type="Viewport" parent="."]
+size = Vector2i(64, 64)
+transparent_bg = false
+usage = 0
+
+[node name="HeightmapPoly" type="Polygon2D" parent="HeightmapVP"]
+color = Color(1, 1, 1, 1)
+
+[node name="BlurVP" type="Viewport" parent="."]
+size = Vector2i(64, 64)
+transparent_bg = false
+usage = 0
+
+[node name="BlurSprite" type="Sprite2D" parent="BlurVP"]

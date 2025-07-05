@@ -71,6 +71,10 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+@onready var FB_height_vp_RD: Viewport = $HeightmapVP
+@onready var FB_height_poly_RD: Polygon2D = $HeightmapVP/HeightmapPoly
+@onready var FB_blur_vp_RD: Viewport = $BlurVP
+@onready var FB_blur_sprite_RD: Sprite2D = $BlurVP/BlurSprite
 
 # Pre-computed triangle indices.  Never empty unless initial triangulation failed.
 var _tri_indices: PackedInt32Array = PackedInt32Array()
@@ -79,8 +83,11 @@ var _tri_indices: PackedInt32Array = PackedInt32Array()
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
+    _setup_heightmap()
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
+    _mat.set_shader_parameter("heightmap", FB_blur_vp_RD.get_texture())
+    _mat.set_shader_parameter("tex_size", Vector2(FB_blur_vp_RD.size))
     material = _mat
     _precompute_triangles()
     set_process_input(true)
@@ -121,12 +128,33 @@ func _init_nodes() -> void:
     FB_tail_node_RD.position = (
         (FB_rest_nodes_SH[FB_TAIL_IDXS[0]] + FB_rest_nodes_SH[FB_TAIL_IDXS[1]]) * 0.5
     )
+    _update_heightmap()
+
+
+func _setup_heightmap() -> void:
+    FB_height_poly_RD.position = FB_height_vp_RD.size * 0.5
+    FB_blur_sprite_RD.texture = FB_height_vp_RD.get_texture()
+    var mat: ShaderMaterial = ShaderMaterial.new()
+    mat.shader = load("res://shaders/height_blur.gdshader")
+    mat.set_shader_parameter("tex_size", Vector2(FB_height_vp_RD.size))
+    mat.set_shader_parameter("src_tex", FB_height_vp_RD.get_texture())
+    FB_blur_sprite_RD.material = mat
+    FB_blur_sprite_RD.position = FB_blur_vp_RD.size * 0.5
+
+
+func _update_heightmap() -> void:
+    var pts: PackedVector2Array = PackedVector2Array()
+    var center: Vector2 = FB_height_vp_RD.size * 0.5
+    for p in FB_nodes_UP:
+        pts.append(p + center)
+    FB_height_poly_RD.polygon = pts
 
 
 func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    _update_heightmap()
     queue_redraw()
 
 
