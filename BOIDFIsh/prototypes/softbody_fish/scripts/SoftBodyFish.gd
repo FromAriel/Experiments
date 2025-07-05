@@ -63,6 +63,14 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
 
+@export var FB_edge_color_IN: Color = Color.WHITE
+@export var FB_center_color_IN: Color = Color(0.6, 0.8, 1.0)
+@export var FB_stroke_width_IN: float = 0.25
+@export var FB_ring_spacing_IN: float = 0.0
+
+var FB_mask_viewport_RD: Viewport
+var FB_mask_polygon_RD: Polygon2D
+
 var FB_nodes_UP: Array[Vector2] = []
 var FB_node_vels_UP: Array[Vector2] = []
 var FB_rest_nodes_SH: Array[Vector2] = []
@@ -79,9 +87,27 @@ var _tri_indices: PackedInt32Array = PackedInt32Array()
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
+    FB_mask_viewport_RD = SubViewport.new()
+    FB_mask_viewport_RD.disable_3d = true
+    FB_mask_viewport_RD.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    FB_mask_viewport_RD.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+    FB_mask_viewport_RD.size = Vector2i(256, 256)
+    FB_mask_viewport_RD.transparent_bg = false
+    add_child(FB_mask_viewport_RD)
+
+    FB_mask_polygon_RD = Polygon2D.new()
+    FB_mask_polygon_RD.color = Color.WHITE
+    FB_mask_polygon_RD.position = FB_mask_viewport_RD.size * 0.5
+    FB_mask_viewport_RD.add_child(FB_mask_polygon_RD)
+
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
+    _mat.set_shader_parameter("distance_map", FB_mask_viewport_RD.get_texture())
+    _mat.set_shader_parameter("edge_color", FB_edge_color_IN)
+    _mat.set_shader_parameter("center_color", FB_center_color_IN)
+    _mat.set_shader_parameter("stroke_width", FB_stroke_width_IN)
+    _mat.set_shader_parameter("ring_spacing", FB_ring_spacing_IN)
     _precompute_triangles()
     set_process_input(true)
 
@@ -127,6 +153,11 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    var mask_pts: PackedVector2Array = PackedVector2Array()
+    for p in FB_nodes_UP:
+        mask_pts.append(p + FB_mask_viewport_RD.size * 0.5)
+    FB_mask_polygon_RD.polygon = mask_pts
+    _mat.set_shader_parameter("distance_map", FB_mask_viewport_RD.get_texture())
     queue_redraw()
 
 
