@@ -43,7 +43,7 @@ const FB_COORDS: Array[Vector2] = [
     Vector2(4.75, 3.95),
     Vector2(3.85, 4.81),
     Vector2(3.70, 5.12),
-    Vector2(4.00, 5.50)
+    Vector2(4.00, 5.50)  # duplicated first vertex – will be ignored when triangulating
 ]
 const FB_SCALE: float = 15.0
 const FB_HEAD_IDX: int = 0
@@ -72,6 +72,9 @@ var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
 
+# Pre-computed triangle indices.  Never empty unless initial triangulation failed.
+var _tri_indices: PackedInt32Array = PackedInt32Array()
+
 
 func _ready() -> void:
     _init_nodes()
@@ -79,7 +82,23 @@ func _ready() -> void:
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
+    _precompute_triangles()
     set_process_input(true)
+
+
+func _precompute_triangles() -> void:
+    # Use the rest‐pose without the duplicate closing point; the vertex order
+    # never changes afterwards, so these indices stay valid forever.
+    var pts: PackedVector2Array = PackedVector2Array()
+    for i in range(FB_COORDS.size() - 1):  # skip last duplicate
+        pts.append(FB_COORDS[i] * FB_SCALE)
+    _tri_indices = Geometry2D.triangulate_polygon(pts)
+    if _tri_indices.is_empty():
+        push_warning(
+            "SoftBodyFish: initial triangulation failed – falling back to poly-line rendering."
+        )
+    # Note: we keep _tri_indices even if it is empty; the draw code below
+    # checks the size to decide whether to use draw_polygon or draw_polyline.
 
 
 func _init_nodes() -> void:
@@ -152,7 +171,13 @@ func _draw() -> void:
     var uvs: PackedVector2Array = PackedVector2Array()
     for p in FB_nodes_UP:
         uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    draw_polygon(points, [], uvs)
+    if _tri_indices.is_empty():
+        # Fallback if initial triangulation failed
+        draw_polyline(points, Color.WHITE, 2.0, true)
+    else:
+        RenderingServer.canvas_item_add_triangle_array(
+            get_canvas_item(), _tri_indices, points, PackedColorArray(), uvs
+        )
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 
