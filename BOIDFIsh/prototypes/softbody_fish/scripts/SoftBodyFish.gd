@@ -46,6 +46,7 @@ const FB_COORDS: Array[Vector2] = [
     Vector2(4.00, 5.50)  # duplicated first vertex – will be ignored when triangulating
 ]
 const FB_SCALE: float = 15.0
+const FB_UV_SCALE: float = 0.05
 const FB_HEAD_IDX: int = 0
 const FB_TAIL_IDXS: Array[int] = [5, 6]
 const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
@@ -76,12 +77,28 @@ var _mat: ShaderMaterial
 var _tri_indices: PackedInt32Array = PackedInt32Array()
 
 
+func _update_shader_params() -> void:
+    var min_uv: Vector2 = Vector2(INF, INF)
+    var max_uv: Vector2 = Vector2(-INF, -INF)
+    for v in FB_nodes_UP:
+        var uv: Vector2 = v * FB_UV_SCALE + Vector2(0.5, 0.5)
+        min_uv.x = min(min_uv.x, uv.x)
+        min_uv.y = min(min_uv.y, uv.y)
+        max_uv.x = max(max_uv.x, uv.x)
+        max_uv.y = max(max_uv.y, uv.y)
+    var center: Vector2 = (min_uv + max_uv) * 0.5
+    var size: Vector2 = max_uv - min_uv
+    _mat.set_shader_parameter("uv_center", center)
+    _mat.set_shader_parameter("uv_size", size)
+
+
 func _ready() -> void:
     _init_nodes()
     position = get_viewport_rect().size * 0.5
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
+    _update_shader_params()
     _precompute_triangles()
     set_process_input(true)
 
@@ -127,6 +144,7 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    _update_shader_params()
     queue_redraw()
 
 
