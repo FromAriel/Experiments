@@ -12,6 +12,8 @@
 class_name SoftBodyFish
 extends Node2D
 
+const PillowNormal := preload("res://scripts/PillowNormal.gd")
+
 const FB_COORDS: Array[Vector2] = [
     Vector2(4.00, 5.50),
     Vector2(4.75, 6.05),
@@ -71,6 +73,7 @@ var FB_tail_ctrl_UP: Vector2 = Vector2.ZERO
 var FB_head_drag_UP: bool = false
 var FB_tail_drag_UP: bool = false
 var _mat: ShaderMaterial
+var FB_norm_gen_RD: PillowNormal
 
 # Pre-computed triangle indices.  Never empty unless initial triangulation failed.
 var _tri_indices: PackedInt32Array = PackedInt32Array()
@@ -82,6 +85,10 @@ func _ready() -> void:
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
+    FB_norm_gen_RD = PillowNormal.new()
+    add_child(FB_norm_gen_RD)
+    _mat.set_shader_parameter("heightmap", FB_norm_gen_RD.PN_heightmap_RD)
+    _mat.set_shader_parameter("heightmap_size", Vector2(FB_norm_gen_RD.PN_get_size()))
     _precompute_triangles()
     set_process_input(true)
 
@@ -127,6 +134,9 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    FB_norm_gen_RD.PN_update_points(PackedVector2Array(FB_nodes_UP))
+    _mat.set_shader_parameter("heightmap", FB_norm_gen_RD.PN_heightmap_RD)
+    _mat.set_shader_parameter("heightmap_size", Vector2(FB_norm_gen_RD.PN_get_size()))
     queue_redraw()
 
 
