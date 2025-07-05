@@ -62,6 +62,11 @@ const FB_DIAGONALS: Array = [[2, 9], [3, 8]]
 @export var FB_gizmo_radius_IN: float = 20.0
 @onready var FB_head_node_RD: Node2D = $HeadControl
 @onready var FB_tail_node_RD: Node2D = $TailControl
+@onready var FB_mask_viewport_RD: Viewport = $MaskViewport
+@onready var FB_mask_poly_RD: Polygon2D = $MaskViewport/Silhouette
+@onready var FB_display_sprite_RD: Sprite2D = $DisplaySprite
+
+var _display_mat: ShaderMaterial
 
 var FB_nodes_UP: Array[Vector2] = []
 var FB_node_vels_UP: Array[Vector2] = []
@@ -82,6 +87,11 @@ func _ready() -> void:
     _mat = ShaderMaterial.new()
     _mat.shader = load("res://shaders/soft_body_fish.gdshader")
     material = _mat
+    _display_mat = ShaderMaterial.new()
+    _display_mat.shader = load("res://shaders/feathered_ring_fish.gdshader")
+    FB_display_sprite_RD.texture = FB_mask_viewport_RD.get_texture()
+    FB_display_sprite_RD.material = _display_mat
+    _display_mat.set_shader_parameter("mask_tex", FB_mask_viewport_RD.get_texture())
     _precompute_triangles()
     set_process_input(true)
 
@@ -127,6 +137,7 @@ func _process(delta: float) -> void:
     _physics_step(delta)
     FB_head_node_RD.position = FB_nodes_UP[FB_HEAD_IDX]
     FB_tail_node_RD.position = (FB_nodes_UP[FB_TAIL_IDXS[0]] + FB_nodes_UP[FB_TAIL_IDXS[1]]) * 0.5
+    _update_mask_polygon()
     queue_redraw()
 
 
@@ -166,18 +177,15 @@ func _physics_step(delta: float) -> void:
         FB_node_vels_UP[b] -= force
 
 
-func _draw() -> void:
-    var points: PackedVector2Array = PackedVector2Array(FB_nodes_UP)
-    var uvs: PackedVector2Array = PackedVector2Array()
+func _update_mask_polygon() -> void:
+    var offset: Vector2 = FB_mask_viewport_RD.size * 0.5
+    var pts: PackedVector2Array = PackedVector2Array()
     for p in FB_nodes_UP:
-        uvs.append(p * 0.05 + Vector2(0.5, 0.5))
-    if _tri_indices.is_empty():
-        # Fallback if initial triangulation failed
-        draw_polyline(points, Color.WHITE, 2.0, true)
-    else:
-        RenderingServer.canvas_item_add_triangle_array(
-            get_canvas_item(), _tri_indices, points, PackedColorArray(), uvs
-        )
+        pts.append(p + offset)
+    FB_mask_poly_RD.polygon = pts
+
+
+func _draw() -> void:
     draw_circle(FB_head_node_RD.position, FB_gizmo_radius_IN, Color.RED)
     draw_circle(FB_tail_node_RD.position, FB_gizmo_radius_IN, Color.GREEN)
 
