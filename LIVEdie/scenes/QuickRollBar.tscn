@@ -1,0 +1,104 @@
+
+[gd_scene format=3 uid="uid://quickrollbar"]
+
+[ext_resource type="Script" path="res://scripts/quick_roll_bar.gd" id="1"]
+
+[node name="QuickRollBar" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource(1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_vertical = 3
+
+[node name="StandardRow" type="HFlowContainer" parent="VBox"]
+anchor_right = 1.0
+size_flags_horizontal = 3
+
+[node name="ButtonD2" type="Button" parent="VBox/StandardRow"]
+text = "D2"
+
+[node name="ButtonD4" type="Button" parent="VBox/StandardRow"]
+text = "D4"
+
+[node name="ButtonD6" type="Button" parent="VBox/StandardRow"]
+text = "D6"
+
+[node name="ButtonD8" type="Button" parent="VBox/StandardRow"]
+text = "D8"
+
+[node name="ButtonD10" type="Button" parent="VBox/StandardRow"]
+text = "D10"
+
+[node name="ButtonD12" type="Button" parent="VBox/StandardRow"]
+text = "D12"
+
+[node name="ButtonD20" type="Button" parent="VBox/StandardRow"]
+text = "D20"
+
+[node name="ButtonD100" type="Button" parent="VBox/StandardRow"]
+text = "D%"
+
+[node name="ButtonToggleAdv" type="Button" parent="VBox/StandardRow"]
+text = "ADV"
+
+[node name="ButtonDX" type="Button" parent="VBox/StandardRow"]
+text = "DX?"
+
+[node name="ButtonRoll" type="Button" parent="VBox/StandardRow"]
+text = "ROLL"
+
+[node name="AdvancedRow" type="HFlowContainer" parent="VBox"]
+anchor_right = 1.0
+size_flags_horizontal = 3
+visible = false
+
+[node name="ButtonD13" type="Button" parent="VBox/AdvancedRow"]
+text = "D13"
+
+[node name="ButtonD16" type="Button" parent="VBox/AdvancedRow"]
+text = "D16"
+
+[node name="ButtonD24" type="Button" parent="VBox/AdvancedRow"]
+text = "D24"
+
+[node name="ButtonD30" type="Button" parent="VBox/AdvancedRow"]
+text = "D30"
+
+[node name="ButtonD60" type="Button" parent="VBox/AdvancedRow"]
+text = "D60"
+
+[node name="RepeatRow" type="HFlowContainer" parent="VBox"]
+anchor_right = 1.0
+size_flags_horizontal = 3
+
+[node name="ButtonX1" type="Button" parent="VBox/RepeatRow"]
+text = "x1"
+
+[node name="ButtonX2" type="Button" parent="VBox/RepeatRow"]
+text = "x2"
+
+[node name="ButtonX3" type="Button" parent="VBox/RepeatRow"]
+text = "x3"
+
+[node name="ButtonX4" type="Button" parent="VBox/RepeatRow"]
+text = "x4"
+
+[node name="ButtonX5" type="Button" parent="VBox/RepeatRow"]
+text = "x5"
+
+[node name="ButtonX10" type="Button" parent="VBox/RepeatRow"]
+text = "x10"
+
+[node name="QueueLabel" type="Label" parent="VBox"]
+text = "Queue:"
+size_flags_horizontal = 3
+
+[node name="ResultLabel" type="Label" parent="VBox"]
+text = "Result:"
+size_flags_horizontal = 3
+
