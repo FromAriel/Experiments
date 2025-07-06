@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[node name="QuantitySpinner" type="AcceptDialog"]
+visible = false
+popup_exclusive = true
+
+[node name="SpinBox" type="SpinBox" parent="."]
+min_value = 1
+max_value = 1000
+value = 1
+step = 1
