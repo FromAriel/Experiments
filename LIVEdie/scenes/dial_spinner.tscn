@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dial_spinner.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/dial_spinner_dial.gd" id="2"]
+
+[node name="DialSpinner" type="AcceptDialog"]
+visible = false
+script = ExtResource("1")
+
+[node name="DialArea" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+script = ExtResource("2")
+
+[node name="ValueLabel" type="Label" parent="DialArea"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+align = 1
+valign = 1
+text = "1"
+
+[node name="InputPanel" type="PopupPanel" parent="DialArea"]
+visible = false
+
+
