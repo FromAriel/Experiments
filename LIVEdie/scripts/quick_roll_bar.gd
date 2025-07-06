@@ -29,6 +29,7 @@ var qrb_prev_queue: Array = []
 var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
+@onready var qrb_chip_box: HBoxContainer = $QueueRow/HScrollContainer/DiceChips
 
 
 func _ready() -> void:
@@ -118,17 +119,17 @@ func _add_die(faces: int, qty: int) -> void:
     else:
         qrb_queue[-1]["count"] += qty
     qrb_last_faces = faces
-    _update_queue_label()
+    _update_queue_display()
 
 
-func _update_queue_label() -> void:
-    var parts: Array = []
+func _update_queue_display() -> void:
+    qrb_chip_box.queue_free_children()
     for entry in qrb_queue:
-        var part := "d" + str(entry["faces"])
-        if entry["count"] > 1:
-            part += _superscript(entry["count"])
-        parts.append(part)
-    $QueueLabel.text = " ".join(parts)
+        var chip := Label.new()
+        chip.text = "D%d × %d" % [entry["faces"], entry["count"]]
+        chip.custom_minimum_size = Vector2(80, 40)
+        chip.add_theme_font_size_override("font_size", 24)
+        qrb_chip_box.add_child(chip)
 
 
 func _superscript(val: int) -> String:
@@ -175,7 +176,7 @@ func _apply_multiplier(mult: int) -> void:
     qrb_prev_queue = qrb_queue.duplicate(true)
     for entry in qrb_queue:
         entry["count"] *= mult
-    _update_queue_label()
+    _update_queue_display()
 
 
 func _show_spinner(faces: int) -> void:
@@ -196,6 +197,9 @@ func _on_roll_pressed() -> void:
     var expr := _build_expression()
     var res := parser.evaluate(expr)
     print("Rolled: %s -> %s" % [expr, res])
+    var history := get_tree().get_root().get_node("Main/RollHistoryPanel")
+    if history:
+        history.add_entry("%s → %s" % [expr, res["total"]])
     qrb_queue.clear()
     qrb_last_faces = 0
-    _update_queue_label()
+    _update_queue_display()

@@ -43,6 +43,7 @@ func _build_keypad() -> void:
     var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
     for key in order:
         var btn := Button.new()
+        btn.custom_minimum_size = Vector2(80, 80)
         if key == "DEL":
             btn.text = "<x"
         else:
@@ -134,7 +135,7 @@ func _pulse() -> void:
     tw.tween_property(_label, "scale", Vector2.ONE, 0.2).set_delay(0.1)
 
 
-func open_dial(size: Vector2i = Vector2i()) -> void:
+func open_dial(size: Vector2i = Vector2i(400, 400)) -> void:
     _update_label()
     _input_panel.hide()
     _flash = false
