@@ -30,7 +30,7 @@ func _ready() -> void:
     _connect_dice_buttons($StandardRow)
     _connect_dice_buttons($AdvancedRow)
     $StandardRow/AdvancedToggle.pressed.connect(_on_toggle_advanced)
-    $StandardRow/RollButton.pressed.connect(_on_roll_pressed)
+    $RepeaterRow/RollButton.pressed.connect(_on_roll_pressed)
     _connect_repeat_buttons()
 
 
