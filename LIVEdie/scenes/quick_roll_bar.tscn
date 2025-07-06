@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://qrollbar01"]
+[gd_scene load_steps=3 format=3 uid="uid://qrollbar01"]
 
 [ext_resource type="Script" uid="uid://owkgt6c75kui" path="res://scripts/quick_roll_bar.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://c4jfdeyqiow6v" path="res://scenes/dial_spinner.tscn" id="2"]
 
 [node name="QuickRollBar" type="VBoxContainer"]
 anchors_preset = 15
@@ -115,15 +116,8 @@ text = "ROLL"
 layout_mode = 2
 
 [node name="PreviewDialog" type="AcceptDialog" parent="."]
-dialog_text = ""
 
-[node name="SpinnerDialog" type="AcceptDialog" parent="."]
-visible = false
-
-[node name="QuantitySpinBox" type="SpinBox" parent="SpinnerDialog"]
-min_value = 1.0
-step = 1.0
-value = 1.0
+[node name="DialSpinner" parent="." instance=ExtResource("2")]
 
 [node name="LongPressTimer" type="Timer" parent="."]
 wait_time = 0.5
