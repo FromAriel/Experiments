@@ -39,7 +39,7 @@ func _ready() -> void:
     _connect_repeat_buttons()
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
-    $SpinnerDialog.confirmed.connect(_on_spinner_confirmed)
+    $SpinnerDialog.quantity_selected.connect(_on_spinner_quantity_selected)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -180,12 +180,11 @@ func _apply_multiplier(mult: int) -> void:
 
 func _show_spinner(faces: int) -> void:
     qrb_long_press_param = faces
-    $SpinnerDialog/QuantitySpinBox.value = 1
+    $SpinnerDialog.ds_value = 1
     $SpinnerDialog.popup_centered()
 
 
-func _on_spinner_confirmed() -> void:
-    var qty := int($SpinnerDialog/QuantitySpinBox.value)
+func _on_spinner_quantity_selected(qty: int) -> void:
     _add_die(qrb_long_press_param, qty)
 
 

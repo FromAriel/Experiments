@@ -8,6 +8,7 @@ This folder contains the starting structure:
 - `main.tscn` – empty scene placeholder.
 - `scripts/` – for GDScript files.
 - `assets/` – for art and other resources.
+- `scenes/dial_spinner.tscn` – circular quantity spinner.
 
 ## Running on mobile
 
