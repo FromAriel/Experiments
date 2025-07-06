@@ -1,6 +1,8 @@
 # LIVEdie
 
-A minimal Godot 4 project prepared for mobile devices.
+A minimal Godot 4 project prepared for mobile devices. The current build
+includes a `QuickRollBar` scene with buttons for common dice and repeater
+controls.
 
 This folder contains the starting structure:
 
