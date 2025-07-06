@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://60wyaydkyepa"]
+
+[gd_scene load_steps=3 format=3 uid="uid://60wyaydkyepa"]
 
 [ext_resource type="PackedScene" uid="uid://qrollbar01" path="res://scenes/quick_roll_bar.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://rollhist01" path="res://scenes/roll_history_panel.tscn" id="2"]
 
 [node name="Main" type="Control"]
 custom_minimum_size = Vector2(200, 200)
@@ -17,3 +19,5 @@ size_flags_vertical = 3
 custom_minimum_size = Vector2(1080, 125)
 layout_mode = 1
 offset_bottom = -1778.0
+
+[node name="RollHistory" parent="." instance=ExtResource("2")]

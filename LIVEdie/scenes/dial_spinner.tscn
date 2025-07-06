@@ -36,3 +36,4 @@ vertical_alignment = 1
 
 [node name="InputPanel" type="PopupPanel" parent="DialArea"]
 visible = true
+custom_minimum_size = Vector2(260, 340)

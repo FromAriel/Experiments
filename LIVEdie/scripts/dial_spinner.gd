@@ -47,6 +47,8 @@ func _build_keypad() -> void:
             btn.text = "<x"
         else:
             btn.text = key
+        btn.custom_minimum_size = Vector2(80, 80)
+        btn.add_theme_font_size_override("font_size", 30)
         grid.add_child(btn)
         if key.is_valid_int():
             btn.pressed.connect(_on_key.bind(key))

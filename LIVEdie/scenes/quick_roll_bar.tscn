@@ -202,12 +202,20 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "⌫"
 
-[node name="QueueLabel" type="Label" parent="QuickRollBar"]
-layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 15
-theme_override_constants/shadow_outline_size = 15
-theme_override_font_sizes/font_size = 60
+
+[node name="QueueRow" type="PanelContainer" parent="QuickRollBar"]
+custom_minimum_size = Vector2(0, 60)
+size_flags_horizontal = 3
+
+[node name="Scroll" type="ScrollContainer" parent="QuickRollBar/QueueRow"]
+custom_minimum_size = Vector2(0, 60)
+anchors_preset = 1
+anchor_right = 1.0
+size_flags_horizontal = 3
+
+[node name="DiceBox" type="HBoxContainer" parent="QuickRollBar/QueueRow/Scroll"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="PreviewDialog" type="AcceptDialog" parent="QuickRollBar"]
 
@@ -216,3 +224,4 @@ theme_override_font_sizes/font_size = 60
 [node name="LongPressTimer" type="Timer" parent="QuickRollBar"]
 wait_time = 0.5
 one_shot = true
+autostart = false

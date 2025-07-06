@@ -40,6 +40,7 @@ func _ready() -> void:
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
+    $QueueRow.visible = false
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -118,17 +119,31 @@ func _add_die(faces: int, qty: int) -> void:
     else:
         qrb_queue[-1]["count"] += qty
     qrb_last_faces = faces
-    _update_queue_label()
+    _update_queue_display()
 
 
-func _update_queue_label() -> void:
-    var parts: Array = []
+func _update_queue_display() -> void:
+    var box := $QueueRow/Scroll/DiceBox
+    for child in box.get_children():
+        child.queue_free()
     for entry in qrb_queue:
-        var part := "d" + str(entry["faces"])
-        if entry["count"] > 1:
-            part += _superscript(entry["count"])
-        parts.append(part)
-    $QueueLabel.text = " ".join(parts)
+        var chip := _make_chip(entry["faces"], entry["count"])
+        box.add_child(chip)
+    $QueueRow.visible = not qrb_queue.is_empty()
+
+
+func _make_chip(faces: int, qty: int) -> Control:
+    var panel := PanelContainer.new()
+    panel.custom_minimum_size = Vector2(80, 48)
+    panel.theme_type_variation = "Panel"
+    var label := Label.new()
+    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    label.text = "D%s" % faces
+    if qty > 1:
+        label.text += _superscript(qty)
+    panel.add_child(label)
+    return panel
 
 
 func _superscript(val: int) -> String:
@@ -175,7 +190,7 @@ func _apply_multiplier(mult: int) -> void:
     qrb_prev_queue = qrb_queue.duplicate(true)
     for entry in qrb_queue:
         entry["count"] *= mult
-    _update_queue_label()
+    _update_queue_display()
 
 
 func _show_spinner(faces: int) -> void:
@@ -196,6 +211,9 @@ func _on_roll_pressed() -> void:
     var expr := _build_expression()
     var res := parser.evaluate(expr)
     print("Rolled: %s -> %s" % [expr, res])
+    if owner.has_node("RollHistory"):
+        var rh := owner.get_node("RollHistory") as RollHistoryPanel
+        rh.add_entry(expr, str(res))
     qrb_queue.clear()
     qrb_last_faces = 0
-    _update_queue_label()
+    _update_queue_display()
