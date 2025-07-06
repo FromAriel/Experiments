@@ -202,12 +202,17 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "⌫"
 
-[node name="QueueLabel" type="Label" parent="QuickRollBar"]
+
+[node name="QueueRow" type="PanelContainer" parent="QuickRollBar"]
 layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 15
-theme_override_constants/shadow_outline_size = 15
-theme_override_font_sizes/font_size = 60
+visible = false
+
+[node name="ScrollContainer" type="ScrollContainer" parent="QuickRollBar/QueueRow"]
+layout_mode = 2
+
+[node name="DiceChips" type="HBoxContainer" parent="QuickRollBar/QueueRow/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="PreviewDialog" type="AcceptDialog" parent="QuickRollBar"]
 

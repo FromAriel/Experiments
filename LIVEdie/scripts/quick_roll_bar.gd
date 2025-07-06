@@ -29,6 +29,7 @@ var qrb_prev_queue: Array = []
 var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
+var qrb_edit_index: int = -1
 
 
 func _ready() -> void:
@@ -112,23 +113,55 @@ func _on_repeat_up(mult: int) -> void:
         _on_repeat_pressed(mult)
 
 
+func _on_chip_down(index: int) -> void:
+    qrb_long_press_type = "chip"
+    qrb_long_press_param = index
+    qrb_long_press_triggered = false
+    $LongPressTimer.start()
+
+
+func _on_chip_up(index: int) -> void:
+    if $LongPressTimer.time_left > 0.0:
+        $LongPressTimer.stop()
+        _edit_chip(index)
+    elif qrb_long_press_triggered:
+        pass
+    else:
+        _edit_chip(index)
+
+
+func _edit_chip(index: int) -> void:
+    if index < 0 or index >= qrb_queue.size():
+        return
+    var entry: Dictionary = qrb_queue[index]
+    qrb_edit_index = index
+    _show_spinner(entry["faces"], entry["count"])
+
+
 func _add_die(faces: int, qty: int) -> void:
     if qrb_queue.is_empty() or qrb_queue[-1]["faces"] != faces:
         qrb_queue.append({"faces": faces, "count": qty})
     else:
         qrb_queue[-1]["count"] += qty
     qrb_last_faces = faces
-    _update_queue_label()
+    _update_queue_display()
 
 
-func _update_queue_label() -> void:
-    var parts: Array = []
+func _update_queue_display() -> void:
+    var box: HBoxContainer = $QueueRow/ScrollContainer/DiceChips
+    for child in box.get_children():
+        child.queue_free()
+    var i := 0
     for entry in qrb_queue:
-        var part := "d" + str(entry["faces"])
-        if entry["count"] > 1:
-            part += _superscript(entry["count"])
-        parts.append(part)
-    $QueueLabel.text = " ".join(parts)
+        var chip := Button.new()
+        chip.text = "D%s × %s" % [entry["faces"], entry["count"]]
+        chip.flat = true
+        chip.custom_minimum_size = Vector2(90, 48)
+        box.add_child(chip)
+        chip.button_down.connect(_on_chip_down.bind(i))
+        chip.button_up.connect(_on_chip_up.bind(i))
+        i += 1
+    $QueueRow.visible = not qrb_queue.is_empty()
 
 
 func _superscript(val: int) -> String:
@@ -151,6 +184,10 @@ func _on_long_press_timeout() -> void:
         _show_multiplier_preview(qrb_long_press_param)
     elif qrb_long_press_type == "die":
         _show_spinner(qrb_long_press_param)
+    elif qrb_long_press_type == "chip":
+        if qrb_long_press_param >= 0 and qrb_long_press_param < qrb_queue.size():
+            qrb_queue.remove_at(qrb_long_press_param)
+            _update_queue_display()
 
 
 func _show_multiplier_preview(mult: int) -> void:
@@ -175,18 +212,26 @@ func _apply_multiplier(mult: int) -> void:
     qrb_prev_queue = qrb_queue.duplicate(true)
     for entry in qrb_queue:
         entry["count"] *= mult
-    _update_queue_label()
+    _update_queue_display()
 
 
-func _show_spinner(faces: int) -> void:
+func _show_spinner(faces: int, start_val: int = 1) -> void:
     qrb_long_press_param = faces
-    $DialSpinner.ds_value = 1
+    $DialSpinner.ds_value = start_val
     $DialSpinner.open_dial()
 
 
 func _on_spinner_confirmed() -> void:
     var qty := int($DialSpinner.ds_value)
-    _add_die(qrb_long_press_param, qty)
+    if qrb_edit_index >= 0:
+        if qty > 0:
+            qrb_queue[qrb_edit_index]["count"] = qty
+        else:
+            qrb_queue.remove_at(qrb_edit_index)
+        qrb_edit_index = -1
+        _update_queue_display()
+    else:
+        _add_die(qrb_long_press_param, qty)
 
 
 func _on_roll_pressed() -> void:
@@ -198,4 +243,4 @@ func _on_roll_pressed() -> void:
     print("Rolled: %s -> %s" % [expr, res])
     qrb_queue.clear()
     qrb_last_faces = 0
-    _update_queue_label()
+    _update_queue_display()
