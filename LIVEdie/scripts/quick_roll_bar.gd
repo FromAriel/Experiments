@@ -29,6 +29,7 @@ var qrb_prev_queue: Array = []
 var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
+var qrb_long_press_button: Button
 
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
@@ -44,6 +45,7 @@ func _ready() -> void:
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    $LongPressTimer.timeout.connect(_on_long_press_timeout)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -56,7 +58,7 @@ func _connect_dice_buttons(row: HBoxContainer) -> void:
             and node != $StandardRow/AdvancedToggle
         ):
             var faces := int(node.text.substr(1).replace("%", "100"))
-            node.button_down.connect(_on_die_down.bind(faces))
+            node.button_down.connect(_on_die_down.bind(faces, node))
             node.button_up.connect(_on_die_up.bind(faces))
 
 
@@ -79,27 +81,51 @@ func _on_die_pressed(faces: int) -> void:
 func _on_repeat_pressed(mult: int) -> void:
     if qrb_last_faces == 0:
         return
-    _add_die(qrb_last_faces, mult - 1)
+    if not qrb_queue.is_empty() and qrb_queue[-1]["faces"] == qrb_last_faces:
+        var entry := qrb_queue[-1]
+        if entry["count"] == 1:
+            entry["count"] = mult
+        else:
+            entry["count"] += mult
+        _update_queue_display()
+    else:
+        _add_die(qrb_last_faces, mult - 1)
 
 
-func _on_die_down(faces: int) -> void:
+func _on_die_down(faces: int, button: Button) -> void:
     qrb_long_press_type = "die"
     qrb_long_press_param = faces
     qrb_long_press_triggered = false
+    qrb_long_press_button = button
+    $LongPressTimer.start()
 
 
 func _on_die_up(faces: int) -> void:
-    _on_die_pressed(faces)
+    if $LongPressTimer.time_left > 0.0:
+        $LongPressTimer.stop()
+        _on_die_pressed(faces)
+    elif qrb_long_press_triggered:
+        $DialSpinner.hide()
+        _on_spinner_confirmed()
+    else:
+        _on_die_pressed(faces)
 
 
 func _on_repeat_down(mult: int) -> void:
     qrb_long_press_type = "repeat"
     qrb_long_press_param = mult
     qrb_long_press_triggered = false
+    $LongPressTimer.start()
 
 
 func _on_repeat_up(mult: int) -> void:
-    _on_repeat_pressed(mult)
+    if $LongPressTimer.time_left > 0.0:
+        $LongPressTimer.stop()
+        _on_repeat_pressed(mult)
+    elif qrb_long_press_triggered:
+        $PreviewDialog.hide()
+    else:
+        _on_repeat_pressed(mult)
 
 
 func _add_die(faces: int, qty: int) -> void:
@@ -177,12 +203,19 @@ func _apply_multiplier(mult: int) -> void:
 func _show_spinner(faces: int) -> void:
     qrb_long_press_param = faces
     $DialSpinner.ds_value = 1
-    $DialSpinner.open_dial()
+    var size: Vector2i = $DialSpinner.size
+    if is_instance_valid(qrb_long_press_button):
+        var rect := qrb_long_press_button.get_global_rect()
+        var pos := rect.position + rect.size / 2 - size / 2
+        $DialSpinner.open_dial(size, pos)
+    else:
+        $DialSpinner.open_dial(size)
 
 
 func _on_spinner_confirmed() -> void:
     var qty := int($DialSpinner.ds_value)
     _add_die(qrb_long_press_param, qty)
+    qrb_long_press_button = null
 
 
 func _on_history_pressed() -> void:

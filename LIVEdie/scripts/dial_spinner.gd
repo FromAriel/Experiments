@@ -138,9 +138,13 @@ func _pulse() -> void:
     tw.tween_property(_label, "scale", Vector2.ONE, 0.2).set_delay(0.1)
 
 
-func open_dial(size: Vector2i = Vector2i()) -> void:
+func open_dial(size: Vector2i = Vector2i(), pos: Vector2 = Vector2.INF) -> void:
     _update_label()
     _input_panel.hide()
     _flash = false
     _dial.queue_redraw()
-    popup_centered(size)
+    if pos.is_finite():
+        var rect := Rect2i(pos, size if size != Vector2i() else get_size())
+        popup(rect)
+    else:
+        popup_centered(size)
