@@ -113,3 +113,18 @@ text = "ROLL"
 
 [node name="QueueLabel" type="Label" parent="."]
 layout_mode = 2
+
+[node name="PreviewDialog" type="AcceptDialog" parent="."]
+dialog_text = ""
+
+[node name="SpinnerDialog" type="AcceptDialog" parent="."]
+visible = false
+
+[node name="QuantitySpinBox" type="SpinBox" parent="SpinnerDialog"]
+min_value = 1.0
+step = 1.0
+value = 1.0
+
+[node name="LongPressTimer" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
