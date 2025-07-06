@@ -218,6 +218,10 @@ theme_override_constants/separation = 4
 
 [node name="DialSpinner" parent="QuickRollBar" instance=ExtResource("2")]
 
+[node name="LongPressTimer" type="Timer" parent="QuickRollBar"]
+wait_time = 0.5
+one_shot = true
+
 [node name="RollHistoryPanel" parent="." instance=ExtResource("3")]
 custom_minimum_size = Vector2(0, 400)
 offset_top = -400.0
