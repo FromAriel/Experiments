@@ -180,12 +180,12 @@ func _apply_multiplier(mult: int) -> void:
 
 func _show_spinner(faces: int) -> void:
     qrb_long_press_param = faces
-    $SpinnerDialog/QuantitySpinBox.value = 1
+    $SpinnerDialog/QuantityDial.dsp_value = 1
     $SpinnerDialog.popup_centered()
 
 
 func _on_spinner_confirmed() -> void:
-    var qty := int($SpinnerDialog/QuantitySpinBox.value)
+    var qty := int($SpinnerDialog/QuantityDial.dsp_value)
     _add_die(qrb_long_press_param, qty)
 
 
