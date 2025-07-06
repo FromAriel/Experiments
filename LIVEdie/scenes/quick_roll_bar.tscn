@@ -1,0 +1,94 @@
+[gd_scene load_steps=3 format=3 uid="uid://qrollbar01"]
+
+[ext_resource type="Script" path="res://scripts/quick_roll_bar.gd" id="1"]
+
+[node name="QuickRollBar" type="VBoxContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+layout_mode = 3
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1")
+
+[node name="StandardRow" type="HBoxContainer" parent="."]
+layout_mode = 3
+size_flags_horizontal = 3
+
+[node name="Die2" type="Button" parent="StandardRow"]
+text = "D2"
+
+[node name="Die4" type="Button" parent="StandardRow"]
+text = "D4"
+
+[node name="Die6" type="Button" parent="StandardRow"]
+text = "D6"
+
+[node name="Die8" type="Button" parent="StandardRow"]
+text = "D8"
+
+[node name="Die10" type="Button" parent="StandardRow"]
+text = "D10"
+
+[node name="Die12" type="Button" parent="StandardRow"]
+text = "D12"
+
+[node name="Die20" type="Button" parent="StandardRow"]
+text = "D20"
+
+[node name="Die100" type="Button" parent="StandardRow"]
+text = "D%"
+
+[node name="AdvancedToggle" type="Button" parent="StandardRow"]
+text = "v"
+
+[node name="DieX" type="Button" parent="StandardRow"]
+text = "DX?"
+
+[node name="RollButton" type="Button" parent="StandardRow"]
+text = "ROLL"
+
+[node name="AdvancedRow" type="HBoxContainer" parent="."]
+visible = false
+layout_mode = 3
+size_flags_horizontal = 3
+
+[node name="Die13" type="Button" parent="AdvancedRow"]
+text = "D13"
+
+[node name="Die16" type="Button" parent="AdvancedRow"]
+text = "D16"
+
+[node name="Die24" type="Button" parent="AdvancedRow"]
+text = "D24"
+
+[node name="Die30" type="Button" parent="AdvancedRow"]
+text = "D30"
+
+[node name="Die60" type="Button" parent="AdvancedRow"]
+text = "D60"
+
+[node name="RepeaterRow" type="HBoxContainer" parent="."]
+layout_mode = 3
+size_flags_horizontal = 3
+
+[node name="X1" type="Button" parent="RepeaterRow"]
+text = "x1"
+
+[node name="X2" type="Button" parent="RepeaterRow"]
+text = "x2"
+
+[node name="X3" type="Button" parent="RepeaterRow"]
+text = "x3"
+
+[node name="X4" type="Button" parent="RepeaterRow"]
+text = "x4"
+
+[node name="X5" type="Button" parent="RepeaterRow"]
+text = "x5"
+
+[node name="X10" type="Button" parent="RepeaterRow"]
+text = "x10"
+
+[node name="QueueLabel" type="Label" parent="."]
+text = ""
+
