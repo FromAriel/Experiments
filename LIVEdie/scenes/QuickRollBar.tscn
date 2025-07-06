@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://quickrollbar"]
+
+[ext_resource type="Script" path="res://scripts/quick_roll_bar.gd" id=1]
+
+[node name="QuickRollBar" type="Control"]
+script = ExtResource(1)
