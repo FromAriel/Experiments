@@ -12,7 +12,7 @@ config_version=5
 
 config/name="SoftBodyFish"
 run/main_scene="res://scenes/SoftBodyFishPrototype.tscn"
-config/features=PackedStringArray("4.4")
+config/features=PackedStringArray("4.4", "C#")
 
 [dotnet]
 

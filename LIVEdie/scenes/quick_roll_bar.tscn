@@ -126,7 +126,6 @@ theme_override_font_sizes/font_size = 35
 text = "D50"
 
 [node name="Die60" type="Button" parent="QuickRollBar/AdvancedRow"]
-visible = false
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
