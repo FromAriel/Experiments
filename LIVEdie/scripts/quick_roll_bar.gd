@@ -29,6 +29,9 @@ var qrb_prev_queue: Array = []
 var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
+var qrb_long_press_button: Control
+var qrb_long_press_timer: Timer
+var qrb_spinner_drag: bool = false
 
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
@@ -36,6 +39,11 @@ var qrb_long_press_triggered: bool = false
 
 
 func _ready() -> void:
+    qrb_long_press_timer = Timer.new()
+    qrb_long_press_timer.one_shot = true
+    qrb_long_press_timer.wait_time = 0.4
+    add_child(qrb_long_press_timer)
+    qrb_long_press_timer.timeout.connect(_on_long_press_timeout)
     _connect_dice_buttons($StandardRow)
     _connect_dice_buttons($AdvancedRow)
     $StandardRow/AdvancedToggle.pressed.connect(_on_toggle_advanced)
@@ -56,8 +64,8 @@ func _connect_dice_buttons(row: HBoxContainer) -> void:
             and node != $StandardRow/AdvancedToggle
         ):
             var faces := int(node.text.substr(1).replace("%", "100"))
-            node.button_down.connect(_on_die_down.bind(faces))
-            node.button_up.connect(_on_die_up.bind(faces))
+            node.button_down.connect(_on_die_down.bind(faces, node))
+            node.button_up.connect(_on_die_up.bind(faces, node))
 
 
 func _connect_repeat_buttons() -> void:
@@ -79,27 +87,49 @@ func _on_die_pressed(faces: int) -> void:
 func _on_repeat_pressed(mult: int) -> void:
     if qrb_last_faces == 0:
         return
-    _add_die(qrb_last_faces, mult - 1)
+    var qty := mult
+    if (
+        not qrb_queue.is_empty()
+        and qrb_queue[-1]["faces"] == qrb_last_faces
+        and qrb_queue[-1]["count"] == 1
+    ):
+        qty = mult - 1
+    _add_die(qrb_last_faces, qty)
 
 
-func _on_die_down(faces: int) -> void:
+func _on_die_down(faces: int, btn: Button) -> void:
     qrb_long_press_type = "die"
     qrb_long_press_param = faces
+    qrb_long_press_button = btn
     qrb_long_press_triggered = false
+    qrb_long_press_timer.start()
 
 
-func _on_die_up(faces: int) -> void:
-    _on_die_pressed(faces)
+func _on_die_up(faces: int, _btn: Button) -> void:
+    qrb_long_press_timer.stop()
+    if qrb_long_press_triggered:
+        qrb_spinner_drag = false
+        $DialSpinner.hide()
+        _on_spinner_confirmed()
+    else:
+        _on_die_pressed(faces)
+    qrb_long_press_triggered = false
 
 
 func _on_repeat_down(mult: int) -> void:
     qrb_long_press_type = "repeat"
     qrb_long_press_param = mult
     qrb_long_press_triggered = false
+    qrb_long_press_timer.start()
 
 
 func _on_repeat_up(mult: int) -> void:
-    _on_repeat_pressed(mult)
+    qrb_long_press_timer.stop()
+    if qrb_long_press_triggered:
+        _apply_multiplier(mult)
+    else:
+        _on_repeat_pressed(mult)
+    qrb_long_press_triggered = false
 
 
 func _add_die(faces: int, qty: int) -> void:
@@ -146,7 +176,8 @@ func _on_long_press_timeout() -> void:
     if qrb_long_press_type == "repeat":
         _show_multiplier_preview(qrb_long_press_param)
     elif qrb_long_press_type == "die":
-        _show_spinner(qrb_long_press_param)
+        _show_spinner(qrb_long_press_param, qrb_long_press_button)
+        qrb_spinner_drag = true
 
 
 func _show_multiplier_preview(mult: int) -> void:
@@ -174,10 +205,15 @@ func _apply_multiplier(mult: int) -> void:
     _update_queue_display()
 
 
-func _show_spinner(faces: int) -> void:
+func _show_spinner(faces: int, btn: Control) -> void:
     qrb_long_press_param = faces
     $DialSpinner.ds_value = 1
-    $DialSpinner.open_dial()
+    $DialSpinner.open_over(btn)
+    var dial := $DialSpinner.get_node("DialArea") as Control
+    var ev := InputEventMouseButton.new()
+    ev.pressed = true
+    ev.position = dial.get_global_transform().affine_inverse() * get_viewport().get_mouse_position()
+    $DialSpinner._on_dial_input(ev)
 
 
 func _on_spinner_confirmed() -> void:
@@ -205,3 +241,23 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    if not qrb_spinner_drag:
+        return
+    var dial := $DialSpinner.get_node("DialArea") as Control
+    if event is InputEventMouseMotion:
+        var ev := InputEventMouseMotion.new()
+        ev.position = dial.get_global_transform().affine_inverse() * event.position
+        $DialSpinner._on_dial_input(ev)
+        event.accept()
+    elif event is InputEventMouseButton and not event.pressed:
+        var ev := InputEventMouseButton.new()
+        ev.pressed = false
+        ev.position = dial.get_global_transform().affine_inverse() * event.position
+        $DialSpinner._on_dial_input(ev)
+        qrb_spinner_drag = false
+        $DialSpinner.hide()
+        _on_spinner_confirmed()
+        event.accept()

@@ -139,8 +139,22 @@ func _pulse() -> void:
 
 
 func open_dial(size: Vector2i = Vector2i()) -> void:
+    _open_at_position(Vector2.ZERO, size)
+
+
+func open_over(node: Control, size: Vector2i = Vector2i()) -> void:
+    var rect := node.get_global_rect()
+    var center := rect.position + rect.size / 2
+    _open_at_position(center, size)
+
+
+func _open_at_position(center: Vector2, size: Vector2i) -> void:
     _update_label()
     _input_panel.hide()
     _flash = false
     _dial.queue_redraw()
-    popup_centered(size)
+    if center == Vector2.ZERO:
+        popup_centered(size)
+    else:
+        self.position = center - Vector2(size) / 2
+        popup()
