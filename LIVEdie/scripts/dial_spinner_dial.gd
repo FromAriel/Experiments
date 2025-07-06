@@ -7,8 +7,8 @@ func _draw() -> void:
     if spinner == null:
         return
     var center: Vector2 = size / 2
-    var radius: float = min(size.x, size.y) / 2 - 10
-    var segs := 12
+    var radius: float = min(size.x, size.y) / 4
+    var segs := 20
     var seg_angle := TAU / segs
     for i in range(segs):
         var c: Color = (
@@ -16,4 +16,4 @@ func _draw() -> void:
         )
         var a0 := seg_angle * i + spinner._dial_angle
         var a1 := a0 + seg_angle
-        draw_arc(center, radius, a0, a1, segs, c, 8)
+        draw_arc(center, radius, a0, a1, segs, c, 100)
