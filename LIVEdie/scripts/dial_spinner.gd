@@ -44,9 +44,13 @@ func _build_keypad() -> void:
     for key in order:
         var btn := Button.new()
         if key == "DEL":
-            btn.text = "<x"
+            btn.text = "\u232b"
+        elif key == "OK":
+            btn.text = "\u2714"
         else:
             btn.text = key
+        btn.custom_minimum_size = Vector2(80, 80)
+        btn.add_theme_font_size_override("font_size", 32)
         grid.add_child(btn)
         if key.is_valid_int():
             btn.pressed.connect(_on_key.bind(key))

@@ -30,6 +30,10 @@ var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 
+@onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
+@onready var qrb_history_button: Button = $"../HistoryButton"
+@onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
+
 
 func _ready() -> void:
     _connect_dice_buttons($StandardRow)
@@ -37,9 +41,9 @@ func _ready() -> void:
     $StandardRow/AdvancedToggle.pressed.connect(_on_toggle_advanced)
     $RepeaterRow/RollButton.pressed.connect(_on_roll_pressed)
     _connect_repeat_buttons()
-    $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
+    qrb_history_button.pressed.connect(_on_history_pressed)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -82,34 +86,20 @@ func _on_die_down(faces: int) -> void:
     qrb_long_press_type = "die"
     qrb_long_press_param = faces
     qrb_long_press_triggered = false
-    $LongPressTimer.start()
 
 
 func _on_die_up(faces: int) -> void:
-    if $LongPressTimer.time_left > 0.0:
-        $LongPressTimer.stop()
-        _on_die_pressed(faces)
-    elif qrb_long_press_triggered:
-        pass
-    else:
-        _on_die_pressed(faces)
+    _on_die_pressed(faces)
 
 
 func _on_repeat_down(mult: int) -> void:
     qrb_long_press_type = "repeat"
     qrb_long_press_param = mult
     qrb_long_press_triggered = false
-    $LongPressTimer.start()
 
 
 func _on_repeat_up(mult: int) -> void:
-    if $LongPressTimer.time_left > 0.0:
-        $LongPressTimer.stop()
-        _on_repeat_pressed(mult)
-    elif qrb_long_press_triggered:
-        pass
-    else:
-        _on_repeat_pressed(mult)
+    _on_repeat_pressed(mult)
 
 
 func _add_die(faces: int, qty: int) -> void:
@@ -118,17 +108,23 @@ func _add_die(faces: int, qty: int) -> void:
     else:
         qrb_queue[-1]["count"] += qty
     qrb_last_faces = faces
-    _update_queue_label()
+    _update_queue_display()
 
 
-func _update_queue_label() -> void:
-    var parts: Array = []
+func _update_queue_display() -> void:
+    for child in qrb_chip_box.get_children():
+        child.queue_free()
+    if qrb_queue.is_empty():
+        $QueueRow.hide()
+        return
+    $QueueRow.show()
     for entry in qrb_queue:
-        var part := "d" + str(entry["faces"])
-        if entry["count"] > 1:
-            part += _superscript(entry["count"])
-        parts.append(part)
-    $QueueLabel.text = " ".join(parts)
+        var chip := Label.new()
+        chip.text = "D%d × %d" % [entry["faces"], entry["count"]]
+        chip.custom_minimum_size = Vector2(90, 40)
+        chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        qrb_chip_box.add_child(chip)
 
 
 func _superscript(val: int) -> String:
@@ -175,7 +171,7 @@ func _apply_multiplier(mult: int) -> void:
     qrb_prev_queue = qrb_queue.duplicate(true)
     for entry in qrb_queue:
         entry["count"] *= mult
-    _update_queue_label()
+    _update_queue_display()
 
 
 func _show_spinner(faces: int) -> void:
@@ -189,13 +185,23 @@ func _on_spinner_confirmed() -> void:
     _add_die(qrb_long_press_param, qty)
 
 
+func _on_history_pressed() -> void:
+    if qrb_history_panel.visible:
+        qrb_history_panel.hide_panel()
+    else:
+        qrb_history_panel.show_panel()
+
+
 func _on_roll_pressed() -> void:
     if qrb_queue.is_empty():
         return
     var parser := DiceParser.new()
     var expr := _build_expression()
     var res := parser.evaluate(expr)
-    print("Rolled: %s -> %s" % [expr, res])
+    var total = res.get("total", res)
+    var msg = "%s -> %s" % [expr, total]
+    print("Rolled: %s" % msg)
+    qrb_history_panel.add_entry(msg)
     qrb_queue.clear()
     qrb_last_faces = 0
-    _update_queue_label()
+    _update_queue_display()

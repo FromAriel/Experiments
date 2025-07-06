@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://owkgt6c75kui" path="res://scripts/quick_roll_bar.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://c4jfdeyqiow6v" path="res://scenes/dial_spinner.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://rollhistory01" path="res://scenes/roll_history_panel.tscn" id="3"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -202,17 +203,33 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "⌫"
 
-[node name="QueueLabel" type="Label" parent="QuickRollBar"]
+
+[node name="QueueRow" type="PanelContainer" parent="QuickRollBar"]
 layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 15
-theme_override_constants/shadow_outline_size = 15
-theme_override_font_sizes/font_size = 60
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="HScroll" type="ScrollContainer" parent="QuickRollBar/QueueRow"]
+size_flags_horizontal = 3
+
+[node name="DiceChips" type="HBoxContainer" parent="QuickRollBar/QueueRow/HScroll"]
+theme_override_constants/separation = 4
 
 [node name="PreviewDialog" type="AcceptDialog" parent="QuickRollBar"]
 
 [node name="DialSpinner" parent="QuickRollBar" instance=ExtResource("2")]
 
-[node name="LongPressTimer" type="Timer" parent="QuickRollBar"]
-wait_time = 0.5
-one_shot = true
+
+[node name="HistoryButton" type="Button" parent="."]
+layout_mode = 0
+anchors_preset = 10
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -80.0
+offset_bottom = 340.0
+text = "History"
+
+
+[node name="RollHistoryPanel" parent="." instance=ExtResource("3")]
