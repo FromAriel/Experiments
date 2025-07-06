@@ -144,3 +144,12 @@ func open_dial(size: Vector2i = Vector2i()) -> void:
     _flash = false
     _dial.queue_redraw()
     popup_centered(size)
+
+
+func open_dial_at(center: Vector2, size: Vector2i = Vector2i()) -> void:
+    _update_label()
+    _input_panel.hide()
+    _flash = false
+    _dial.queue_redraw()
+    position = center - Vector2(size if size != Vector2i() else self.size) / 2
+    popup()
