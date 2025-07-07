@@ -1,14 +1,16 @@
 #
 # LIVEdie/scripts/dial_spinner.gd
-# Key Classes      • DialSpinner – popup dial for quantity selection
-# Key Functions    • popup_centered() – show dial
+# Key Classes      • DialSpinner – overlay dial for quantity selection
+# Key Functions    • open_dial() / open_dial_at() – show dial
 #                   • ds_value – current value
 # Critical Consts  • none
 # Dependencies     • none
 # Last Major Rev   • 24-06-XX – initial dial spinner
 ###############################################################
 class_name DialSpinner
-extends AcceptDialog
+extends Control
+
+signal value_selected(value: int)
 
 @export var ds_max_value: int = 1000
 @export var ds_accel_factor: float = 1.05
@@ -98,6 +100,7 @@ func _on_dial_input(event: InputEvent) -> void:
             _accel = 1.0
         else:
             _dragging = false
+            _finalize()
     elif event is InputEventMouseMotion and _dragging:
         var angle := _pos_angle(event.position)
         var delta := angle - _last_angle
@@ -143,7 +146,10 @@ func open_dial(size: Vector2i = Vector2i()) -> void:
     _input_panel.hide()
     _flash = false
     _dial.queue_redraw()
-    popup_centered(size)
+    if size != Vector2i():
+        custom_minimum_size = size
+    position = Vector2.ZERO
+    show()
 
 
 func open_dial_at(center: Vector2, size: Vector2i = Vector2i()) -> void:
@@ -151,5 +157,12 @@ func open_dial_at(center: Vector2, size: Vector2i = Vector2i()) -> void:
     _input_panel.hide()
     _flash = false
     _dial.queue_redraw()
+    if size != Vector2i():
+        custom_minimum_size = size
     position = center - Vector2(size if size != Vector2i() else self.size) / 2
-    popup()
+    show()
+
+
+func _finalize() -> void:
+    emit_signal("value_selected", ds_value)
+    hide()

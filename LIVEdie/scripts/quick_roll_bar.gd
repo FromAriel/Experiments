@@ -44,7 +44,7 @@ func _ready() -> void:
     _connect_repeat_buttons()
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
-    $DialSpinner.confirmed.connect(_on_spinner_confirmed)
+    $DialSpinner.value_selected.connect(_on_spinner_selected)
     qrb_history_button.pressed.connect(_on_history_pressed)
 
 
@@ -208,9 +208,8 @@ func _show_spinner(faces: int) -> void:
     $DialSpinner.open_dial_at(center)
 
 
-func _on_spinner_confirmed() -> void:
-    var qty := int($DialSpinner.ds_value)
-    _add_die(qrb_long_press_param, qty)
+func _on_spinner_selected(value: int) -> void:
+    _add_die(qrb_long_press_param, value)
 
 
 func _on_history_pressed() -> void:
