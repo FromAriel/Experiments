@@ -31,6 +31,12 @@ var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 var qrb_long_press_button: Control
 
+var qrb_faces_panel: PopupPanel
+var qrb_faces_label: Label
+var qrb_faces_value: int = 6
+var qrb_faces_replace: bool = false
+var qrb_faces_commit: bool = false
+
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
 @onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
@@ -46,6 +52,9 @@ func _ready() -> void:
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
+    $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
+    _build_custom_panel()
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -233,3 +242,102 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _on_del_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    if qrb_queue.is_empty():
+        qrb_last_faces = 0
+    else:
+        qrb_last_faces = qrb_queue[-1]["faces"]
+    _update_queue_display()
+
+
+func _on_die_x_pressed() -> void:
+    qrb_faces_replace = true
+    qrb_faces_value = qrb_faces_value if qrb_faces_value > 0 else 6
+    _update_faces_label()
+    qrb_faces_panel.popup_centered()
+
+
+func _on_faces_key(ch: String) -> void:
+    var s := str(qrb_faces_value)
+    if qrb_faces_replace:
+        s = ch
+        qrb_faces_replace = false
+    else:
+        if s == "0":
+            s = ch
+        else:
+            s += ch
+    qrb_faces_value = clamp(int(s), 0, 9999)
+    _update_faces_label()
+
+
+func _on_faces_del() -> void:
+    if qrb_faces_replace or str(qrb_faces_value) == "0":
+        qrb_faces_panel.hide()
+        return
+    var s := str(qrb_faces_value)
+    s = s.substr(0, s.length() - 1)
+    if s == "":
+        s = "0"
+    qrb_faces_value = int(s)
+    _update_faces_label()
+
+
+func _on_faces_ok() -> void:
+    if qrb_faces_value == 0:
+        qrb_faces_panel.hide()
+        return
+    qrb_faces_commit = true
+    qrb_faces_panel.hide()
+
+
+func _on_faces_panel_hide() -> void:
+    if qrb_faces_commit:
+        qrb_faces_commit = false
+        var faces := qrb_faces_value
+        qrb_last_faces = faces
+        _add_die(faces, 1)
+
+
+func _update_faces_label() -> void:
+    if qrb_faces_label:
+        qrb_faces_label.text = str(qrb_faces_value)
+
+
+func _build_custom_panel() -> void:
+    qrb_faces_panel = PopupPanel.new()
+    qrb_faces_panel.hide()
+    qrb_faces_panel.popup_hide.connect(_on_faces_panel_hide)
+    qrb_faces_label = Label.new()
+    qrb_faces_label.custom_minimum_size.y = 60
+    qrb_faces_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    var vbox := VBoxContainer.new()
+    vbox.add_child(qrb_faces_label)
+    var grid := GridContainer.new()
+    grid.columns = 3
+    vbox.add_child(grid)
+    var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
+    for key in order:
+        var btn := Button.new()
+        btn.custom_minimum_size = Vector2(80, 80)
+        btn.add_theme_font_size_override("font_size", 32)
+        if key == "DEL":
+            btn.text = "\u232b"
+        elif key == "OK":
+            btn.text = "\u2714"
+        else:
+            btn.text = key
+        grid.add_child(btn)
+        if key.is_valid_int():
+            btn.pressed.connect(_on_faces_key.bind(key))
+        elif key == "OK":
+            btn.pressed.connect(_on_faces_ok)
+        else:
+            btn.pressed.connect(_on_faces_del)
+    qrb_faces_panel.add_child(vbox)
+    add_child(qrb_faces_panel)
