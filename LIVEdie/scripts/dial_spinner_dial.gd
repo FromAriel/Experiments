@@ -7,7 +7,7 @@ func _draw() -> void:
     if spinner == null:
         return
     var center: Vector2 = size / 2
-    var radius: float = min(size.x, size.y) / 4
+    var radius: float = min(size.x, size.y) / 5
     var segs := 20
     var seg_angle := TAU / segs
     for i in range(segs):

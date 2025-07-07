@@ -11,10 +11,10 @@ class_name DialSpinner
 extends AcceptDialog
 
 @export var ds_max_value: int = 1000
-@export var ds_accel_factor: float = 1.05
+@export var ds_accel_factor: float = 1.001
 
 var ds_value: int = 1
-var _dragging: bool = false
+var _dragging: bool = true
 var _last_angle: float = 0.0
 var _accel: float = 1.0
 var _flash: bool = false
@@ -35,7 +35,12 @@ func _ready() -> void:
     _input_panel.hide()
     exclusive = false
     get_ok_button().hide()
+    var transparent_stylebox = StyleBoxFlat.new()
+    transparent_stylebox.bg_color = Color(0, 0, 0, 0)
+    add_theme_stylebox_override("panel", transparent_stylebox)
+    #$DialArea/InputPanel.add_theme_stylebox_override("panel", transparent_stylebox)
     self.hide()
+
 
 
 func _build_keypad() -> void:

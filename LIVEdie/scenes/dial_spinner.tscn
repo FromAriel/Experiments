@@ -4,9 +4,15 @@
 [ext_resource type="Script" uid="uid://c8wakp5hy3oqe" path="res://scripts/dial_spinner_dial.gd" id="2"]
 
 [node name="DialSpinner" type="AcceptDialog"]
-title = "Dail a value"
-size = Vector2i(400, 400)
+transparent_bg = true
+title = ""
+size = Vector2i(200, 200)
+visible = true
+transient_to_focused = true
+borderless = true
+transparent = true
 max_size = Vector2i(400, 400)
+dialog_autowrap = true
 script = ExtResource("1")
 
 [node name="DialArea" type="Control" parent="."]
@@ -16,8 +22,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
 offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -49.0
+offset_right = 192.0
+offset_bottom = 151.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
@@ -38,4 +44,3 @@ vertical_alignment = 1
 
 [node name="InputPanel" type="PopupPanel" parent="DialArea"]
 size = Vector2i(400, 400)
-visible = true
