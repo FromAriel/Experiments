@@ -25,6 +25,7 @@ const QRB_SUPERSCRIPTS := {
 
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
+var qrb_custom_faces: int = 6
 var qrb_prev_queue: Array = []
 var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
@@ -45,7 +46,10 @@ func _ready() -> void:
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
+    $DialSpinner.keypad_value_entered.connect(_on_custom_die_entered)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    $RepeaterRow/DelButton.pressed.connect(_on_delete_pressed)
+    $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -233,3 +237,25 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _on_delete_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    if qrb_queue.is_empty():
+        qrb_last_faces = 0
+    else:
+        qrb_last_faces = qrb_queue[-1]["faces"]
+    _update_queue_display()
+
+
+func _on_die_x_pressed() -> void:
+    $DialSpinner.open_keypad(qrb_custom_faces)
+
+
+func _on_custom_die_entered(value: int, cancelled: bool) -> void:
+    if cancelled or value == 0:
+        return
+    qrb_custom_faces = value
+    _add_die(value, 1)

@@ -10,6 +10,8 @@
 class_name DialSpinner
 extends AcceptDialog
 
+signal keypad_value_entered(value: int, cancelled: bool)
+
 @export var ds_max_value: int = 1000
 @export var ds_accel_factor: float = 1.001
 
@@ -19,6 +21,8 @@ var _last_angle: float = 0.0
 var _accel: float = 1.0
 var _flash: bool = false
 var _dial_angle: float = 0.0
+var _replace_mode: bool = false
+var _input_confirmed: bool = false
 
 @onready var _dial := $DialArea
 @onready var _label: Label = $DialArea/ValueLabel
@@ -33,6 +37,7 @@ func _ready() -> void:
     _dial.queue_redraw()
     _build_keypad()
     _input_panel.hide()
+    _input_panel.popup_hide.connect(_on_input_panel_hide)
     exclusive = false
     get_ok_button().hide()
     var transparent_stylebox = StyleBoxFlat.new()
@@ -40,7 +45,6 @@ func _ready() -> void:
     add_theme_stylebox_override("panel", transparent_stylebox)
     #$DialArea/InputPanel.add_theme_stylebox_override("panel", transparent_stylebox)
     self.hide()
-
 
 
 func _build_keypad() -> void:
@@ -75,7 +79,10 @@ func _on_label_input(event: InputEvent) -> void:
 
 func _on_key(ch: String) -> void:
     var s := str(ds_value)
-    if s == "0":
+    if _replace_mode:
+        s = ""
+        _replace_mode = false
+    elif s == "0":
         s = ""
     s += ch
     var v: int = clamp(int(s), 0, ds_max_value)
@@ -84,10 +91,15 @@ func _on_key(ch: String) -> void:
 
 
 func _on_ok_pressed() -> void:
+    _input_confirmed = ds_value != 0
     _input_panel.hide()
 
 
 func _on_del_pressed() -> void:
+    if ds_value == 0:
+        _input_confirmed = false
+        _input_panel.hide()
+        return
     var s := str(ds_value)
     if s.length() > 1:
         s = s.substr(0, s.length() - 1)
@@ -95,6 +107,12 @@ func _on_del_pressed() -> void:
         s = "0"
     ds_value = int(s)
     _update_label()
+
+
+func _on_input_panel_hide() -> void:
+    emit_signal("keypad_value_entered", ds_value, not _input_confirmed)
+    _replace_mode = false
+    _input_confirmed = false
 
 
 func _on_dial_input(event: InputEvent) -> void:
@@ -147,10 +165,20 @@ func _pulse() -> void:
     tw.tween_property(_label, "scale", Vector2.ONE, 0.2).set_delay(0.1)
 
 
+func open_keypad(initial: int) -> void:
+    ds_value = initial
+    _update_label()
+    _replace_mode = true
+    _input_confirmed = false
+    _input_panel.popup_centered()
+
+
 func open_dial(size: Vector2i = Vector2i()) -> void:
     _update_label()
     _input_panel.hide()
     _flash = false
+    _replace_mode = false
+    _input_confirmed = false
     _dial.queue_redraw()
     popup_centered(size)
 
@@ -159,6 +187,8 @@ func open_dial_at(center: Vector2, size: Vector2i = Vector2i()) -> void:
     _update_label()
     _input_panel.hide()
     _flash = false
+    _replace_mode = false
+    _input_confirmed = false
     _dial.queue_redraw()
     position = center - Vector2(size if size != Vector2i() else self.size) / 2
     popup()
