@@ -4,7 +4,7 @@
 # Key Functions    • _on_die_pressed() – queue dice
 #                   _on_long_press_timeout() – handle long press
 # Critical Consts  • QRB_SUPERSCRIPTS – digits for display
-# Dependencies     • DiceParser
+# Dependencies     • DiceParser, CustomDiePanel
 # Last Major Rev   • 24-04-XX – initial implementation
 ###############################################################
 class_name QuickRollBar
@@ -25,6 +25,7 @@ const QRB_SUPERSCRIPTS := {
 
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
+var qrb_last_custom_faces: int = 6
 var qrb_prev_queue: Array = []
 var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
@@ -34,6 +35,7 @@ var qrb_long_press_button: Control
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
 @onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
+@onready var qrb_custom_panel: CustomDiePanel = $CustomDiePanel
 
 
 func _ready() -> void:
@@ -46,6 +48,9 @@ func _ready() -> void:
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    $RepeaterRow/DieX.pressed.connect(_on_custom_die_pressed)
+    $RepeaterRow/DieX2.pressed.connect(_on_del_button_pressed)
+    qrb_custom_panel.faces_chosen.connect(_on_custom_faces_chosen)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -127,6 +132,29 @@ func _on_repeat_up(mult: int, _btn: Button) -> void:
         pass
     else:
         _on_repeat_pressed(mult)
+
+
+func _on_del_button_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    if qrb_queue.is_empty():
+        qrb_last_faces = 0
+    else:
+        qrb_last_faces = qrb_queue[-1]["faces"]
+    _update_queue_display()
+
+
+func _on_custom_die_pressed() -> void:
+    var center := Vector2($RepeaterRow/DieX.get_global_rect().get_center())
+    qrb_custom_panel.open_panel_at(center, qrb_last_custom_faces)
+
+
+func _on_custom_faces_chosen(faces: int) -> void:
+    if faces <= 0:
+        return
+    qrb_last_custom_faces = faces
+    _add_die(faces, 1)
 
 
 func _add_die(faces: int, qty: int) -> void:
