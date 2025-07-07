@@ -23,6 +23,14 @@ const QRB_SUPERSCRIPTS := {
     "9": "\u2079"
 }
 
+const QRB_SCALES: Array[float] = [1.0, 1.5, 2.0, 2.5, 3.0]
+
+@export_enum("1x", "1.5x", "2x", "2.5x", "3x") var qrb_size_index: int = 0:
+    set(value):
+        qrb_size_index = value
+        if is_inside_tree():
+            _qrb_apply_scale()
+
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
 var qrb_prev_queue: Array = []
@@ -55,9 +63,10 @@ func _ready() -> void:
     $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
     $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
     _build_custom_panel()
+    _qrb_apply_scale()
 
 
-func _connect_dice_buttons(row: HBoxContainer) -> void:
+func _connect_dice_buttons(row: Container) -> void:
     for node in row.get_children():
         if (
             node is Button
@@ -341,3 +350,34 @@ func _build_custom_panel() -> void:
             btn.pressed.connect(_on_faces_del)
     qrb_faces_panel.add_child(vbox)
     add_child(qrb_faces_panel)
+
+
+func _qrb_all_buttons() -> Array:
+    var result: Array = []
+    for n in $StandardRow.get_children():
+        if n is Button:
+            result.append(n)
+    for n in $AdvancedRow.get_children():
+        if n is Button:
+            result.append(n)
+    for n in $RepeaterRow.get_children():
+        if n is Button:
+            result.append(n)
+    return result
+
+
+func _qrb_apply_scale() -> void:
+    var scale: float = QRB_SCALES[qrb_size_index]
+    var base: Vector2 = Vector2(80, 80) * scale
+    var std_font: int = int(35 * scale)
+    var roll_font: int = int(28 * scale)
+    add_theme_constant_override("separation", int(25 * scale))
+    $StandardRow.add_theme_constant_override("separation", int(30 * scale))
+    $AdvancedRow.add_theme_constant_override("separation", int(30 * scale))
+    $RepeaterRow.add_theme_constant_override("separation", int(30 * scale))
+    for btn in _qrb_all_buttons():
+        btn.custom_minimum_size = base
+        var size := std_font
+        if btn == $RepeaterRow/RollButton:
+            size = roll_font
+        btn.add_theme_font_size_override("font_size", size)
