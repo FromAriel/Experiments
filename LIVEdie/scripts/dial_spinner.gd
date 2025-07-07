@@ -31,6 +31,10 @@ func _ready() -> void:
     $DialArea/ValueLabel.gui_input.connect(_on_label_input)
     _dial.spinner = self
     _dial.queue_redraw()
+    exclusive = false
+    var ok_button := get_ok_button()
+    if ok_button:
+        ok_button.visible = false
     _build_keypad()
     _input_panel.hide()
     self.hide()
@@ -91,14 +95,16 @@ func _on_del_pressed() -> void:
 
 
 func _on_dial_input(event: InputEvent) -> void:
-    if event is InputEventMouseButton:
+    if event is InputEventMouseButton or event is InputEventScreenTouch:
         if event.pressed:
             _dragging = true
             _last_angle = _pos_angle(event.position)
             _accel = 1.0
         else:
             _dragging = false
-    elif event is InputEventMouseMotion and _dragging:
+            hide()
+            emit_signal("confirmed")
+    elif (event is InputEventMouseMotion or event is InputEventScreenDrag) and _dragging:
         var angle := _pos_angle(event.position)
         var delta := angle - _last_angle
         delta = wrapf(delta, -PI, PI)
