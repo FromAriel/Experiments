@@ -23,6 +23,10 @@ const QRB_SUPERSCRIPTS := {
     "9": "\u2079"
 }
 
+const QRB_SCALES := [1.0, 1.5, 2.0, 2.5, 3.0]
+
+@export_enum("1x", "1.5x", "2x", "2.5x", "3x") var qrb_button_scale_idx: int = 0
+
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
 var qrb_prev_queue: Array = []
@@ -36,6 +40,10 @@ var qrb_faces_label: Label
 var qrb_faces_value: int = 6
 var qrb_faces_replace: bool = false
 var qrb_faces_commit: bool = false
+
+var _qrb_base_sizes: Dictionary = {}
+var _qrb_base_fonts: Dictionary = {}
+var _qrb_base_separation: float = 0.0
 
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
@@ -55,6 +63,8 @@ func _ready() -> void:
     $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
     $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
     _build_custom_panel()
+    _capture_baselines()
+    _apply_button_scale()
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -81,6 +91,7 @@ func _connect_repeat_buttons() -> void:
 
 func _on_toggle_advanced() -> void:
     $AdvancedRow.visible = not $AdvancedRow.visible
+    _apply_button_scale()
 
 
 func _on_die_pressed(faces: int) -> void:
@@ -324,8 +335,9 @@ func _build_custom_panel() -> void:
     var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
     for key in order:
         var btn := Button.new()
-        btn.custom_minimum_size = Vector2(80, 80)
-        btn.add_theme_font_size_override("font_size", 32)
+        var scale := _get_scale()
+        btn.custom_minimum_size = Vector2(80 * scale, 80 * scale)
+        btn.add_theme_font_size_override("font_size", int(32 * scale))
         if key == "DEL":
             btn.text = "\u232b"
         elif key == "OK":
@@ -341,3 +353,44 @@ func _build_custom_panel() -> void:
             btn.pressed.connect(_on_faces_del)
     qrb_faces_panel.add_child(vbox)
     add_child(qrb_faces_panel)
+
+
+func _capture_baselines() -> void:
+    _qrb_base_separation = get_theme_constant("separation")
+    var controls := [$Logo, $StandardRow, $AdvancedRow, $RepeaterRow, $QueueRow]
+    for row in controls:
+        _qrb_base_sizes[row] = row.custom_minimum_size
+        if row is Container:
+            for child in row.get_children():
+                if child is Button:
+                    _qrb_base_sizes[child] = child.custom_minimum_size
+                    _qrb_base_fonts[child] = child.get_theme_font_size("font_size")
+
+
+func _get_scale() -> float:
+    return QRB_SCALES[qrb_button_scale_idx]
+
+
+func _apply_button_scale() -> void:
+    var scale := _get_scale()
+    add_theme_constant_override("separation", int(_qrb_base_separation * scale))
+    for c in _qrb_base_sizes.keys():
+        var base: Vector2 = _qrb_base_sizes[c]
+        c.custom_minimum_size = base * scale
+    for btn in _qrb_base_fonts.keys():
+        var base_font: int = _qrb_base_fonts[btn]
+        btn.add_theme_font_size_override("font_size", int(base_font * scale))
+    custom_minimum_size.y = _calc_total_height()
+    offset_bottom = custom_minimum_size.y
+
+
+func _calc_total_height() -> float:
+    var rows: Array = [$Logo, $StandardRow, $RepeaterRow, $QueueRow]
+    if $AdvancedRow.visible:
+        rows.insert(2, $AdvancedRow)
+    var total: float = 0.0
+    var sep := get_theme_constant("separation")
+    for row in rows:
+        total += row.custom_minimum_size.y
+    total += sep * (rows.size() - 1)
+    return total
