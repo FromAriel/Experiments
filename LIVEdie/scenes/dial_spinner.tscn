@@ -3,10 +3,9 @@
 [ext_resource type="Script" uid="uid://dbsphx70nw45d" path="res://scripts/dial_spinner.gd" id="1"]
 [ext_resource type="Script" uid="uid://c8wakp5hy3oqe" path="res://scripts/dial_spinner_dial.gd" id="2"]
 
-[node name="DialSpinner" type="AcceptDialog"]
-title = "Dail a value"
+[node name="DialSpinner" type="Control"]
+visible = false
 size = Vector2i(400, 400)
-max_size = Vector2i(400, 400)
 script = ExtResource("1")
 
 [node name="DialArea" type="Control" parent="."]
