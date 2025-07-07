@@ -34,6 +34,9 @@ var qrb_long_press_button: Control
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
 @onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
+@onready var qrb_die_x_button: Button = $RepeaterRow/DieX
+@onready var qrb_del_button: Button = $RepeaterRow/DelButton
+@onready var qrb_spinner: DialSpinner = $DialSpinner
 
 
 func _ready() -> void:
@@ -45,7 +48,11 @@ func _ready() -> void:
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
+    qrb_spinner.keypad_confirmed.connect(_on_keypad_confirmed)
+    qrb_spinner.keypad_canceled.connect(_on_keypad_canceled)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    qrb_die_x_button.pressed.connect(_on_die_x_pressed)
+    qrb_del_button.pressed.connect(_on_del_pressed)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -233,3 +240,29 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _on_del_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    if qrb_queue.is_empty():
+        qrb_last_faces = 0
+    else:
+        qrb_last_faces = qrb_queue[-1]["faces"]
+    _update_queue_display()
+
+
+func _on_die_x_pressed() -> void:
+    var center := qrb_die_x_button.get_global_rect().get_center()
+    var initial := qrb_last_faces if qrb_last_faces > 0 else 6
+    qrb_spinner.open_keypad_at(center, initial)
+
+
+func _on_keypad_confirmed(val: int) -> void:
+    if val > 0:
+        _add_die(val, 1)
+
+
+func _on_keypad_canceled() -> void:
+    pass
