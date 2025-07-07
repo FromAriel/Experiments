@@ -10,14 +10,21 @@
 class_name RollHistoryPanel
 extends PanelContainer
 
+@export var rhp_entry_font_size: int = 24
+
 @onready var _entries: VBoxContainer = $Scroll/Entries
+@onready var _scroll: ScrollContainer = $Scroll
 
 
 func add_entry(text: String) -> void:
     var label := Label.new()
     label.text = text
     label.custom_minimum_size.y = 48
+    label.add_theme_font_size_override("font_size", rhp_entry_font_size)
     _entries.add_child(label)
+    _entries.move_child(label, 0)
+    await get_tree().process_frame
+    _scroll.scroll_vertical = 0
 
 
 func show_panel() -> void:
