@@ -23,6 +23,12 @@ const QRB_SUPERSCRIPTS := {
     "9": "\u2079"
 }
 
+# Scale factors for configurable button sizing
+const QRB_SCALES := [1.0, 1.5, 2.0, 2.5, 3.0]
+
+# Inspector option index for button scale
+@export_enum("1x", "1.5x", "2x", "2.5x", "3x") var qrb_button_scale_idx: int = 0
+
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
 var qrb_prev_queue: Array = []
@@ -55,6 +61,8 @@ func _ready() -> void:
     $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
     $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
     _build_custom_panel()
+    _apply_scale()
+    call_deferred("_adjust_bar_size")
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -81,6 +89,7 @@ func _connect_repeat_buttons() -> void:
 
 func _on_toggle_advanced() -> void:
     $AdvancedRow.visible = not $AdvancedRow.visible
+    _adjust_bar_size()
 
 
 func _on_die_pressed(faces: int) -> void:
@@ -152,6 +161,7 @@ func _update_queue_display() -> void:
         child.queue_free()
     if qrb_queue.is_empty():
         $QueueRow.hide()
+        _adjust_bar_size()
         return
     $QueueRow.show()
     for entry in qrb_queue:
@@ -161,6 +171,7 @@ func _update_queue_display() -> void:
         chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
         qrb_chip_box.add_child(chip)
+    _adjust_bar_size()
 
 
 func _superscript(val: int) -> String:
@@ -341,3 +352,24 @@ func _build_custom_panel() -> void:
             btn.pressed.connect(_on_faces_del)
     qrb_faces_panel.add_child(vbox)
     add_child(qrb_faces_panel)
+
+
+func _apply_scale() -> void:
+    var scale = QRB_SCALES[qrb_button_scale_idx]
+    var btn_size = 80 * scale
+    var row_size = 80 * scale
+    for row in [$StandardRow, $AdvancedRow, $RepeaterRow]:
+        row.custom_minimum_size.y = row_size
+        for child in row.get_children():
+            if child is Button:
+                child.custom_minimum_size = Vector2(btn_size, btn_size)
+                var base_size = child.get_theme_font_size("font_size")
+                if base_size > 0:
+                    child.add_theme_font_size_override("font_size", int(base_size * scale))
+
+    $QueueRow.custom_minimum_size.y = 100 * scale
+    _adjust_bar_size()
+
+
+func _adjust_bar_size() -> void:
+    offset_bottom = get_combined_minimum_size().y
