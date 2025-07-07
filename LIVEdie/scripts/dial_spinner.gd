@@ -33,6 +33,8 @@ func _ready() -> void:
     _dial.queue_redraw()
     _build_keypad()
     _input_panel.hide()
+    exclusive = false
+    get_ok_button().hide()
     self.hide()
 
 
@@ -91,13 +93,15 @@ func _on_del_pressed() -> void:
 
 
 func _on_dial_input(event: InputEvent) -> void:
-    if event is InputEventMouseButton:
+    if event is InputEventMouseButton or event is InputEventScreenTouch:
         if event.pressed:
             _dragging = true
             _last_angle = _pos_angle(event.position)
             _accel = 1.0
         else:
             _dragging = false
+            hide()
+            emit_signal("confirmed")
     elif event is InputEventMouseMotion and _dragging:
         var angle := _pos_angle(event.position)
         var delta := angle - _last_angle
@@ -153,3 +157,12 @@ func open_dial_at(center: Vector2, size: Vector2i = Vector2i()) -> void:
     _dial.queue_redraw()
     position = center - Vector2(size if size != Vector2i() else self.size) / 2
     popup()
+
+
+func _input(event: InputEvent) -> void:
+    if not visible:
+        return
+    if event is InputEventMouseButton or event is InputEventScreenTouch:
+        if not event.pressed:
+            hide()
+            emit_signal("confirmed")
