@@ -23,6 +23,9 @@ const QRB_SUPERSCRIPTS := {
     "9": "\u2079"
 }
 
+# Size multiplier for quick roll buttons (1.0 .. 3.0)
+@export_range(1.0, 3.0, 0.5) var qrb_button_scale: float = 1.0
+
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
 var qrb_prev_queue: Array = []
@@ -55,6 +58,7 @@ func _ready() -> void:
     $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
     $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
     _build_custom_panel()
+    _apply_button_scale()
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -314,7 +318,7 @@ func _build_custom_panel() -> void:
     qrb_faces_panel.hide()
     qrb_faces_panel.popup_hide.connect(_on_faces_panel_hide)
     qrb_faces_label = Label.new()
-    qrb_faces_label.custom_minimum_size.y = 60
+    qrb_faces_label.custom_minimum_size.y = 60 * qrb_button_scale
     qrb_faces_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     var vbox := VBoxContainer.new()
     vbox.add_child(qrb_faces_label)
@@ -324,8 +328,8 @@ func _build_custom_panel() -> void:
     var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
     for key in order:
         var btn := Button.new()
-        btn.custom_minimum_size = Vector2(80, 80)
-        btn.add_theme_font_size_override("font_size", 32)
+        btn.custom_minimum_size = Vector2(80 * qrb_button_scale, 80 * qrb_button_scale)
+        btn.add_theme_font_size_override("font_size", int(32 * qrb_button_scale))
         if key == "DEL":
             btn.text = "\u232b"
         elif key == "OK":
@@ -341,3 +345,23 @@ func _build_custom_panel() -> void:
             btn.pressed.connect(_on_faces_del)
     qrb_faces_panel.add_child(vbox)
     add_child(qrb_faces_panel)
+
+
+func _apply_button_scale() -> void:
+    var s := qrb_button_scale
+    add_theme_constant_override("separation", int(25 * s))
+    var rows := [$StandardRow, $AdvancedRow, $RepeaterRow]
+    for row in rows:
+        row.add_theme_constant_override("separation", int(30 * s))
+        row.custom_minimum_size.y = 80 * s
+        for child in row.get_children():
+            if child is Button:
+                var size: Vector2 = child.custom_minimum_size
+                size.x = 80 * s
+                if size.y != 0:
+                    size.y = 80 * s
+                child.custom_minimum_size = size
+                var fs := 35
+                if child == $RepeaterRow/RollButton:
+                    fs = 28
+                child.add_theme_font_size_override("font_size", int(fs * s))
