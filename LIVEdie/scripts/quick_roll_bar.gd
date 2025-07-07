@@ -30,10 +30,12 @@ var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 var qrb_long_press_button: Control
+var qrb_last_custom_faces: int = 6
 
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
 @onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
+@onready var qrb_custom_panel: CustomDieInput = $CustomDieInput
 
 
 func _ready() -> void:
@@ -46,6 +48,9 @@ func _ready() -> void:
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    $RepeaterRow/DelButton.pressed.connect(_on_delete_pressed)
+    $RepeaterRow/DieX.pressed.connect(_on_custom_die_pressed)
+    qrb_custom_panel.confirmed.connect(_on_custom_die_confirmed)
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -233,3 +238,23 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _on_delete_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    if qrb_queue.is_empty():
+        qrb_last_faces = 0
+    else:
+        qrb_last_faces = qrb_queue[-1]["faces"]
+    _update_queue_display()
+
+
+func _on_custom_die_pressed() -> void:
+    qrb_custom_panel.open_input(qrb_last_custom_faces)
+
+
+func _on_custom_die_confirmed(value: int) -> void:
+    qrb_last_custom_faces = value
+    _add_die(value, 1)
