@@ -21,6 +21,69 @@ layout_mode = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="QuickRollBar/Logo"]
 
+[node name="RepeaterRow" type="HFlowContainer" parent="QuickRollBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="X1" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "x1"
+
+[node name="X2" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "x2"
+
+[node name="X3" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "x3"
+
+[node name="X4" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "x4"
+
+[node name="X5" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "x5"
+
+[node name="X10" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "x10"
+
+[node name="DieX" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "DX?"
+
+[node name="RollButton" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.0890445, 1, 0.540638, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 0, 1)
+theme_override_colors/font_color = Color(0, 0.682353, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 28
+text = "ROLL"
+
+[node name="DelButton" type="Button" parent="QuickRollBar/RepeaterRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "⌫"
+
 [node name="StandardRow" type="HFlowContainer" parent="QuickRollBar"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
@@ -45,6 +108,7 @@ theme_override_font_sizes/font_size = 35
 text = "D8"
 
 [node name="Die10" type="Button" parent="QuickRollBar/StandardRow"]
+visible = false
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
@@ -80,11 +144,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "🡣"
 
-[node name="Die21" type="Button" parent="QuickRollBar/StandardRow"]
+[node name="Pipe" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D20"
+text = "|"
 
 [node name="Die22" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
@@ -159,69 +223,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "D75"
 
-[node name="RepeaterRow" type="HFlowContainer" parent="QuickRollBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="X1" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "x1"
-
-[node name="X2" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "x2"
-
-[node name="X3" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "x3"
-
-[node name="X4" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "x4"
-
-[node name="X5" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "x5"
-
-[node name="X10" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "x10"
-
-[node name="DieX" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "DX?"
-
-[node name="RollButton" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 2
-theme_override_colors/font_hover_color = Color(0.0890445, 1, 0.540638, 1)
-theme_override_colors/font_outline_color = Color(1, 1, 0, 1)
-theme_override_colors/font_color = Color(0, 0.682353, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 28
-text = "ROLL"
-
-[node name="DelButton" type="Button" parent="QuickRollBar/RepeaterRow"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "⌫"
-
 [node name="QueueRow" type="PanelContainer" parent="QuickRollBar"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
@@ -244,14 +245,15 @@ one_shot = true
 
 [node name="RollHistoryPanel" parent="." instance=ExtResource("3")]
 custom_minimum_size = Vector2(0, 400)
-offset_top = -400.0
+offset_top = -803.0
+offset_bottom = -3.0
 
 [node name="HistoryButton" type="Button" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 968.0
-offset_bottom = -1.0
+offset_top = 1837.41
+offset_bottom = -2.59497
 grow_horizontal = 2
 grow_vertical = 2
 text = "History"

@@ -152,6 +152,7 @@ func _update_queue_display() -> void:
     for entry in qrb_queue:
         var chip := Label.new()
         chip.text = "D%d × %d" % [entry["faces"], entry["count"]]
+        chip.scale = Vector2(1.5, 1.5) 
         chip.custom_minimum_size = Vector2(90, 40)
         chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
