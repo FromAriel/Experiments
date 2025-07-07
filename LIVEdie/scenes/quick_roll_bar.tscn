@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://qrollbar01"]
+[gd_scene load_steps=5 format=3 uid="uid://qrollbar01"]
 
 [ext_resource type="Script" uid="uid://owkgt6c75kui" path="res://scripts/quick_roll_bar.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://c4jfdeyqiow6v" path="res://scenes/dial_spinner.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://rollhist01" path="res://scenes/roll_history_panel.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://cdpanel01" path="res://scenes/custom_die_panel.tscn" id="4"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -216,6 +217,8 @@ theme_override_constants/separation = 4
 [node name="PreviewDialog" type="AcceptDialog" parent="QuickRollBar"]
 
 [node name="DialSpinner" parent="QuickRollBar" instance=ExtResource("2")]
+
+[node name="CustomDiePanel" parent="QuickRollBar" instance=ExtResource("4")]
 
 [node name="LongPressTimer" type="Timer" parent="QuickRollBar"]
 wait_time = 0.5
