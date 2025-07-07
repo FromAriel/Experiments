@@ -5,7 +5,7 @@
 #                   _on_long_press_timeout() – handle long press
 # Critical Consts  • QRB_SUPERSCRIPTS – digits for display
 # Dependencies     • DiceParser
-# Last Major Rev   • 24-04-XX – initial implementation
+# Last Major Rev   • 2025-07-07 – inspector slider, direct scale
 ###############################################################
 class_name QuickRollBar
 extends VBoxContainer
@@ -22,6 +22,12 @@ const QRB_SUPERSCRIPTS := {
     "8": "\u2078",
     "9": "\u2079"
 }
+
+@export_range(1.0, 3.0, 0.01) var qrb_size_index: float = 2.0:
+    set(value):
+        qrb_size_index = clamp(value, 1.0, 3.0)
+        if is_inside_tree():
+            _qrb_apply_scale()
 
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
@@ -41,7 +47,6 @@ var qrb_faces_commit: bool = false
 @onready var qrb_history_button: Button = $"../HistoryButton"
 @onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
 
-
 func _ready() -> void:
     _connect_dice_buttons($StandardRow)
     _connect_dice_buttons($AdvancedRow)
@@ -55,9 +60,9 @@ func _ready() -> void:
     $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
     $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
     _build_custom_panel()
+    _qrb_apply_scale()
 
-
-func _connect_dice_buttons(row: HBoxContainer) -> void:
+func _connect_dice_buttons(row: Container) -> void:
     for node in row.get_children():
         if (
             node is Button
@@ -70,7 +75,6 @@ func _connect_dice_buttons(row: HBoxContainer) -> void:
             node.button_down.connect(_on_die_down.bind(faces, node))
             node.button_up.connect(_on_die_up.bind(faces, node))
 
-
 func _connect_repeat_buttons() -> void:
     for node in $RepeaterRow.get_children():
         if node is Button and node.name.begins_with("X"):
@@ -78,14 +82,11 @@ func _connect_repeat_buttons() -> void:
             node.button_down.connect(_on_repeat_down.bind(mult, node))
             node.button_up.connect(_on_repeat_up.bind(mult, node))
 
-
 func _on_toggle_advanced() -> void:
     $AdvancedRow.visible = not $AdvancedRow.visible
 
-
 func _on_die_pressed(faces: int) -> void:
     _add_die(faces, 1)
-
 
 func _on_repeat_pressed(mult: int) -> void:
     if qrb_last_faces == 0:
@@ -99,7 +100,6 @@ func _on_repeat_pressed(mult: int) -> void:
     else:
         _add_die(qrb_last_faces, mult)
 
-
 func _on_die_down(faces: int, btn: Button) -> void:
     qrb_long_press_type = "die"
     qrb_long_press_param = faces
@@ -107,7 +107,6 @@ func _on_die_down(faces: int, btn: Button) -> void:
     qrb_long_press_button = btn
     if not Engine.is_editor_hint() and $LongPressTimer.is_inside_tree():
         $LongPressTimer.start()
-
 
 func _on_die_up(faces: int, _btn: Button) -> void:
     if $LongPressTimer.time_left > 0.0:
@@ -118,7 +117,6 @@ func _on_die_up(faces: int, _btn: Button) -> void:
     else:
         _on_die_pressed(faces)
 
-
 func _on_repeat_down(mult: int, btn: Button) -> void:
     qrb_long_press_type = "repeat"
     qrb_long_press_param = mult
@@ -126,7 +124,6 @@ func _on_repeat_down(mult: int, btn: Button) -> void:
     qrb_long_press_button = btn
     if not Engine.is_editor_hint() and $LongPressTimer.is_inside_tree():
         $LongPressTimer.start()
-
 
 func _on_repeat_up(mult: int, _btn: Button) -> void:
     if $LongPressTimer.time_left > 0.0:
@@ -137,7 +134,6 @@ func _on_repeat_up(mult: int, _btn: Button) -> void:
     else:
         _on_repeat_pressed(mult)
 
-
 func _add_die(faces: int, qty: int) -> void:
     if qrb_queue.is_empty() or qrb_queue[-1]["faces"] != faces:
         qrb_queue.append({"faces": faces, "count": qty})
@@ -145,7 +141,6 @@ func _add_die(faces: int, qty: int) -> void:
         qrb_queue[-1]["count"] += qty
     qrb_last_faces = faces
     _update_queue_display()
-
 
 func _update_queue_display() -> void:
     for child in qrb_chip_box.get_children():
@@ -162,13 +157,11 @@ func _update_queue_display() -> void:
         chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
         qrb_chip_box.add_child(chip)
 
-
 func _superscript(val: int) -> String:
     var result := ""
     for c in str(val):
         result += QRB_SUPERSCRIPTS.get(c, c)
     return result
-
 
 func _build_expression() -> String:
     var parts: Array = []
@@ -176,14 +169,12 @@ func _build_expression() -> String:
         parts.append(str(entry["count"]) + "d" + str(entry["faces"]))
     return " + ".join(parts)
 
-
 func _on_long_press_timeout() -> void:
     qrb_long_press_triggered = true
     if qrb_long_press_type == "repeat":
         _show_multiplier_preview(qrb_long_press_param)
     elif qrb_long_press_type == "die":
         _show_spinner(qrb_long_press_param)
-
 
 func _show_multiplier_preview(mult: int) -> void:
     var preview: Array = []
@@ -198,10 +189,8 @@ func _show_multiplier_preview(mult: int) -> void:
     $PreviewDialog.dialog_text = " -> ".join(parts)
     $PreviewDialog.popup_centered()
 
-
 func _on_preview_confirmed() -> void:
     _apply_multiplier(qrb_long_press_param)
-
 
 func _apply_multiplier(mult: int) -> void:
     qrb_prev_queue = qrb_queue.duplicate(true)
@@ -209,25 +198,21 @@ func _apply_multiplier(mult: int) -> void:
         entry["count"] *= mult
     _update_queue_display()
 
-
 func _show_spinner(faces: int) -> void:
     qrb_long_press_param = faces
     $DialSpinner.ds_value = 1
     var center := qrb_long_press_button.get_global_rect().get_center()
     $DialSpinner.open_dial_at(center)
 
-
 func _on_spinner_confirmed() -> void:
     var qty := int($DialSpinner.ds_value)
     _add_die(qrb_long_press_param, qty)
-
 
 func _on_history_pressed() -> void:
     if qrb_history_panel.visible:
         qrb_history_panel.hide_panel()
     else:
         qrb_history_panel.show_panel()
-
 
 func _on_roll_pressed() -> void:
     if qrb_queue.is_empty():
@@ -243,7 +228,6 @@ func _on_roll_pressed() -> void:
     qrb_last_faces = 0
     _update_queue_display()
 
-
 func _on_del_pressed() -> void:
     if qrb_queue.is_empty():
         return
@@ -254,13 +238,11 @@ func _on_del_pressed() -> void:
         qrb_last_faces = qrb_queue[-1]["faces"]
     _update_queue_display()
 
-
 func _on_die_x_pressed() -> void:
     qrb_faces_replace = true
     qrb_faces_value = qrb_faces_value if qrb_faces_value > 0 else 6
     _update_faces_label()
     qrb_faces_panel.popup_centered()
-
 
 func _on_faces_key(ch: String) -> void:
     var s := str(qrb_faces_value)
@@ -275,7 +257,6 @@ func _on_faces_key(ch: String) -> void:
     qrb_faces_value = clamp(int(s), 0, 9999)
     _update_faces_label()
 
-
 func _on_faces_del() -> void:
     if qrb_faces_replace or str(qrb_faces_value) == "0":
         qrb_faces_panel.hide()
@@ -287,14 +268,12 @@ func _on_faces_del() -> void:
     qrb_faces_value = int(s)
     _update_faces_label()
 
-
 func _on_faces_ok() -> void:
     if qrb_faces_value == 0:
         qrb_faces_panel.hide()
         return
     qrb_faces_commit = true
     qrb_faces_panel.hide()
-
 
 func _on_faces_panel_hide() -> void:
     if qrb_faces_commit:
@@ -303,11 +282,9 @@ func _on_faces_panel_hide() -> void:
         qrb_last_faces = faces
         _add_die(faces, 1)
 
-
 func _update_faces_label() -> void:
     if qrb_faces_label:
         qrb_faces_label.text = str(qrb_faces_value)
-
 
 func _build_custom_panel() -> void:
     qrb_faces_panel = PopupPanel.new()
@@ -341,3 +318,32 @@ func _build_custom_panel() -> void:
             btn.pressed.connect(_on_faces_del)
     qrb_faces_panel.add_child(vbox)
     add_child(qrb_faces_panel)
+
+func _qrb_all_buttons() -> Array:
+    var result: Array = []
+    for n in $StandardRow.get_children():
+        if n is Button:
+            result.append(n)
+    for n in $AdvancedRow.get_children():
+        if n is Button:
+            result.append(n)
+    for n in $RepeaterRow.get_children():
+        if n is Button:
+            result.append(n)
+    return result
+
+func _qrb_apply_scale() -> void:
+    var scale: float = qrb_size_index
+    var base: Vector2 = Vector2(80, 80) * scale
+    var std_font: int = int(35 * scale)
+    var roll_font: int = int(28 * scale)
+    add_theme_constant_override("separation", int(25 * scale))
+    $StandardRow.add_theme_constant_override("separation", int(30 * scale))
+    $AdvancedRow.add_theme_constant_override("separation", int(30 * scale))
+    $RepeaterRow.add_theme_constant_override("separation", int(30 * scale))
+    for btn in _qrb_all_buttons():
+        btn.custom_minimum_size = base
+        var size := std_font
+        if btn == $RepeaterRow/RollButton:
+            size = roll_font
+        btn.add_theme_font_size_override("font_size", size)

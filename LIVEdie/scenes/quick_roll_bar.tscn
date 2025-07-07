@@ -21,17 +21,10 @@ layout_mode = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="QuickRollBar/Logo"]
 
-[node name="StandardRow" type="HBoxContainer" parent="QuickRollBar"]
+[node name="StandardRow" type="HFlowContainer" parent="QuickRollBar"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_constants/separation = 30
 alignment = 1
-
-[node name="Die2" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D2"
 
 [node name="Die4" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
@@ -75,18 +68,41 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "D%"
 
+[node name="Die2" type="Button" parent="QuickRollBar/StandardRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "D2"
+
 [node name="AdvancedToggle" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "🡣"
 
-[node name="AdvancedRow" type="HBoxContainer" parent="QuickRollBar"]
+[node name="Die21" type="Button" parent="QuickRollBar/StandardRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "D20"
+
+[node name="Die22" type="Button" parent="QuickRollBar/StandardRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "D20"
+
+[node name="Die23" type="Button" parent="QuickRollBar/StandardRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "D20"
+
+[node name="AdvancedRow" type="HFlowContainer" parent="QuickRollBar"]
 visible = false
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 30
 alignment = 1
 
 [node name="Die13" type="Button" parent="QuickRollBar/AdvancedRow"]
@@ -143,10 +159,9 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "D75"
 
-[node name="RepeaterRow" type="HBoxContainer" parent="QuickRollBar"]
+[node name="RepeaterRow" type="HFlowContainer" parent="QuickRollBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 30
 alignment = 1
 
 [node name="X1" type="Button" parent="QuickRollBar/RepeaterRow"]
