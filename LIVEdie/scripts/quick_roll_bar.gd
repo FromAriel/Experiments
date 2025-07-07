@@ -30,10 +30,14 @@ var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 var qrb_long_press_button: Control
+var qrb_dx_label: Label
+var qrb_dx_new: bool = true
+var qrb_dx_value: int = 0
 
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
 @onready var qrb_history_panel: RollHistoryPanel = $"../RollHistoryPanel"
+@onready var qrb_dx_panel: PopupPanel = $DXInput
 
 
 func _ready() -> void:
@@ -42,10 +46,14 @@ func _ready() -> void:
     $StandardRow/AdvancedToggle.pressed.connect(_on_toggle_advanced)
     $RepeaterRow/RollButton.pressed.connect(_on_roll_pressed)
     _connect_repeat_buttons()
+    $RepeaterRow/DieX.pressed.connect(_on_diex_pressed)
+    $RepeaterRow/DieX2.pressed.connect(_on_delete_pressed)
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
+    qrb_dx_panel.visibility_changed.connect(_on_dx_panel_hidden)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    _build_dx_keypad()
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -68,6 +76,35 @@ func _connect_repeat_buttons() -> void:
             var mult := int(node.text.substr(1))
             node.button_down.connect(_on_repeat_down.bind(mult, node))
             node.button_up.connect(_on_repeat_up.bind(mult, node))
+
+
+func _build_dx_keypad() -> void:
+    var grid := GridContainer.new()
+    grid.columns = 3
+    qrb_dx_label = Label.new()
+    qrb_dx_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    qrb_dx_label.custom_minimum_size = Vector2(0, 60)
+    qrb_dx_label.add_theme_font_size_override("font_size", 48)
+    qrb_dx_panel.add_child(qrb_dx_label)
+    qrb_dx_panel.add_child(grid)
+    var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
+    for key in order:
+        var btn := Button.new()
+        if key == "DEL":
+            btn.text = "\u232b"
+        elif key == "OK":
+            btn.text = "\u2714"
+        else:
+            btn.text = key
+        btn.custom_minimum_size = Vector2(80, 80)
+        btn.add_theme_font_size_override("font_size", 32)
+        grid.add_child(btn)
+        if key.is_valid_int():
+            btn.pressed.connect(_on_dx_key.bind(key))
+        elif key == "OK":
+            btn.pressed.connect(_on_dx_ok_pressed)
+        else:
+            btn.pressed.connect(_on_dx_del_pressed)
 
 
 func _on_toggle_advanced() -> void:
@@ -233,3 +270,54 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _on_delete_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    qrb_last_faces = qrb_queue[-1]["faces"] if not qrb_queue.is_empty() else 0
+    _update_queue_display()
+
+
+func _on_diex_pressed() -> void:
+    qrb_dx_value = qrb_last_faces
+    if qrb_dx_value <= 0:
+        qrb_dx_value = 6
+    qrb_dx_label.text = str(qrb_dx_value)
+    qrb_dx_new = true
+    qrb_dx_panel.popup_centered()
+
+
+func _on_dx_key(ch: String) -> void:
+    var s := "" if qrb_dx_new else str(qrb_dx_value)
+    if s == "0":
+        s = ""
+    s += ch
+    qrb_dx_value = int(s)
+    qrb_dx_label.text = str(qrb_dx_value)
+    qrb_dx_new = false
+
+
+func _on_dx_del_pressed() -> void:
+    if qrb_dx_value == 0:
+        qrb_dx_panel.hide()
+        return
+    var s := str(qrb_dx_value)
+    if s.length() > 1:
+        s = s.substr(0, s.length() - 1)
+    else:
+        s = "0"
+    qrb_dx_value = int(s)
+    qrb_dx_label.text = s
+
+
+func _on_dx_ok_pressed() -> void:
+    qrb_dx_panel.hide()
+    if qrb_dx_value == 0:
+        return
+    _add_die(qrb_dx_value, 1)
+
+
+func _on_dx_panel_hidden() -> void:
+    qrb_dx_new = true

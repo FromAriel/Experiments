@@ -217,6 +217,10 @@ theme_override_constants/separation = 4
 
 [node name="DialSpinner" parent="QuickRollBar" instance=ExtResource("2")]
 
+[node name="DXInput" type="PopupPanel" parent="QuickRollBar"]
+size = Vector2i(400, 280)
+visible = false
+
 [node name="LongPressTimer" type="Timer" parent="QuickRollBar"]
 wait_time = 0.5
 one_shot = true
