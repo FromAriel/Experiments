@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://owkgt6c75kui" path="res://scripts/quick_roll_bar.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://c4jfdeyqiow6v" path="res://scenes/dial_spinner.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://rollhist01" path="res://scenes/roll_history_panel.tscn" id="3"]
+[ext_resource type="Script" uid="uid://customdie01" path="res://scripts/custom_die_dialog.gd" id="4"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -214,6 +215,9 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="PreviewDialog" type="AcceptDialog" parent="QuickRollBar"]
+
+[node name="CustomDieDialog" type="AcceptDialog" parent="QuickRollBar"]
+script = ExtResource("4")
 
 [node name="DialSpinner" parent="QuickRollBar" instance=ExtResource("2")]
 
