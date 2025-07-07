@@ -23,7 +23,7 @@ const QRB_SUPERSCRIPTS := {
     "9": "\u2079"
 }
 
-@export_range(1.0, 3.0, 0.01) var qrb_size_index: float = 1.0:
+@export_range(1.0, 3.0, 0.01) var qrb_size_index: float = 2.0:
     set(value):
         qrb_size_index = clamp(value, 1.0, 3.0)
         if is_inside_tree():
