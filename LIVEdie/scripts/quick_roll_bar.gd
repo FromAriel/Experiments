@@ -30,6 +30,9 @@ var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 var qrb_long_press_button: Control
+var qrb_input_replace: bool = true
+var qrb_input_panel: PopupPanel
+var qrb_input_edit: LineEdit
 
 @onready var qrb_chip_box: HBoxContainer = $QueueRow/HScroll/DiceChips
 @onready var qrb_history_button: Button = $"../HistoryButton"
@@ -41,11 +44,14 @@ func _ready() -> void:
     _connect_dice_buttons($AdvancedRow)
     $StandardRow/AdvancedToggle.pressed.connect(_on_toggle_advanced)
     $RepeaterRow/RollButton.pressed.connect(_on_roll_pressed)
+    $RepeaterRow/DieX2.pressed.connect(_on_delete_pressed)
+    $RepeaterRow/DieX.pressed.connect(_on_diex_pressed)
     _connect_repeat_buttons()
     $LongPressTimer.timeout.connect(_on_long_press_timeout)
     $PreviewDialog.confirmed.connect(_on_preview_confirmed)
     $DialSpinner.confirmed.connect(_on_spinner_confirmed)
     qrb_history_button.pressed.connect(_on_history_pressed)
+    _build_input_panel()
 
 
 func _connect_dice_buttons(row: HBoxContainer) -> void:
@@ -233,3 +239,96 @@ func _on_roll_pressed() -> void:
     qrb_queue.clear()
     qrb_last_faces = 0
     _update_queue_display()
+
+
+func _on_delete_pressed() -> void:
+    if qrb_queue.is_empty():
+        return
+    qrb_queue.pop_back()
+    if qrb_queue.is_empty():
+        qrb_last_faces = 0
+    else:
+        qrb_last_faces = qrb_queue[-1]["faces"]
+    _update_queue_display()
+
+
+func _on_diex_pressed() -> void:
+    _open_input_panel()
+
+
+func _open_input_panel() -> void:
+    var start_val := qrb_last_faces if qrb_last_faces > 0 else 6
+    qrb_input_edit.text = str(start_val)
+    qrb_input_edit.select_all()
+    qrb_input_replace = true
+    qrb_input_panel.popup_centered()
+    qrb_input_edit.grab_focus()
+
+
+func _on_input_key(ch: String) -> void:
+    if qrb_input_replace:
+        qrb_input_edit.text = ch
+        qrb_input_replace = false
+    else:
+        qrb_input_edit.text += ch
+    qrb_input_edit.caret_column = qrb_input_edit.text.length()
+
+
+func _on_input_del_pressed() -> void:
+    var txt := qrb_input_edit.text
+    if txt == "0":
+        qrb_input_panel.hide()
+        return
+    if txt.length() > 1:
+        txt = txt.substr(0, txt.length() - 1)
+    else:
+        txt = "0"
+        qrb_input_replace = true
+        qrb_input_edit.select_all()
+    qrb_input_edit.text = txt
+    qrb_input_edit.caret_column = txt.length()
+
+
+func _on_input_ok_pressed() -> void:
+    var faces := int(qrb_input_edit.text)
+    if faces == 0:
+        qrb_input_panel.hide()
+        return
+    _add_die(faces, 1)
+    qrb_input_panel.hide()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    if qrb_input_panel.visible and event is InputEventMouseButton and event.pressed:
+        if not qrb_input_panel.get_global_rect().has_point(event.position):
+            qrb_input_panel.hide()
+
+
+func _build_input_panel() -> void:
+    qrb_input_panel = PopupPanel.new()
+    qrb_input_panel.name = "InputPanel"
+    add_child(qrb_input_panel)
+    var vb := VBoxContainer.new()
+    qrb_input_panel.add_child(vb)
+    qrb_input_edit = LineEdit.new()
+    qrb_input_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    vb.add_child(qrb_input_edit)
+    var grid := GridContainer.new()
+    grid.columns = 3
+    vb.add_child(grid)
+    var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
+    for key in order:
+        var btn := Button.new()
+        btn.custom_minimum_size = Vector2(80, 80)
+        btn.add_theme_font_size_override("font_size", 32)
+        grid.add_child(btn)
+        if key.is_valid_int():
+            btn.text = key
+            btn.pressed.connect(_on_input_key.bind(key))
+        elif key == "OK":
+            btn.text = "\u2714"
+            btn.pressed.connect(_on_input_ok_pressed)
+        else:
+            btn.text = "\u232b"
+            btn.pressed.connect(_on_input_del_pressed)
+    qrb_input_panel.hide()
