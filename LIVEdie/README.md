@@ -17,3 +17,7 @@ This folder contains the starting structure:
 4. Build and deploy to your phone or tablet using the export window.
 
 The project defaults to portrait orientation and touch input, so it should run on mobile without additional tweaks.
+
+### Font Setup
+
+The interface uses **Noto Sans** for all text and **Noto Color Emoji** for emoji rendering. The font files live under `fonts/` and are referenced in `project.godot`.

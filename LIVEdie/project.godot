@@ -34,3 +34,7 @@ input_devices/pointing/emulate_touch_from_mouse=true
 [rendering]
 
 renderer/rendering_method="mobile"
+
+[gui]
+theme/default_font="res://fonts/NotoSans-VariableFont_wdth,wght.ttf"
+theme/fallback_font="res://fonts/NotoColorEmoji-Regular.ttf"
