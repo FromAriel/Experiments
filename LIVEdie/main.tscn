@@ -1,10 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://60wyaydkyepa"]
+[gd_scene load_steps=3 format=3 uid="uid://60wyaydkyepa"]
 
 [ext_resource type="PackedScene" uid="uid://qrollbar01" path="res://scenes/quick_roll_bar.tscn" id="1"]
-[ext_resource type="Script" path="res://scripts/main.gd" id="2"]
+[ext_resource type="Script" uid="uid://c0ykwmiavrrvg" path="res://scripts/main.gd" id="2"]
 
 [node name="Main" type="Control"]
-script = ExtResource("2")
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 3
 anchors_preset = 15
@@ -14,5 +13,6 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+script = ExtResource("2")
 
 [node name="QuickRollBar" parent="." instance=ExtResource("1")]
