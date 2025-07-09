@@ -70,14 +70,22 @@ func _ready() -> void:
 
 func _connect_dice_buttons(row: Container) -> void:
     for node in row.get_children():
-        if (
-            node is Button
-            and node.text.begins_with("D")
+        if not (node is Button):
+            continue
+        var faces := 0
+        var is_die := false
+        if node.has_meta("faces"):
+            faces = int(node.get_meta("faces"))
+            is_die = true
+        elif (
+            node.text.begins_with("D")
             and node.text != "DX?"
             and node.text != "ROLL"
             and node != $StandardRow/AdvancedToggle
         ):
-            var faces := int(node.text.substr(1).replace("%", "100"))
+            faces = int(node.text.substr(1).replace("%", "100"))
+            is_die = true
+        if is_die:
             node.button_down.connect(_on_die_down.bind(faces, node))
             node.button_up.connect(_on_die_up.bind(faces, node))
 
