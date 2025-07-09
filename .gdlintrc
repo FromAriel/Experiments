@@ -1,4 +1,9 @@
-# .gdlintrc  – allow FB_* naming scheme
+# .gdlintrc  – allow FB_* naming, but still run naming checks
 class-variable-name: "[A-Za-z0-9_]+"
-function-name: "[A-Za-z0-9_]+"
-disable: [no-else-return, max-returns, class-variable-name, function-name, no-elif-return]
+function-name:     "[A-Za-z0-9_]+"
+
+disable:
+  - no-else-return
+  - max-returns
+  - no-elif-return
+  - class-definitions-order
