@@ -32,6 +32,10 @@ const QRB_SUPERSCRIPTS := {
 @export var qrb_button_font_size: int = 35
 @export var qrb_roll_font_size: int = 28
 @export var qrb_chip_font_size: int = 24
+@export var qrb_die_shape_size: int = 40
+@export var qrb_die_number_size: int = 24
+@export var qrb_die_shape_color: Color = Color(1, 1, 1)
+@export var qrb_die_number_color: Color = Color(0, 0, 0)
 
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
@@ -40,6 +44,7 @@ var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 var qrb_long_press_button: Control
+var qrb_die_icons: Array = []
 
 var qrb_faces_panel: PopupPanel
 var qrb_faces_label: Label
@@ -65,6 +70,7 @@ func _ready() -> void:
     $RepeaterRow/DelButton.pressed.connect(_on_del_pressed)
     $RepeaterRow/DieX.pressed.connect(_on_die_x_pressed)
     _build_custom_panel()
+    _qrb_build_icons()
     _qrb_apply_scale()
 
 
@@ -355,6 +361,37 @@ func _build_custom_panel() -> void:
     add_child(qrb_faces_panel)
 
 
+func _qrb_build_icons() -> void:
+    var mapping := {
+        $StandardRow/Die4: ["▲", "4"],
+        $StandardRow/Die6: ["■", "6"],
+        $StandardRow/Die8: ["⬟", "8"],
+        $StandardRow/Die10: ["⬙", "10"],
+        $StandardRow/Die12: ["⬢", "12"],
+        $StandardRow/Die20: ["✪", "20"],
+    }
+    qrb_die_icons.clear()
+    for btn in mapping.keys():
+        var icon := DiceIcon.new()
+        icon.di_shape_glyph = mapping[btn][0]
+        icon.di_number_glyph = mapping[btn][1]
+        icon.di_shape_color = qrb_die_shape_color
+        icon.di_number_color = qrb_die_number_color
+        icon.di_shape_font_size = qrb_die_shape_size
+        icon.di_number_font_size = qrb_die_number_size
+        icon.anchor_left = 0
+        icon.anchor_top = 0
+        icon.anchor_right = 1
+        icon.anchor_bottom = 1
+        icon.offset_left = 0
+        icon.offset_top = 0
+        icon.offset_right = 0
+        icon.offset_bottom = 0
+        btn.text = ""
+        btn.add_child(icon)
+        qrb_die_icons.append(icon)
+
+
 func _qrb_all_buttons() -> Array:
     var result: Array = []
     for n in $StandardRow.get_children():
@@ -374,6 +411,8 @@ func _qrb_apply_scale() -> void:
     var base: Vector2 = Vector2(80, 80) * scale
     var std_font: int = int(qrb_button_font_size * scale)
     var roll_font: int = int(qrb_roll_font_size * scale)
+    var shape_size: int = int(qrb_die_shape_size * scale)
+    var num_size: int = int(qrb_die_number_size * scale)
     add_theme_constant_override("separation", int(25 * scale))
     $StandardRow.add_theme_constant_override("separation", int(30 * scale))
     $AdvancedRow.add_theme_constant_override("separation", int(30 * scale))
@@ -384,3 +423,6 @@ func _qrb_apply_scale() -> void:
         if btn == $RepeaterRow/RollButton:
             size = roll_font
         btn.add_theme_font_size_override("font_size", size)
+    for icon in qrb_die_icons:
+        icon.di_shape_font_size = shape_size
+        icon.di_number_font_size = num_size
