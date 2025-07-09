@@ -10,6 +10,10 @@
 class_name QuickRollBar
 extends VBoxContainer
 
+const QRB_DIE_GLYPHS := {
+    4: "\u25B2", 6: "\u25A0", 8: "\u2B1F", 10: "\u2B19", 12: "\u2B22", 20: "\u272A"
+}
+
 const QRB_SUPERSCRIPTS := {
     "0": "\u2070",
     "1": "\u00B9",
@@ -32,6 +36,10 @@ const QRB_SUPERSCRIPTS := {
 @export var qrb_button_font_size: int = 35
 @export var qrb_roll_font_size: int = 28
 @export var qrb_chip_font_size: int = 24
+@export var qrb_die_font_size: int = 35
+@export var qrb_num_font_size: int = 20
+@export var qrb_die_color: Color = Color.WHITE
+@export var qrb_num_color: Color = Color.BLACK
 
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
@@ -40,6 +48,7 @@ var qrb_long_press_type: String = ""
 var qrb_long_press_param: int = 0
 var qrb_long_press_triggered: bool = false
 var qrb_long_press_button: Control
+var qrb_die_buttons: Array[Button] = []
 
 var qrb_faces_panel: PopupPanel
 var qrb_faces_label: Label
@@ -70,16 +79,37 @@ func _ready() -> void:
 
 func _connect_dice_buttons(row: Container) -> void:
     for node in row.get_children():
-        if (
-            node is Button
-            and node.text.begins_with("D")
-            and node.text != "DX?"
-            and node.text != "ROLL"
-            and node != $StandardRow/AdvancedToggle
-        ):
-            var faces := int(node.text.substr(1).replace("%", "100"))
+        if node is Button and node.name.begins_with("Die"):
+            var faces := int(node.name.substr(3).replace("%", "100"))
             node.button_down.connect(_on_die_down.bind(faces, node))
             node.button_up.connect(_on_die_up.bind(faces, node))
+            if QRB_DIE_GLYPHS.has(faces):
+                _qrb_setup_die(node, faces)
+                qrb_die_buttons.append(node)
+
+
+func _qrb_setup_die(btn: Button, faces: int) -> void:
+    var glyph: String = QRB_DIE_GLYPHS.get(faces, "")
+    if glyph == "":
+        return
+    btn.text = ""
+    var container := Control.new()
+    container.name = "GlyphContainer"
+    container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    var shape_label := Label.new()
+    shape_label.name = "Shape"
+    shape_label.text = glyph
+    shape_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    shape_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    container.add_child(shape_label)
+    var num_label := Label.new()
+    num_label.name = "Number"
+    num_label.text = str(faces)
+    num_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    num_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    container.add_child(num_label)
+    btn.add_child(container)
 
 
 func _connect_repeat_buttons() -> void:
@@ -374,6 +404,8 @@ func _qrb_apply_scale() -> void:
     var base: Vector2 = Vector2(80, 80) * scale
     var std_font: int = int(qrb_button_font_size * scale)
     var roll_font: int = int(qrb_roll_font_size * scale)
+    var die_font: int = int(qrb_die_font_size * scale)
+    var num_font: int = int(qrb_num_font_size * scale)
     add_theme_constant_override("separation", int(25 * scale))
     $StandardRow.add_theme_constant_override("separation", int(30 * scale))
     $AdvancedRow.add_theme_constant_override("separation", int(30 * scale))
@@ -384,3 +416,12 @@ func _qrb_apply_scale() -> void:
         if btn == $RepeaterRow/RollButton:
             size = roll_font
         btn.add_theme_font_size_override("font_size", size)
+    for btn in qrb_die_buttons:
+        var container := btn.get_node("GlyphContainer")
+        if container:
+            var shape_label := container.get_node("Shape") as Label
+            var num_label := container.get_node("Number") as Label
+            shape_label.add_theme_font_size_override("font_size", die_font)
+            shape_label.add_theme_color_override("font_color", qrb_die_color)
+            num_label.add_theme_font_size_override("font_size", num_font)
+            num_label.add_theme_color_override("font_color", qrb_num_color)
