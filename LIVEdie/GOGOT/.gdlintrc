@@ -1,0 +1,5 @@
+# .gdlintrc
+disable:
+  - class-variable-name
+  - function-name
+  - class-definitions-order

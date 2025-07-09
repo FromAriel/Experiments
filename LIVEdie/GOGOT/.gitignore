@@ -1,0 +1,7 @@
+.godot/
+.import/
+.mono/
+**/bin/
+**/obj/
+mono_crash.*.json
+*.gd.uid
