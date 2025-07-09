@@ -2,3 +2,6 @@
 ; It's best edited using the Godot editor.
 
 config_version=5
+
+[autoload]
+UIEventBus="res://scripts/UIEventBus.gd"
