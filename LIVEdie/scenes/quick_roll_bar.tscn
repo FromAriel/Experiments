@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://qrollbar01"]
+[gd_scene load_steps=7 format=3 uid="uid://qrollbar01"]
 
 [ext_resource type="Script" uid="uid://owkgt6c75kui" path="res://scripts/quick_roll_bar.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://c4jfdeyqiow6v" path="res://scenes/dial_spinner.tscn" id="2"]
+[ext_resource type="Script" uid="uid://bfgd5h7c0n2br" path="res://scripts/DieGlyphButton.gd" id="2_podba"]
 [ext_resource type="PackedScene" uid="uid://rollhist01" path="res://scenes/roll_history_panel.tscn" id="3"]
+[ext_resource type="FontFile" uid="uid://b125dbmtyasvl" path="res://fonts/NotoColorEmoji-Regular.ttf" id="3_rearr"]
+[ext_resource type="FontFile" uid="uid://dtmpve4w6d4q" path="res://fonts/NotoSans-VariableFont_wdth,wght.ttf" id="4_rearr"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -14,8 +17,7 @@ grow_horizontal = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 25
 script = ExtResource("1")
-qrb_roll_font_size = 35
-qrb_chip_font_size = 35
+ui_scale = 2.0
 
 [node name="Logo" type="PanelContainer" parent="QuickRollBar"]
 custom_minimum_size = Vector2(0, 100)
@@ -92,53 +94,113 @@ layout_mode = 2
 alignment = 1
 
 [node name="Die4" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D4"
+theme_override_colors/font_outline_color = Color(0.765054, 0.00137404, 0.888241, 1)
+theme_override_constants/outline_size = 9
+theme_override_fonts/font = ExtResource("3_rearr")
+script = ExtResource("2_podba")
+die_faces = 4
+glyph_color = Color(0.505882, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 60
+number_font_size = 50
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
 
 [node name="Die6" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D6"
+script = ExtResource("2_podba")
+die_faces = 6
+glyph_color = Color(0.439216, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 60
+number_font_size = 50
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
 
 [node name="Die8" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D8"
+script = ExtResource("2_podba")
+die_faces = 8
+glyph_color = Color(0.439216, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 60
+number_font_size = 50
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
 
 [node name="Die10" type="Button" parent="QuickRollBar/StandardRow"]
-visible = false
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D10"
+script = ExtResource("2_podba")
+die_faces = 10
+glyph_color = Color(0.439216, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 65
+number_font_size = 45
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
 
 [node name="Die12" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D12"
+script = ExtResource("2_podba")
+die_faces = 12
+glyph_color = Color(0.439216, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 65
+number_font_size = 45
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
 
 [node name="Die20" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D20"
-
-[node name="Die100" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D%"
+script = ExtResource("2_podba")
+die_faces = 20
+glyph_color = Color(0.439216, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 65
+number_font_size = 45
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
 
 [node name="Die2" type="Button" parent="QuickRollBar/StandardRow"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 35
-text = "D2"
+theme_override_colors/font_outline_color = Color(0.360557, 0, 0.164575, 1)
+theme_override_constants/outline_size = 10
+script = ExtResource("2_podba")
+die_faces = 2
+override_glyph = "🪙"
+glyph_color = Color(1, 1, 1, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 45
+number_font_size = 45
+glyph_font = ExtResource("3_rearr")
+number_font = ExtResource("4_rearr")
+font_scale = 2.0
+
+[node name="Die100" type="Button" parent="QuickRollBar/StandardRow"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+script = ExtResource("2_podba")
+die_faces = 100
+glyph_color = Color(0.439216, 0, 0, 1)
+number_color = Color(1, 1, 1, 1)
+glyph_font_size = 60
+number_font_size = 35
+glyph_font = ExtResource("3_rearr")
+font_scale = 2.0
 
 [node name="AdvancedToggle" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)

@@ -1,0 +1,999 @@
+=== Script Compilation ===
+
+
+--- Script: res://scripts/dial_spinner.gd ---
+#
+# LIVEdie/scripts/dial_spinner.gd
+# Key Classes      • DialSpinner – popup dial for quantity selection
+# Key Functions    • popup_centered() – show dial
+#                   • ds_value – current value
+# Critical Consts  • none
+# Dependencies     • none
+# Last Major Rev   • 24-06-XX – initial dial spinner
+###############################################################
+class_name DialSpinner
+extends AcceptDialog
+
+@export var ds_max_value: int = 1000
+@export var ds_accel_factor: float = 1.001
+
+var ds_value: int = 1
+var _dragging: bool = true
+var _last_angle: float = 0.0
+var _accel: float = 1.0
+var _flash: bool = false
+var _dial_angle: float = 0.0
+
+@onready var _dial := $DialArea
+@onready var _label: Label = $DialArea/ValueLabel
+@onready var _input_panel: PopupPanel = $DialArea/InputPanel as PopupPanel
+
+
+func _ready() -> void:
+    _label.text = str(ds_value)
+    _dial.gui_input.connect(_on_dial_input)
+    $DialArea/ValueLabel.gui_input.connect(_on_label_input)
+    _dial.spinner = self
+    _dial.queue_redraw()
+    _build_keypad()
+    _input_panel.hide()
+    exclusive = false
+    get_ok_button().hide()
+    var transparent_stylebox = StyleBoxFlat.new()
+    transparent_stylebox.bg_color = Color(0, 0, 0, 0)
+    add_theme_stylebox_override("panel", transparent_stylebox)
+    #$DialArea/InputPanel.add_theme_stylebox_override("panel", transparent_stylebox)
+    self.hide()
+
+
+
+func _build_keypad() -> void:
+    var grid := GridContainer.new()
+    grid.columns = 3
+    _input_panel.add_child(grid)
+    var order := ["7", "8", "9", "4", "5", "6", "1", "2", "3", "DEL", "0", "OK"]
+    for key in order:
+        var btn := Button.new()
+        if key == "DEL":
+            btn.text = "\u232b"
+        elif key == "OK":
+            btn.text = "\u2714"
+        else:
+            btn.text = key
+        btn.custom_minimum_size = Vector2(80, 80)
+        btn.add_theme_font_size_override("font_size", 32)
+        grid.add_child(btn)
+        if key.is_valid_int():
+            btn.pressed.connect(_on_key.bind(key))
+        elif key == "OK":
+            btn.pressed.connect(_on_ok_pressed)
+        else:
+            btn.pressed.connect(_on_del_pressed)
+
+
+func _on_label_input(event: InputEvent) -> void:
+    if event is InputEventMouseButton and event.pressed:
+        _input_panel.popup_centered()
+        event.accept()
+
+
+func _on_key(ch: String) -> void:
+    var s := str(ds_value)
+    if s == "0":
+        s = ""
+    s += ch
+    var v: int = clamp(int(s), 0, ds_max_value)
+    ds_value = v
+    _update_label()
+
+
+func _on_ok_pressed() -> void:
+    _input_panel.hide()
+
+
+func _on_del_pressed() -> void:
+    var s := str(ds_value)
+    if s.length() > 1:
+        s = s.substr(0, s.length() - 1)
+    else:
+        s = "0"
+    ds_value = int(s)
+    _update_label()
+
+
+func _on_dial_input(event: InputEvent) -> void:
+    if event is InputEventMouseButton or event is InputEventScreenTouch:
+        if event.pressed:
+            _dragging = true
+            _last_angle = _pos_angle(event.position)
+            _accel = 1.0
+        else:
+            _dragging = false
+            hide()
+            emit_signal("confirmed")
+    elif event is InputEventMouseMotion and _dragging:
+        var angle := _pos_angle(event.position)
+        var delta := angle - _last_angle
+        delta = wrapf(delta, -PI, PI)
+        _last_angle = angle
+        var step := int(delta * 30.0 * _accel)
+        if step != 0:
+            _set_value(ds_value + step)
+            _accel *= ds_accel_factor
+
+
+func _pos_angle(pos: Vector2) -> float:
+    var center: Vector2 = _dial.size / 2
+    return atan2(pos.y - center.y, pos.x - center.x)
+
+
+func _set_value(v: int) -> void:
+    var new_val: int = clamp(v, 0, ds_max_value)
+    if new_val == ds_value:
+        return
+    var diff: int = new_val - ds_value
+    ds_value = new_val
+    _flash = not _flash
+    _dial_angle += diff * 0.05
+    _update_label()
+    _pulse()
+    _dial.queue_redraw()
+
+
+func _update_label() -> void:
+    _label.text = str(ds_value)
+
+
+func _pulse() -> void:
+    _label.scale = Vector2.ONE
+    var tw := create_tween()
+    tw.tween_property(_label, "scale", Vector2(1.2, 1.2), 0.1)
+    tw.tween_property(_label, "scale", Vector2.ONE, 0.2).set_delay(0.1)
+
+
+func open_dial(size: Vector2i = Vector2i()) -> void:
+    _update_label()
+    _input_panel.hide()
+    _flash = false
+    _dial.queue_redraw()
+    popup_centered(size)
+
+
+func open_dial_at(center: Vector2, size: Vector2i = Vector2i()) -> void:
+    _update_label()
+    _input_panel.hide()
+    _flash = false
+    _dial.queue_redraw()
+    position = center - Vector2(size if size != Vector2i() else self.size) / 2
+    popup()
+
+
+func _input(event: InputEvent) -> void:
+    if not visible:
+        return
+    if event is InputEventMouseButton or event is InputEventScreenTouch:
+        if not event.pressed:
+            hide()
+            emit_signal("confirmed")
+
+
+--- Script: res://scripts/dial_spinner_dial.gd ---
+extends Control
+
+var spinner: DialSpinner
+
+
+func _draw() -> void:
+    if spinner == null:
+        return
+    var center: Vector2 = size / 2
+    var radius: float = min(size.x, size.y) / 5
+    var segs := 20
+    var seg_angle := TAU / segs
+    for i in range(segs):
+        var c: Color = (
+            Color(0.4, 0.6, 1.0) if (i + int(spinner._flash)) % 2 == 0 else Color(0.6, 0.4, 1.0)
+        )
+        var a0 := seg_angle * i + spinner._dial_angle
+        var a1 := a0 + seg_angle
+        draw_arc(center, radius, a0, a1, segs, c, 100)
+
+
+--- Script: res://scripts/dice_parser.gd ---
+#
+# LIVEdie/scripts/dice_parser.gd
+# Key Classes      • DiceParser – evaluate dice notation
+# Key Functions    • evaluate() – evaluate dice expression
+# Critical Consts  • DP_DICE_RE – regex for dice pattern
+# Dependencies     • none
+# Last Major Rev   • 24-04-XX – initial version
+###############################################################
+class_name DiceParser
+extends RefCounted
+
+var dp_dice_re := RegEx.new()
+var dp_condition_re := RegEx.new()
+
+var dp_rng := RandomNumberGenerator.new()
+
+
+func _init() -> void:
+    dp_dice_re.compile("^(?P<count>\\d*)d(?P<faces>\\d+|%)")
+    dp_condition_re.compile("([<>!=]=?|==)(\\d+)$")
+    dp_rng.randomize()
+
+
+func _dp_is_digit(c: String) -> bool:
+    return c >= "0" and c <= "9"
+
+
+func evaluate(expr: String, seed: int = -1) -> Dictionary:
+    var clean := expr.strip_edges().replace(" ", "")
+    if seed != -1:
+        dp_rng.seed = seed
+    var parsed := _dp_parse_expression(clean)
+    var total = _dp_eval_node(parsed)
+    var result := {
+        "total": total, "rolls": parsed.get("rolls", []), "successes": parsed.get("successes", null)
+    }
+    return result
+
+
+func _dp_eval_condition(val: int, cond: Dictionary) -> bool:
+    match cond["op"]:
+        "==":
+            return val == cond["num"]
+        "!=":
+            return val != cond["num"]
+        ">=":
+            return val >= cond["num"]
+        "<=":
+            return val <= cond["num"]
+        ">":
+            return val > cond["num"]
+        "<":
+            return val < cond["num"]
+    return false
+
+
+func _dp_check(val: int, cond: String) -> bool:
+    var m := dp_condition_re.search(cond)
+    if m:
+        var op := m.get_string(1)
+        var num := int(m.get_string(2))
+        match op:
+            "==":
+                return val == num
+            "!=":
+                return val != num
+            ">=":
+                return val >= num
+            "<=":
+                return val <= num
+            ">":
+                return val > num
+            "<":
+                return val < num
+    return false
+
+
+func _dp_parse_expression(text: String, index: int = 0) -> Dictionary:
+    var node := _dp_parse_term(text, index)
+    index = node["index"]
+    while index < text.length():
+        var op := text[index]
+        if op != "+" and op != "-":
+            break
+        index += 1
+        var right := _dp_parse_term(text, index)
+        index = right["index"]
+        node = {"type": "op", "op": op, "left": node, "right": right}
+    node["index"] = index
+    return node
+
+
+func _dp_parse_term(text: String, index: int) -> Dictionary:
+    var node := _dp_parse_factor(text, index)
+    index = node["index"]
+    while index < text.length():
+        var op := text[index]
+        if op != "*" and op != "/":
+            break
+        index += 1
+        var right := _dp_parse_factor(text, index)
+        index = right["index"]
+        node = {"type": "op", "op": op, "left": node, "right": right}
+    node["index"] = index
+    return node
+
+
+func _dp_parse_factor(text: String, index: int) -> Dictionary:
+    if text[index] == "(":
+        index += 1
+        var node := _dp_parse_expression(text, index)
+        index = node["index"]
+        if index >= text.length() or text[index] != ")":
+            push_error("Unmatched parentheses")
+            return {"type": "num", "value": 0, "index": index}
+        index += 1
+        node["index"] = index
+        return node
+    return _dp_parse_number_or_dice(text, index)
+
+
+func _dp_parse_number_or_dice(text: String, index: int) -> Dictionary:
+    var start := index
+    while index < text.length() and _dp_is_digit(text[index]):
+        index += 1
+    var digits := text.substr(start, index - start)
+    var has_d := index < text.length() and (text[index] == "d" or text[index] == "D")
+    if not has_d:
+        return {"type": "num", "value": int(digits), "index": index}
+    var count := 1
+    if digits != "":
+        count = int(digits)
+    index += 1
+    var faces_start := index
+    while index < text.length() and (_dp_is_digit(text[index]) or text[index] == "%"):
+        index += 1
+    var faces_str := text.substr(faces_start, index - faces_start)
+    if faces_str == "%":
+        faces_str = "100"
+    var faces := int(faces_str)
+    if count <= 0 or faces <= 1:
+        push_error("Illegal dice size: %s" % text.substr(start, index - start))
+    var mods := {}
+    while index < text.length():
+        var c := text[index]
+        if c == "!":
+            var recursive := false
+            index += 1
+            if index < text.length() and text[index] == "!":
+                recursive = true
+                index += 1
+            mods["explode"] = recursive
+            continue
+        elif c == "k" or c == "d":
+            var keep := c == "k"
+            index += 1
+            var high := true
+            if index < text.length() and (text[index] == "h" or text[index] == "l"):
+                high = text[index] == "h"
+                index += 1
+            var num_start := index
+            while index < text.length() and _dp_is_digit(text[index]):
+                index += 1
+            var num := int(text.substr(num_start, index - num_start))
+            var key := "drop"
+            if keep:
+                key = "keep"
+            mods[key] = {"high": high, "count": num}
+            continue
+        elif c == "r" or c == "R":
+            var indefinite := c == "R"
+            index += 1
+            var once := false
+            if index < text.length() and text[index] == "o":
+                once = true
+                index += 1
+            var cond_start := index
+            while index < text.length() and text[index] in ["<", ">", "=", "!"]:
+                index += 1
+            while index < text.length() and _dp_is_digit(text[index]):
+                index += 1
+            var cond_str := text.substr(cond_start, index - cond_start)
+            if (
+                cond_str != ""
+                and not cond_str.begins_with("<")
+                and not cond_str.begins_with(">")
+                and not cond_str.begins_with("=")
+                and not cond_str.begins_with("!")
+            ):
+                cond_str = "==" + cond_str
+            mods["reroll"] = {"indef": indefinite, "once": once, "cond": cond_str}
+            continue
+        elif c == "s":
+            index += 1
+            var mode := "asc"
+            if index < text.length() and (text[index] == "a" or text[index] == "d"):
+                if text[index] == "d":
+                    mode = "desc"
+                else:
+                    mode = "asc"
+                index += 1
+            mods["sort"] = mode
+            continue
+        else:
+            break
+    var cond := _dp_parse_condition(text, index)
+    index = cond.get("index", index)
+    return {
+        "type": "dice",
+        "count": count,
+        "faces": faces,
+        "mods": mods,
+        "condition": cond.get("cond", null),
+        "index": index
+    }
+
+
+func _dp_parse_condition(text: String, index: int) -> Dictionary:
+    if index >= text.length():
+        return {"index": index}
+    var remain := text.substr(index)
+    var match := dp_condition_re.search(remain)
+    if match and match.get_start() == 0:
+        var op := match.get_string(1)
+        var num := int(match.get_string(2))
+        index += match.get_end()
+        return {"cond": {"op": op, "num": num}, "index": index}
+    return {"index": index}
+
+
+func _dp_eval_node(node):
+    if node["type"] == "num":
+        return node["value"]
+    elif node["type"] == "op":
+        var l = _dp_eval_node(node["left"])
+        var r = _dp_eval_node(node["right"])
+        var result := 0
+        match node["op"]:
+            "+":
+                result = l + r
+            "-":
+                result = l - r
+            "*":
+                result = l * r
+            "/":
+                result = int(l / r)
+        node["rolls"] = []
+        var succ_total := 0
+        var succ_found := false
+        if typeof(node["left"]) == TYPE_DICTIONARY:
+            if node["left"].has("rolls"):
+                node["rolls"] += node["left"]["rolls"]
+            if node["left"].has("successes") and node["left"]["successes"] != null:
+                succ_total += int(node["left"]["successes"])
+                succ_found = true
+        if typeof(node["right"]) == TYPE_DICTIONARY:
+            if node["right"].has("rolls"):
+                node["rolls"] += node["right"]["rolls"]
+            if node["right"].has("successes") and node["right"]["successes"] != null:
+                succ_total += int(node["right"]["successes"])
+                succ_found = true
+        if succ_found:
+            node["successes"] = succ_total
+        return result
+    elif node["type"] == "dice":
+        var rolls := []
+        for i in node["count"]:
+            var v := dp_rng.randi_range(1, node["faces"])
+            if node["mods"].has("reroll"):
+                var rr = node["mods"]["reroll"]
+                if _dp_check(v, rr["cond"]):
+                    if rr["once"]:
+                        v = dp_rng.randi_range(1, node["faces"])
+                    else:
+                        var limit := 100 if rr["indef"] else 1
+                        var tries := 0
+                        while _dp_check(v, rr["cond"]) and tries < limit:
+                            v = dp_rng.randi_range(1, node["faces"])
+                            tries += 1
+            rolls.append(v)
+        if node["mods"].has("explode"):
+            var exploding := true
+            while exploding:
+                exploding = false
+                for i in range(rolls.size()):
+                    if rolls[i] == node["faces"]:
+                        var new_val := dp_rng.randi_range(1, node["faces"])
+                        rolls.append(new_val)
+                        exploding = node["mods"]["explode"]
+        if node["mods"].has("sort"):
+            if node["mods"]["sort"] == "asc":
+                rolls.sort()
+            elif node["mods"]["sort"] == "desc":
+                rolls.sort()
+                rolls.reverse()
+        if node["mods"].has("keep"):
+            var opt = node["mods"]["keep"]
+            rolls.sort()
+            if opt["high"]:
+                rolls = rolls.slice(rolls.size() - opt["count"], rolls.size())
+            else:
+                rolls = rolls.slice(0, opt["count"])
+        if node["mods"].has("drop"):
+            var opt2 = node["mods"]["drop"]
+            rolls.sort()
+            if opt2["high"]:
+                rolls = rolls.slice(0, rolls.size() - opt2["count"])
+            else:
+                rolls = rolls.slice(opt2["count"], rolls.size())
+        var sum := 0
+        for v in rolls:
+            sum += v
+        node["rolls"] = rolls
+        if node.has("condition") and node["condition"] != null:
+            var cond = node["condition"]
+            var cond_str := str(cond["op"]) + str(cond["num"])
+            var success_count := 0
+            for val in rolls:
+                if _dp_check(val, cond_str):
+                    success_count += 1
+            node["successes"] = success_count
+        return sum
+    return 0
+
+
+--- Script: res://scripts/DieGlyphButton.gd ---
+###############################################################
+# LIVEdie/scripts/DieGlyphButton.gd
+# Godot 4.4.1  –  Glyph dice button (80 × 80).
+###############################################################
+extends Button
+
+# ───────── Glyph table ───────────────────────────────────────
+const GLYPH_MAP: Dictionary = {
+    2: "💰", 4: "▲",
+    6: "■", 8: "⬟",
+    10: "⬙", 12: "⬢", 20: "✪",
+    100: "✪"            # D%
+}
+
+# ───────── Backing fields (typed) ────────────────────────────
+var _die_faces        : int    = 4
+var _override_glyph   : String = ""
+var _glyph_color      : Color  = Color("#333333")
+var _number_color     : Color  = Color.WHITE
+var _glyph_font_size  : int    = 54
+var _number_font_size : int    = 28
+var _glyph_font       : Font   = null
+var _number_font      : Font   = null
+var _font_scale       : float  = 1.0
+
+# runtime labels (null until _ready)
+var glyph_label: Label = null
+var num_label  : Label = null
+
+# ───────── Exported properties ──────────────────────────────
+@export var die_faces: int:
+    get: return _die_faces
+    set(value):
+        _die_faces = max(1, value)
+        _refresh_visuals()
+
+@export var override_glyph: String:
+    get: return _override_glyph
+    set(value):
+        _override_glyph = value
+        _refresh_visuals()
+
+@export var glyph_color: Color:
+    get: return _glyph_color
+    set(value):
+        _glyph_color = value
+        if glyph_label != null:
+            glyph_label.modulate = _glyph_color
+
+@export var number_color: Color:
+    get: return _number_color
+    set(value):
+        _number_color = value
+        if num_label != null:
+            num_label.modulate = _number_color
+
+@export var glyph_font_size: int:
+    get: return _glyph_font_size
+    set(value):
+        _glyph_font_size = value
+        _apply_fonts()
+
+@export var number_font_size: int:
+    get: return _number_font_size
+    set(value):
+        _number_font_size = value
+        _apply_fonts()
+
+@export var glyph_font: Font:
+    get: return _glyph_font
+    set(value):
+        _glyph_font = value
+        _apply_fonts()
+
+@export var number_font: Font:
+    get: return _number_font
+    set(value):
+        _number_font = value
+        _apply_fonts()
+
+@export var font_scale: float:
+    get: return _font_scale
+    set(value):
+        _font_scale = clamp(value, 0.25, 4.0)
+        _apply_fonts()
+
+# ───────── Ready ────────────────────────────────────────────
+func _ready() -> void:
+    # Hide built-in Button text completely
+    text = ""
+    _clear_builtin_font_colors()
+
+    # Overlay labels
+    glyph_label = _make_center_label()
+    num_label   = _make_center_label()
+    add_child(glyph_label)
+    add_child(num_label)
+
+    _refresh_visuals()
+
+# ───────── Helpers ──────────────────────────────────────────
+func _clear_builtin_font_colors() -> void:
+    var clear: Color = Color(0, 0, 0, 0)
+    add_theme_color_override("font_color",          clear)
+    add_theme_color_override("font_hover_color",    clear)
+    add_theme_color_override("font_pressed_color",  clear)
+    add_theme_color_override("font_focus_color",    clear)
+    add_theme_color_override("font_disabled_color", clear)
+
+func _make_center_label() -> Label:
+    var l: Label = Label.new()
+    l.anchor_left   = 0.0
+    l.anchor_top    = 0.0
+    l.anchor_right  = 1.0
+    l.anchor_bottom = 1.0
+    l.offset_left   = 0.0
+    l.offset_top    = 0.0
+    l.offset_right  = 0.0
+    l.offset_bottom = 0.0
+    l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    l.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+    l.mouse_filter         = Control.MOUSE_FILTER_IGNORE
+    return l
+
+# ───────── Visual refresh ───────────────────────────────────
+func _refresh_visuals() -> void:
+    var chosen: String
+
+    if _override_glyph.strip_edges() != "":
+        chosen = _override_glyph
+    else:
+        if GLYPH_MAP.has(_die_faces):
+            chosen = GLYPH_MAP[_die_faces]
+        else:
+            chosen = "✪"
+
+    if glyph_label != null:
+        glyph_label.text     = chosen
+        glyph_label.modulate = _glyph_color
+
+    if num_label != null:
+        num_label.text       = str(_die_faces)
+        num_label.modulate   = _number_color
+
+    _apply_fonts()
+
+# ───────── Font application ─────────────────────────────────
+func _apply_fonts() -> void:
+    var g_pt: int = int(_glyph_font_size  * _font_scale)
+    var n_pt: int = int(_number_font_size * _font_scale)
+
+    if glyph_label != null:
+        glyph_label.add_theme_font_override("font", _glyph_font)
+        glyph_label.add_theme_font_size_override("font_size", g_pt)
+
+    if num_label != null:
+        num_label.add_theme_font_override("font", _number_font)
+        num_label.add_theme_font_size_override("font_size", n_pt)
+
+
+--- Script: res://scripts/quick_roll_bar.gd ---
+###############################################################
+# LIVEdie/scripts/quick_roll_bar.gd
+# Unified Quick-Roll Bar  •  Godot 4.4.1
+###############################################################
+extends VBoxContainer
+class_name QuickRollBar
+
+# ───────── Inspector knobs ───────────────────────────────────
+@export_range(1.0, 3.0, 0.05) var ui_scale        : float = 1.0
+@export                   var chip_font_size     : int   = 28
+@export                   var button_font_size   : int   = 35
+@export                   var roll_font_size     : int   = 28
+
+# ───────── Internal state ────────────────────────────────────
+var _queue      : Array[Dictionary] = []   # {faces:int, count:int}
+var _last_faces : int   = 0
+
+var _lp_type     : String = ""             # "die" | "repeat"
+var _lp_param    : int    = 0
+var _lp_triggered: bool   = false
+var _lp_button   : Button
+
+# superscript lookup
+const SUPER: Dictionary = {
+    "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴",
+    "5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"
+}
+
+# ───────── Scene caches (typed) ──────────────────────────────
+@onready var _std_row : HFlowContainer  = $StandardRow
+@onready var _adv_row : HFlowContainer  = $AdvancedRow
+@onready var _rep_row : HFlowContainer  = $RepeaterRow
+
+@onready var _chip_box : HBoxContainer  = $QueueRow/HScroll/DiceChips
+@onready var _preview  : AcceptDialog   = $PreviewDialog
+@onready var _spinner  : AcceptDialog   = $DialSpinner     # DialSpinner scene extends AcceptDialog
+@onready var _lp_timer : Timer          = $LongPressTimer
+
+@onready var _history_btn: Button            = $"../HistoryButton"
+@onready var _history_pan: RollHistoryPanel  = $"../RollHistoryPanel"
+
+# ───────── Ready ────────────────────────────────────────────
+func _ready() -> void:
+    _connect_all_dice_buttons()
+    _connect_repeat_buttons()
+
+    _std_row.get_node("AdvancedToggle").pressed.connect(_on_toggle_advanced)
+    _rep_row.get_node("RollButton").pressed.connect(_on_roll_pressed)
+    _rep_row.get_node("DelButton").pressed.connect(_on_del_pressed)
+    _rep_row.get_node("DieX").pressed.connect(_on_custom_die)
+
+    _lp_timer.timeout.connect(_on_long_press_timeout)
+    _preview.confirmed.connect(_on_preview_ok)
+    _spinner.confirmed.connect(_on_spinner_ok)
+    _history_btn.pressed.connect(_on_history_toggle)
+
+    _apply_ui_scale()
+
+# ───────── Dice discovery / binding ─────────────────────────
+func _connect_all_dice_buttons() -> void:
+    for row: HFlowContainer in [_std_row, _adv_row]:
+        for child: Node in row.get_children():
+            var faces: int = _faces_from_button(child)
+            if faces > 0 and child is Button:
+                var btn: Button = child
+                btn.button_down.connect(_on_die_down.bind(faces, btn))
+                btn.button_up.connect(_on_die_up.bind(faces, btn))
+
+func _faces_from_button(btn: Node) -> int:
+    # 1) property 'die_faces' (for DieGlyphButton)
+    if btn.has_method("get"):
+        for p: Dictionary in btn.get_property_list():
+            if p.name == "die_faces":
+                var f: int = btn.get("die_faces")
+                if f > 0:
+                    return f
+    # 2) legacy text parsing
+    if btn is Button:
+        return _faces_from_text(btn.text)
+    return 0
+
+func _faces_from_text(t: String) -> int:
+    if t == "D%": return 100
+    if t.begins_with("D") and t.substr(1).is_valid_int():
+        return int(t.substr(1))
+    return 0
+
+# ───────── Queue helpers ────────────────────────────────────
+func _add_die(faces: int, qty: int) -> void:
+    if _queue.is_empty() or _queue[-1].faces != faces:
+        _queue.append({faces = faces, count = qty})
+    else:
+        _queue[-1].count += qty
+    _last_faces = faces
+    _refresh_queue()
+
+func _refresh_queue() -> void:
+    for c: Node in _chip_box.get_children():
+        c.queue_free()
+    if _queue.is_empty():
+        $QueueRow.hide()
+        return
+    $QueueRow.show()
+    for e: Dictionary in _queue:
+        var lbl := Label.new()
+        lbl.text = "D%d×%d" % [e.faces, e.count]
+        lbl.custom_minimum_size = Vector2(90, 40) * ui_scale
+        lbl.add_theme_font_size_override("font_size", chip_font_size * ui_scale)
+        lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        _chip_box.add_child(lbl)
+
+# ───────── Repeat buttons (x2,x3,…) ─────────────────────────
+func _connect_repeat_buttons() -> void:
+    for n: Node in _rep_row.get_children():
+        if n is Button and n.name.begins_with("X"):
+            var b: Button = n
+            var mult: int = int(b.text.substr(1))
+            b.button_down.connect(_on_repeat_down.bind(mult, b))
+            b.button_up.connect(_on_repeat_up.bind(mult, b))
+
+func _apply_repeater(mult: int) -> void:
+    if _last_faces == 0: return
+    if not _queue.is_empty() and _queue[-1].faces == _last_faces and _queue[-1].count == 1:
+        _queue[-1].count = mult
+    else:
+        _add_die(_last_faces, mult)
+    _refresh_queue()
+
+# ───────── Long-press flow ──────────────────────────────────
+func _on_die_down(faces: int, btn: Button) -> void:
+    _lp_type = "die"; _lp_param = faces; _lp_button = btn
+    _lp_triggered = false; _lp_timer.start()
+
+func _on_die_up(faces: int, _btn: Button) -> void:
+    if _lp_timer.time_left > 0.0:
+        _lp_timer.stop(); _add_die(faces, 1)
+    elif not _lp_triggered:
+        _add_die(faces, 1)
+
+func _on_repeat_down(mult: int, btn: Button) -> void:
+    _lp_type = "repeat"; _lp_param = mult; _lp_button = btn
+    _lp_triggered = false; _lp_timer.start()
+
+func _on_repeat_up(mult: int, _btn: Button) -> void:
+    if _lp_timer.time_left > 0.0:
+        _lp_timer.stop(); _apply_repeater(mult)
+    elif not _lp_triggered:
+        _apply_repeater(mult)
+
+func _on_long_press_timeout() -> void:
+    _lp_triggered = true
+    if _lp_type == "repeat":
+        _show_preview(_lp_param)
+    else: # "die"
+        _spinner.ds_value = 1
+        _spinner.open_dial_at(_lp_button.get_global_rect().get_center())
+
+# ───────── Preview & spinner ────────────────────────────────
+func _show_preview(mult: int) -> void:
+    var parts: Array[String] = []
+    for e: Dictionary in _queue:
+        parts.append("d%s%s" % [e.faces, _superscript(e.count * mult)])
+    _preview.dialog_text = "×%d  →  %s" % [mult, " + ".join(parts)]
+    _preview.popup_centered()
+
+func _superscript(n: int) -> String:
+    var out: String = ""
+    for ch: String in str(n):
+        out += SUPER.get(ch, ch)
+    return out
+
+func _on_preview_ok() -> void:
+    for e: Dictionary in _queue:
+        e.count *= _lp_param
+    _refresh_queue()
+
+func _on_spinner_ok() -> void:
+    _add_die(_lp_param, int(_spinner.ds_value))
+
+# ───────── Custom DX? button ────────────────────────────────
+func _on_custom_die() -> void:
+    _spinner.ds_value = 4
+    _spinner.open_dial_at(Vector2.ZERO)
+    _spinner.confirmed.connect(
+        func() -> void:
+            var f: int = int(_spinner.ds_value)
+            _add_die(f, 1),
+        Object.CONNECT_ONE_SHOT
+    )
+
+# ───────── Delete / Roll / History ──────────────────────────
+func _on_del_pressed() -> void:
+    if _queue.is_empty(): return
+    _queue.pop_back()
+    _last_faces = _queue[-1].faces if not _queue.is_empty() else 0
+    _refresh_queue()
+
+func _on_roll_pressed() -> void:
+    if _queue.is_empty(): return
+    var expr: String = _queue_to_expression()
+    var parser := DiceParser.new()
+    var res := parser.evaluate(expr)
+    var total :Variant= res.get("total", res)
+    _history_pan.add_entry("%s → %s" % [expr, total])
+    _queue.clear(); _last_faces = 0; _refresh_queue()
+
+func _queue_to_expression() -> String:
+    var parts: Array[String] = []
+    for e: Dictionary in _queue:
+        parts.append("%dd%d" % [e.count, e.faces])
+    return " + ".join(parts)
+
+func _on_history_toggle() -> void:
+    if _history_pan.visible:
+        _history_pan.hide_panel()
+    else:
+        _history_pan.show_panel()
+
+# ───────── UI helpers ───────────────────────────────────────
+func _on_toggle_advanced() -> void:
+    _adv_row.visible = not _adv_row.visible
+
+func _apply_ui_scale() -> void:
+    var btn_size: Vector2 = Vector2(80, 80) * ui_scale
+    for row: HFlowContainer in [_std_row, _adv_row, _rep_row]:
+        row.add_theme_constant_override("separation", int(30 * ui_scale))
+        for node: Node in row.get_children():
+            if node is Button:
+                var b: Button = node
+                b.custom_minimum_size = btn_size
+                var fs: int = button_font_size * ui_scale
+                if b == _rep_row.get_node("RollButton"):
+                    fs = roll_font_size * ui_scale
+                b.add_theme_font_size_override("font_size", fs)
+
+
+--- Script: res://scripts/roll_history_panel.gd ---
+###############################################################
+# LIVEdie/scripts/roll_history_panel.gd
+# Key Classes      • RollHistoryPanel – slide-up drawer for rolls
+# Key Functions    • add_entry() – append log entry
+#                   show_panel() – open drawer
+#                   hide_panel() – close drawer
+# Dependencies     • none
+# Last Major Rev   • 24-06-XX – initial implementation
+###############################################################
+class_name RollHistoryPanel
+extends PanelContainer
+
+@export var rhp_entry_font_size: int = 24
+
+@onready var _entries: VBoxContainer = $Scroll/Entries
+
+
+func add_entry(text: String) -> void:
+    var label := Label.new()
+    label.text = text
+    label.custom_minimum_size.y = 48
+    label.add_theme_font_size_override("font_size", rhp_entry_font_size)
+    _entries.add_child(label)
+    _entries.move_child(label, 0)
+    $Scroll.scroll_vertical = 0
+
+
+func show_panel() -> void:
+    show()
+
+
+func hide_panel() -> void:
+    hide()
+
+
+--- Script: res://scripts/Tools/ZGatherGD.gd ---
+extends Node
+
+
+--- Script: res://tests/test_dice_parser.gd ---
+#
+# LIVEdie/tests/test_dice_parser.gd
+# Test suite for DiceParser
+###############################################################
+extends SceneTree
+
+
+func _initialize() -> void:
+    var parser = DiceParser.new()
+    var res = parser.evaluate("2d6")
+    assert(res["total"] >= 2 and res["total"] <= 12)
+
+    res = parser.evaluate("4d6kh3")
+    assert(res["total"] >= 3 and res["total"] <= 18)
+
+    res = parser.evaluate("1d4!!")
+    assert(res["total"] >= 1)
+
+    res = parser.evaluate("3d6>=4")
+    assert(res["successes"] >= 0 and res["successes"] <= 3)
+
+    res = parser.evaluate("2d6ro1", 9)
+    assert(res["total"] == 8)
+
+    res = parser.evaluate("4d6>=5", 2)
+    assert(res["successes"] == 1)
+
+    res = parser.evaluate("8d10>=7", 42)
+    assert(res["successes"] >= 0 and res["successes"] <= 8)
+
+    print("All dice parser tests passed")
+    quit()
+
