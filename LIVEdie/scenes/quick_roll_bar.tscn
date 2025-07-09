@@ -95,38 +95,38 @@ alignment = 1
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D4"
+text = "▲"
 
 [node name="Die6" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D6"
+text = "■"
 
 [node name="Die8" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D8"
+text = "⬟"
 
 [node name="Die10" type="Button" parent="QuickRollBar/StandardRow"]
 visible = false
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D10"
+text = "⬙"
 
 [node name="Die12" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D12"
+text = "⬢"
 
 [node name="Die20" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "D20"
+text = "✪"
 
 [node name="Die100" type="Button" parent="QuickRollBar/StandardRow"]
 custom_minimum_size = Vector2(80, 0)

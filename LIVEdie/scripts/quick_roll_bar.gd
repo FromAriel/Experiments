@@ -23,6 +23,15 @@ const QRB_SUPERSCRIPTS := {
     "9": "\u2079"
 }
 
+const QRB_DIE_SHAPES := {
+    4: "▲",
+    6: "■",
+    8: "⬟",
+    10: "⬙",
+    12: "⬢",
+    20: "✪",
+}
+
 @export_range(1.0, 3.0, 0.01) var qrb_size_index: float = 2.0:
     set(value):
         qrb_size_index = clamp(value, 1.0, 3.0)
@@ -32,6 +41,10 @@ const QRB_SUPERSCRIPTS := {
 @export var qrb_button_font_size: int = 35
 @export var qrb_roll_font_size: int = 28
 @export var qrb_chip_font_size: int = 24
+@export var qrb_die_font_size: int = 35
+@export var qrb_number_font_size: int = 20
+@export var qrb_die_color: Color = Color(1, 1, 1)
+@export var qrb_number_color: Color = Color(0, 0, 0)
 
 var qrb_queue: Array = []
 var qrb_last_faces: int = 0
@@ -55,6 +68,8 @@ var qrb_faces_commit: bool = false
 func _ready() -> void:
     _connect_dice_buttons($StandardRow)
     _connect_dice_buttons($AdvancedRow)
+    _qrb_setup_die_buttons($StandardRow)
+    _qrb_setup_die_buttons($AdvancedRow)
     $StandardRow/AdvancedToggle.pressed.connect(_on_toggle_advanced)
     $RepeaterRow/RollButton.pressed.connect(_on_roll_pressed)
     _connect_repeat_buttons()
@@ -80,6 +95,29 @@ func _connect_dice_buttons(row: Container) -> void:
             var faces := int(node.text.substr(1).replace("%", "100"))
             node.button_down.connect(_on_die_down.bind(faces, node))
             node.button_up.connect(_on_die_up.bind(faces, node))
+
+
+func _qrb_setup_die_buttons(row: Container) -> void:
+    for node in row.get_children():
+        if node is Button and node.text != "DX?" and node.text.begins_with("D"):
+            var faces := int(node.text.substr(1).replace("%", "100"))
+            node.set_meta("faces", faces)
+            if QRB_DIE_SHAPES.has(faces):
+                node.text = QRB_DIE_SHAPES[faces]
+            var label := Label.new()
+            label.name = "Number"
+            if faces == 100:
+                label.text = "%"
+            else:
+                label.text = str(faces)
+            label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+            label.anchor_left = 0.0
+            label.anchor_top = 0.0
+            label.anchor_right = 1.0
+            label.anchor_bottom = 1.0
+            label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+            label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+            node.add_child(label)
 
 
 func _connect_repeat_buttons() -> void:
@@ -369,6 +407,28 @@ func _qrb_all_buttons() -> Array:
     return result
 
 
+func _qrb_update_die_styles() -> void:
+    var scale: float = qrb_size_index
+    var die_font := int(qrb_die_font_size * scale)
+    var num_font := int(qrb_number_font_size * scale)
+    for btn in $StandardRow.get_children():
+        if btn is Button and btn.has_meta("faces"):
+            btn.add_theme_font_size_override("font_size", die_font)
+            btn.add_theme_color_override("font_color", qrb_die_color)
+            var lbl := btn.get_node_or_null("Number")
+            if lbl:
+                lbl.add_theme_font_size_override("font_size", num_font)
+                lbl.add_theme_color_override("font_color", qrb_number_color)
+    for btn in $AdvancedRow.get_children():
+        if btn is Button and btn.has_meta("faces"):
+            btn.add_theme_font_size_override("font_size", die_font)
+            btn.add_theme_color_override("font_color", qrb_die_color)
+            var lbl := btn.get_node_or_null("Number")
+            if lbl:
+                lbl.add_theme_font_size_override("font_size", num_font)
+                lbl.add_theme_color_override("font_color", qrb_number_color)
+
+
 func _qrb_apply_scale() -> void:
     var scale: float = qrb_size_index
     var base: Vector2 = Vector2(80, 80) * scale
@@ -384,3 +444,4 @@ func _qrb_apply_scale() -> void:
         if btn == $RepeaterRow/RollButton:
             size = roll_font
         btn.add_theme_font_size_override("font_size", size)
+    _qrb_update_die_styles()
