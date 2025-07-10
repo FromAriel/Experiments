@@ -137,3 +137,15 @@ QRTab (Control)
 ---
 
 **End Blueprint**
+
+## Running the Project
+
+1. Open Godot in `LIVEdie/GOGOT/`:
+
+   ```bash
+   godot --editor LIVEdie/GOGOT
+   ```
+
+2. Set `res://scenes/MainUI.tscn` as the main scene or run it directly from the editor.
+
+This repository contains only layout scaffolding and placeholder scripts. Gameplay and dice logic are planned for future updates.
