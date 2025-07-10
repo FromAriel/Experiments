@@ -1,0 +1,169 @@
+[gd_scene load_steps=1 format=3 uid="uid://mainui"]
+
+[node name="MainUI" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_minimum_size = Vector2(1080, 1920)
+
+[node name="TopBar" type="PanelContainer" parent="."]
+anchor_right = 1.0
+offset_bottom = 120
+
+[node name="BarHBox" type="HBoxContainer" parent="TopBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TitleLabel" type="Label" parent="TopBar/BarHBox"]
+text = "LIVEdie"
+
+[node name="Spacer" type="Control" parent="TopBar/BarHBox"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+
+[node name="IconBattery" type="TextureRect" parent="TopBar/BarHBox"]
+custom_minimum_size = Vector2(32, 32)
+
+[node name="IconLock" type="TextureRect" parent="TopBar/BarHBox"]
+custom_minimum_size = Vector2(32, 32)
+
+[node name="DicePad" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 120
+offset_bottom = -960
+custom_minimum_size = Vector2(0, 700)
+
+[node name="QtyRow" type="HBoxContainer" parent="DicePad"]
+anchor_right = 1.0
+
+[node name="Qty1" type="Button" parent="DicePad/QtyRow"]
+text = "1×"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="Qty2" type="Button" parent="DicePad/QtyRow"]
+text = "2×"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="Qty3" type="Button" parent="DicePad/QtyRow"]
+text = "3×"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="Qty4" type="Button" parent="DicePad/QtyRow"]
+text = "4×"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="Qty5" type="Button" parent="DicePad/QtyRow"]
+text = "5×"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="Qty10" type="Button" parent="DicePad/QtyRow"]
+text = "10×"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="CommonDiceRow" type="HBoxContainer" parent="DicePad"]
+anchor_right = 1.0
+
+[node name="D4" type="Button" parent="DicePad/CommonDiceRow"]
+text = "D4"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="D6" type="Button" parent="DicePad/CommonDiceRow"]
+text = "D6"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="D8" type="Button" parent="DicePad/CommonDiceRow"]
+text = "D8"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="D10" type="Button" parent="DicePad/CommonDiceRow"]
+text = "D10"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="D12" type="Button" parent="DicePad/CommonDiceRow"]
+text = "D12"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="D20" type="Button" parent="DicePad/CommonDiceRow"]
+text = "D20"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="AdvancedRow" type="HBoxContainer" parent="DicePad"]
+anchor_right = 1.0
+
+[node name="D2Btn" type="Button" parent="DicePad/AdvancedRow"]
+text = "D2"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="D100Btn" type="Button" parent="DicePad/AdvancedRow"]
+text = "D100"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="PipeBtn" type="Button" parent="DicePad/AdvancedRow"]
+text = "|"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="DXPromptBtn" type="Button" parent="DicePad/AdvancedRow"]
+text = "DX?"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="RollBtn" type="Button" parent="DicePad/AdvancedRow"]
+text = "ROLL"
+custom_minimum_size = Vector2(120, 80)
+
+[node name="BackspaceBtn" type="Button" parent="DicePad/AdvancedRow"]
+text = "⌫"
+custom_minimum_size = Vector2(80, 80)
+
+[node name="SystemDropdown" type="Button" parent="DicePad"]
+custom_minimum_size = Vector2(48, 48)
+
+[node name="QueueLabel" type="Label" parent="DicePad"]
+custom_minimum_size = Vector2(0, 40)
+
+[node name="LowerPane" type="PanelContainer" parent="."]
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -960
+
+[node name="TabHost" type="TabContainer" parent="LowerPane"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="RollTab" type="Control" parent="LowerPane/TabHost"]
+
+[node name="DiceArea" type="Node2D" parent="LowerPane/TabHost/RollTab"]
+
+[node name="HistoryTab" type="ScrollContainer" parent="LowerPane/TabHost"]
+
+[node name="HistoryVBox" type="VBoxContainer" parent="LowerPane/TabHost/HistoryTab"]
+
+[node name="SystemsTab" type="ScrollContainer" parent="LowerPane/TabHost"]
+
+[node name="SystemVBox" type="VBoxContainer" parent="LowerPane/TabHost/SystemsTab"]
+
+[node name="SettingsTab" type="VBoxContainer" parent="LowerPane/TabHost"]
+
+[node name="ThemeColor" type="ColorPickerButton" parent="LowerPane/TabHost/SettingsTab"]
+
+[node name="FontScaleSlider" type="HSlider" parent="LowerPane/TabHost/SettingsTab"]
+
+[node name="AnimLevelOption" type="OptionButton" parent="LowerPane/TabHost/SettingsTab"]
+
+[node name="SettingsSpacer" type="Control" parent="LowerPane/TabHost/SettingsTab"]
+size_flags_vertical = 3
+
+[node name="KeyboardTab" type="StackContainer" parent="LowerPane/TabHost"]
+
+[node name="PageA" type="GridContainer" parent="LowerPane/TabHost/KeyboardTab"]
+
+[node name="PageB" type="GridContainer" parent="LowerPane/TabHost/KeyboardTab"]
+
+[node name="QRTab" type="Control" parent="LowerPane/TabHost"]
+
+[node name="QRCode" type="TextureRect" parent="LowerPane/TabHost/QRTab"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
