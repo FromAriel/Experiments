@@ -7,6 +7,10 @@ anchors_preset = 0
 
 [node name="PageA" type="GridContainer" parent="."]
 layout_mode = 0
+[node name="LabelA" type="Label" parent="PageA"]
+text = "Numeric Page (A)"
 
 [node name="PageB" type="GridContainer" parent="."]
 layout_mode = 0
+[node name="LabelB" type="Label" parent="PageB"]
+text = "Notation Page (B)"

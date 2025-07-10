@@ -4,6 +4,8 @@
 [node name="SettingsTab" type="VBoxContainer"]
 
 [node name="ThemeColor" type="ColorPickerButton" parent="."]
+[node name="PlaceholderLabel" type="Label" parent="."]
+text = "(Settings placeholder)"
 [node name="FontScaleSlider" type="HSlider" parent="."]
 [node name="AnimLevelOption" type="OptionButton" parent="."]
 [node name="SettingsSpacer" type="Control" parent="."]

@@ -5,3 +5,6 @@
 
 [node name="HistoryVBox" type="VBoxContainer" parent="."]
 ; Each child will be a HistoryItem label
+
+[node name="HistoryPlaceholder" type="Label" parent="HistoryVBox"]
+text = "(History list placeholder)"

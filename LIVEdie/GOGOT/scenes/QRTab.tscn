@@ -6,3 +6,5 @@
 [node name="QRCode" type="TextureRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+[node name="PlaceholderLabel" type="Label" parent="."]
+text = "(QR code placeholder)"

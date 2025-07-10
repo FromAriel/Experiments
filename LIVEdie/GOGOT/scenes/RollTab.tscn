@@ -5,3 +5,6 @@
 
 [node name="DiceArea" type="Node2D" parent="."]
 ; Placeholder Node2D for future 2D/3D dice sprites
+
+[node name="PlaceholderLabel" type="Label" parent="."]
+text = "Roll View (animation)"

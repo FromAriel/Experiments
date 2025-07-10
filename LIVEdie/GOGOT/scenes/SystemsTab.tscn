@@ -5,3 +5,6 @@
 
 [node name="SystemVBox" type="VBoxContainer" parent="."]
 ; Placeholder buttons with star checkboxes
+
+[node name="SystemsPlaceholder" type="Label" parent="SystemVBox"]
+text = "(Systems list placeholder)"
