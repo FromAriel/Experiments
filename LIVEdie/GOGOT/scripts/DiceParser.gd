@@ -1,0 +1,214 @@
+# gdlint:disable=class-variable-name,function-name,class-definitions-order
+###############################################################
+# LIVEdie/GOGOT/scripts/DiceParser.gd
+# Key Classes      • DiceParser – parse dice notation into roll plan
+# Key Functions    • DP_parse_expression
+# Critical Consts  • DP_TOKEN_REGEX
+# Editor Exports   • (none)
+# Dependencies     • VARIABLE_NAMING.md for identifier style
+# Last Major Rev   • 24-07-10 – initial implementation
+###############################################################
+class_name DiceParser
+extends Node
+
+const DP_TOKEN_REGEX: String = (
+    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|" + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/]|d)"
+)
+
+var DP_token_list_IN: Array = []
+var DP_index_IN: int = 0
+
+
+func DP_parse_expression(notation: String) -> Dictionary:
+    DP_token_list_IN = _DP_tokenize_IN(notation)
+    DP_index_IN = 0
+    var ast = _DP_parse_expr_IN()
+    var dice_groups: Array = []
+    _DP_collect_dice_IN(ast, dice_groups)
+    return {"ast": ast, "dice_groups": dice_groups}
+
+
+func _DP_tokenize_IN(expr: String) -> Array:
+    var regex = RegEx.new()
+    regex.compile(DP_TOKEN_REGEX)
+    var result = regex.search_all(expr)
+    var tokens: Array = []
+    for r in result:
+        var t: String = r.get_string()
+        if t.is_valid_int():
+            tokens.append({"type": "NUMBER", "value": int(t)})
+        elif t in ["+", "-", "*", "/", "(", ")", "d"]:
+            tokens.append({"type": "SYMBOL", "value": t})
+        elif t in ["kh", "kl", "dh", "dl"]:
+            tokens.append({"type": "KEEPDROP", "value": t})
+        elif t in ["adv", "dis"]:
+            tokens.append({"type": "ADV", "value": t})
+        elif t in ["ro", "ra", "r"]:
+            tokens.append({"type": "REROLL", "value": t})
+        elif t in ["cs", "cf"]:
+            tokens.append({"type": "SUCCESS_TYPE", "value": t})
+        elif t == "count":
+            tokens.append({"type": "COUNT", "value": t})
+        elif t in [">=", "<=", ">", "<"]:
+            tokens.append({"type": "COMPARE", "value": t})
+        elif t in ["!!", "!", "p", "p!!"]:
+            tokens.append({"type": "EXPLODE", "value": t})
+        else:
+            push_warning("Unknown token: " + t)
+    return tokens
+
+
+func _DP_collect_dice_IN(node: Variant, out: Array) -> void:
+    if typeof(node) == TYPE_DICTIONARY and node.has("type"):
+        var typ = node["type"]
+        if typ == "dice":
+            out.append(node)
+        elif typ == "binary":
+            _DP_collect_dice_IN(node.left, out)
+            _DP_collect_dice_IN(node.right, out)
+
+
+func _DP_parse_expr_IN() -> Dictionary:
+    var node = _DP_parse_term_IN()
+    while _DP_match_symbol_IN("+") or _DP_match_symbol_IN("-"):
+        var op = _DP_previous_token_IN().value
+        var right = _DP_parse_term_IN()
+        node = {"type": "binary", "op": op, "left": node, "right": right}
+    return node
+
+
+func _DP_parse_term_IN() -> Dictionary:
+    var node = _DP_parse_factor_IN()
+    while _DP_match_symbol_IN("*") or _DP_match_symbol_IN("/"):
+        var op = _DP_previous_token_IN().value
+        var right = _DP_parse_factor_IN()
+        node = {"type": "binary", "op": op, "left": node, "right": right}
+    return node
+
+
+func _DP_parse_factor_IN() -> Dictionary:
+    if _DP_match_symbol_IN("("):
+        var expr = _DP_parse_expr_IN()
+        _DP_expect_symbol_IN(")")
+        return expr
+    elif _DP_check_dice_ahead_IN():
+        return _DP_parse_dice_IN()
+    elif _DP_match_type_IN("NUMBER"):
+        return {"type": "number", "value": _DP_previous_token_IN().value}
+    return {"type": "number", "value": 0}
+
+
+func _DP_parse_dice_IN() -> Dictionary:
+    var num = 1
+    if _DP_match_type_IN("NUMBER"):
+        num = _DP_previous_token_IN().value
+    _DP_expect_symbol_IN("d")
+    var sides = 0
+    if _DP_match_type_IN("NUMBER"):
+        sides = _DP_previous_token_IN().value
+    var mods: Array = []
+    while true:
+        if _DP_match_type_IN("KEEPDROP"):
+            var kd = _DP_previous_token_IN().value
+            var cnt = 1
+            if _DP_match_type_IN("NUMBER"):
+                cnt = _DP_previous_token_IN().value
+            mods.append({"type": kd, "count": cnt})
+            continue
+        elif _DP_match_type_IN("ADV"):
+            var adv = _DP_previous_token_IN().value
+            var kd_mod = "kh"
+            if adv == "dis":
+                kd_mod = "kl"
+            mods.append({"type": kd_mod, "count": 1})
+            continue
+        elif _DP_match_type_IN("REROLL"):
+            var rtype = _DP_previous_token_IN().value
+            var comp = ""
+            var val = 0
+            if _DP_match_type_IN("COMPARE"):
+                comp = _DP_previous_token_IN().value
+                if _DP_match_type_IN("NUMBER"):
+                    val = _DP_previous_token_IN().value
+            mods.append({"type": "reroll", "method": rtype, "compare": comp, "target": val})
+            continue
+        elif _DP_match_type_IN("EXPLODE"):
+            var etype = _DP_previous_token_IN().value
+            var comp_e = ""
+            var val_e = 0
+            if _DP_match_type_IN("COMPARE"):
+                comp_e = _DP_previous_token_IN().value
+                if _DP_match_type_IN("NUMBER"):
+                    val_e = _DP_previous_token_IN().value
+            mods.append({"type": "explode", "style": etype, "compare": comp_e, "target": val_e})
+            continue
+        elif _DP_match_type_IN("SUCCESS_TYPE"):
+            var stype = _DP_previous_token_IN().value
+            var comp_s = ""
+            var val_s = 0
+            if _DP_match_type_IN("COMPARE"):
+                comp_s = _DP_previous_token_IN().value
+                if _DP_match_type_IN("NUMBER"):
+                    val_s = _DP_previous_token_IN().value
+            mods.append({"type": stype, "compare": comp_s, "target": val_s})
+            continue
+        elif _DP_match_type_IN("COMPARE"):
+            var comp_only = _DP_previous_token_IN().value
+            var val_only = 0
+            if _DP_match_type_IN("NUMBER"):
+                val_only = _DP_previous_token_IN().value
+            mods.append({"type": "success", "compare": comp_only, "target": val_only})
+            continue
+        elif _DP_match_type_IN("COUNT"):
+            if _DP_match_type_IN("NUMBER"):
+                mods.append({"type": "count", "target": _DP_previous_token_IN().value})
+            continue
+        else:
+            break
+    return {"type": "dice", "num": num, "sides": sides, "mods": mods}
+
+
+func _DP_check_dice_ahead_IN() -> bool:
+    var idx = DP_index_IN
+    if (
+        idx < DP_token_list_IN.size()
+        and DP_token_list_IN[idx].type == "NUMBER"
+        and idx + 1 < DP_token_list_IN.size()
+        and DP_token_list_IN[idx + 1].type == "SYMBOL"
+        and DP_token_list_IN[idx + 1].value == "d"
+    ):
+        return true
+    if (
+        idx < DP_token_list_IN.size()
+        and DP_token_list_IN[idx].type == "SYMBOL"
+        and DP_token_list_IN[idx].value == "d"
+    ):
+        return true
+    return false
+
+
+func _DP_previous_token_IN() -> Dictionary:
+    return DP_token_list_IN[DP_index_IN - 1]
+
+
+func _DP_match_symbol_IN(sym: String) -> bool:
+    if (
+        DP_index_IN < DP_token_list_IN.size()
+        and DP_token_list_IN[DP_index_IN].type == "SYMBOL"
+        and DP_token_list_IN[DP_index_IN].value == sym
+    ):
+        DP_index_IN += 1
+        return true
+    return false
+
+
+func _DP_expect_symbol_IN(sym: String) -> void:
+    if not _DP_match_symbol_IN(sym):
+        push_error("Expected symbol: " + sym)
+
+
+func _DP_match_type_IN(tp: String) -> bool:
+    if DP_index_IN < DP_token_list_IN.size() and DP_token_list_IN[DP_index_IN].type == tp:
+        DP_index_IN += 1
+        return true
+    return false
