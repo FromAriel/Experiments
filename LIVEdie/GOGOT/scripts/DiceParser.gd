@@ -9,10 +9,11 @@
 # Last Major Rev   • 24-07-10 – initial implementation
 ###############################################################
 class_name DiceParser
-extends Node
+extends RefCounted
 
 const DP_TOKEN_REGEX: String = (
-    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|" + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/]|d)"
+    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|"
+    + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/]|d|F|f|%)"
 )
 
 var DP_token_list_IN: Array = []
@@ -25,7 +26,9 @@ func DP_parse_expression(notation: String) -> Dictionary:
     var ast = _DP_parse_expr_IN()
     var dice_groups: Array = []
     _DP_collect_dice_IN(ast, dice_groups)
-    return {"ast": ast, "dice_groups": dice_groups}
+    var constants: Array = []
+    _DP_collect_constants_IN(ast, constants)
+    return {"ast": ast, "dice_groups": dice_groups, "constants": constants}
 
 
 func _DP_tokenize_IN(expr: String) -> Array:
@@ -37,7 +40,7 @@ func _DP_tokenize_IN(expr: String) -> Array:
         var t: String = r.get_string()
         if t.is_valid_int():
             tokens.append({"type": "NUMBER", "value": int(t)})
-        elif t in ["+", "-", "*", "/", "(", ")", "d"]:
+        elif t in ["+", "-", "*", "/", "(", ")", "d", "F", "f", "%"]:
             tokens.append({"type": "SYMBOL", "value": t})
         elif t in ["kh", "kl", "dh", "dl"]:
             tokens.append({"type": "KEEPDROP", "value": t})
@@ -66,6 +69,16 @@ func _DP_collect_dice_IN(node: Variant, out: Array) -> void:
         elif typ == "binary":
             _DP_collect_dice_IN(node.left, out)
             _DP_collect_dice_IN(node.right, out)
+
+
+func _DP_collect_constants_IN(node: Variant, out: Array) -> void:
+    if typeof(node) == TYPE_DICTIONARY and node.has("type"):
+        var typ = node["type"]
+        if typ == "number":
+            out.append(node.value)
+        elif typ == "binary":
+            _DP_collect_constants_IN(node.left, out)
+            _DP_collect_constants_IN(node.right, out)
 
 
 func _DP_parse_expr_IN() -> Dictionary:
@@ -102,10 +115,20 @@ func _DP_parse_dice_IN() -> Dictionary:
     var num = 1
     if _DP_match_type_IN("NUMBER"):
         num = _DP_previous_token_IN().value
-    _DP_expect_symbol_IN("d")
-    var sides = 0
-    if _DP_match_type_IN("NUMBER"):
-        sides = _DP_previous_token_IN().value
+    var sides: Variant = 0
+    if _DP_match_symbol_IN("d"):
+        if _DP_match_symbol_IN("%"):
+            sides = "%"
+        elif _DP_match_symbol_IN("F") or _DP_match_symbol_IN("f"):
+            sides = "F"
+        elif _DP_match_type_IN("NUMBER"):
+            sides = _DP_previous_token_IN().value
+    elif _DP_match_symbol_IN("F") or _DP_match_symbol_IN("f"):
+        sides = "F"
+    elif _DP_match_symbol_IN("%"):
+        sides = "%"
+    else:
+        _DP_expect_symbol_IN("d")
     var mods: Array = []
     while true:
         if _DP_match_type_IN("KEEPDROP"):
@@ -175,13 +198,13 @@ func _DP_check_dice_ahead_IN() -> bool:
         and DP_token_list_IN[idx].type == "NUMBER"
         and idx + 1 < DP_token_list_IN.size()
         and DP_token_list_IN[idx + 1].type == "SYMBOL"
-        and DP_token_list_IN[idx + 1].value == "d"
+        and DP_token_list_IN[idx + 1].value in ["d", "F", "f"]
     ):
         return true
     if (
         idx < DP_token_list_IN.size()
         and DP_token_list_IN[idx].type == "SYMBOL"
-        and DP_token_list_IN[idx].value == "d"
+        and DP_token_list_IN[idx].value in ["d", "F", "f", "%"]
     ):
         return true
     return false
