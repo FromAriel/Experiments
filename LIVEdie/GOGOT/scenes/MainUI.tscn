@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://mainui"]
+[gd_scene load_steps=8 format=3 uid="uid://mainui"]
 
 [ext_resource type="PackedScene" uid="uid://rolltab" path="res://scenes/RollTab.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://historytab" path="res://scenes/HistoryTab.tscn" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://settingstab" path="res://scenes/SettingsTab.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://keyboardtab" path="res://scenes/KeyboardTab.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://qrtab" path="res://scenes/QRTab.tscn" id="6"]
+[ext_resource type="Script" uid="uid://bqmovjblayg38" path="res://scripts/DicePad.gd" id="7"]
 
 [node name="MainUI" type="Control"]
 custom_minimum_size = Vector2(1080, 1920)
@@ -46,6 +47,7 @@ layout_mode = 0
 anchor_right = 1.0
 offset_top = 120.0
 size_flags_vertical = 4
+script = ExtResource("7")
 
 [node name="QtyRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
@@ -132,6 +134,10 @@ size_flags_horizontal = 2
 [node name="AdvancedRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
 
+[node name="AdvancedLeftSpacer" type="Control" parent="DicePad/AdvancedRow"]
+layout_mode = 2
+size_flags_horizontal = 2
+
 [node name="D2Btn" type="Button" parent="DicePad/AdvancedRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
@@ -162,13 +168,21 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "⌫"
 
+[node name="AdvancedRightSpacer" type="Control" parent="DicePad/AdvancedRow"]
+layout_mode = 2
+size_flags_horizontal = 2
+
 [node name="SystemDropdown" type="Button" parent="DicePad"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+size_flags_horizontal = 4
+text = "▼"
 
 [node name="QueueLabel" type="Label" parent="DicePad"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+text = "(no dice)"
+autowrap_mode = 1
 
 [node name="LowerPane" type="PanelContainer" parent="."]
 layout_mode = 0
