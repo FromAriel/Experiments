@@ -19,6 +19,7 @@ config/features=PackedStringArray("4.4")
 [autoload]
 
 UIEventBus="res://scripts/UIEventBus.gd"
+RNGManager="res://scripts/RNGManager.gd"
 
 [display]
 
