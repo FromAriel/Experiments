@@ -13,6 +13,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 0
@@ -42,12 +44,15 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 700)
 layout_mode = 0
 anchor_right = 1.0
-anchor_bottom = 1.0
 offset_top = 120.0
-offset_bottom = -960.0
+size_flags_vertical = 4
 
 [node name="QtyRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
+
+[node name="QtyLeftSpacer" type="Control" parent="DicePad/QtyRow"]
+layout_mode = 2
+size_flags_horizontal = 2
 
 [node name="Qty1" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
@@ -79,8 +84,16 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "10×"
 
+[node name="QtyRightSpacer" type="Control" parent="DicePad/QtyRow"]
+layout_mode = 2
+size_flags_horizontal = 2
+
 [node name="CommonDiceRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
+
+[node name="DiceLeftSpacer" type="Control" parent="DicePad/CommonDiceRow"]
+layout_mode = 2
+size_flags_horizontal = 2
 
 [node name="D4" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
@@ -111,6 +124,10 @@ text = "D12"
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D20"
+
+[node name="DiceRightSpacer" type="Control" parent="DicePad/CommonDiceRow"]
+layout_mode = 2
+size_flags_horizontal = 2
 
 [node name="AdvancedRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
@@ -184,18 +201,11 @@ layout_mode = 2
 metadata/_tab_index = 3
 
 [node name="KeyboardTab" parent="LowerPane/TabHost" instance=ExtResource("5")]
-_import_path = NodePath("")
-unique_name_in_owner = false
-process_mode = 0
-process_priority = 0
-process_physics_priority = 0
-process_thread_group = 0
-physics_interpolation_mode = 0
-auto_translate_mode = 0
-editor_description = ""
-script = null
+visible = false
+layout_mode = 2
+metadata/_tab_index = 4
 
 [node name="QRTab" parent="LowerPane/TabHost" instance=ExtResource("6")]
 visible = false
 layout_mode = 2
-metadata/_tab_index = 4
+metadata/_tab_index = 5
