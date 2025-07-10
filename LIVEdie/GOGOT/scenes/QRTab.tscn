@@ -1,0 +1,8 @@
+[gd_scene load_steps=1 format=3 uid="uid://qrtab"]
+; QRTab – placeholder for QR code connection
+; Next step: generate code from session info
+[node name="QRTab" type="Control"]
+
+[node name="QRCode" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0

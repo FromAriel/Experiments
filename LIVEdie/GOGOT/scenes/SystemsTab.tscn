@@ -1,0 +1,7 @@
+[gd_scene load_steps=1 format=3 uid="uid://systemstab"]
+; SystemsTab – choose rulesets, star favorites
+; TODO: connect selection to UIEventBus system_selected
+[node name="SystemsTab" type="ScrollContainer"]
+
+[node name="SystemVBox" type="VBoxContainer" parent="."]
+; Placeholder buttons with star checkboxes

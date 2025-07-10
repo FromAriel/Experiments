@@ -1,0 +1,7 @@
+[gd_scene load_steps=1 format=3 uid="uid://rolltab"]
+; RollTab – hosts dice animations and result display
+; Next: connect to UIEventBus roll_requested to trigger animation
+[node name="RollTab" type="Control"]
+
+[node name="DiceArea" type="Node2D" parent="."]
+; Placeholder Node2D for future 2D/3D dice sprites

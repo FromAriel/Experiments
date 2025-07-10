@@ -1,0 +1,9 @@
+[gd_scene load_steps=1 format=3 uid="uid://keyboardtab"]
+; KeyboardTab – custom dice input keyboard
+; Future: switch pages via swipe or toggle button
+[node name="KeyboardTab" type="StackContainer"]
+
+[node name="PageA" type="GridContainer" parent="."]
+; numeric / math page placeholder
+[node name="PageB" type="GridContainer" parent="."]
+; parser token page placeholder

@@ -1,0 +1,7 @@
+[gd_scene load_steps=1 format=3 uid="uid://historytab"]
+; HistoryTab – scrollable list of past rolls
+; Future: populate with roll summaries from log
+[node name="HistoryTab" type="ScrollContainer"]
+
+[node name="HistoryVBox" type="VBoxContainer" parent="."]
+; Each child will be a HistoryItem label

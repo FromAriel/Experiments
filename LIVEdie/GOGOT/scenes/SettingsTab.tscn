@@ -1,0 +1,10 @@
+[gd_scene load_steps=1 format=3 uid="uid://settingstab"]
+; SettingsTab – UI preferences
+; Next: hook controls to config storage
+[node name="SettingsTab" type="VBoxContainer"]
+
+[node name="ThemeColor" type="ColorPickerButton" parent="."]
+[node name="FontScaleSlider" type="HSlider" parent="."]
+[node name="AnimLevelOption" type="OptionButton" parent="."]
+[node name="SettingsSpacer" type="Control" parent="."]
+size_flags_vertical = 3
