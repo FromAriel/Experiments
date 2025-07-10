@@ -1,17 +1,12 @@
 [gd_scene format=3 uid="uid://keyboardtab"]
 
 [node name="KeyboardTab" type="Control"]
-_import_path = NodePath("")
-unique_name_in_owner = false
-process_mode = 0
-process_priority = 0
-process_physics_priority = 0
-process_thread_group = 0
 physics_interpolation_mode = 0
-auto_translate_mode = 0
-editor_description = ""
-script = null
+layout_mode = 3
+anchors_preset = 0
 
 [node name="PageA" type="GridContainer" parent="."]
+layout_mode = 0
 
 [node name="PageB" type="GridContainer" parent="."]
+layout_mode = 0
