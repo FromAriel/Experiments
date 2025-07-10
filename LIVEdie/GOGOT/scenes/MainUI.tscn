@@ -42,12 +42,18 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 700)
 layout_mode = 0
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 0.0
 offset_top = 120.0
-offset_bottom = -960.0
+offset_bottom = 0.0
+size_flags_horizontal = 1
+size_flags_vertical = 4
 
 [node name="QtyRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
+separation = 12
+
+[node name="QtyLeftSpacer" type="Control" parent="DicePad/QtyRow"]
+size_flags_horizontal = 2
 
 [node name="Qty1" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
@@ -79,8 +85,15 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "10×"
 
+[node name="QtyRightSpacer" type="Control" parent="DicePad/QtyRow"]
+size_flags_horizontal = 2
+
 [node name="CommonDiceRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
+separation = 12
+
+[node name="DiceLeftSpacer" type="Control" parent="DicePad/CommonDiceRow"]
+size_flags_horizontal = 2
 
 [node name="D4" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
@@ -111,6 +124,9 @@ text = "D12"
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D20"
+
+[node name="DiceRightSpacer" type="Control" parent="DicePad/CommonDiceRow"]
+size_flags_horizontal = 2
 
 [node name="AdvancedRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2

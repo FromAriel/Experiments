@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://keyboardtab"]
 
-[node name="KeyboardTab" type="StackContainer"]
+[node name="KeyboardTab" type="Control"]
 _import_path = NodePath("")
 unique_name_in_owner = false
 process_mode = 0
