@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://mainui"]
+[gd_scene load_steps=8 format=3 uid="uid://mainui"]
 
 [ext_resource type="PackedScene" uid="uid://rolltab" path="res://scenes/RollTab.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://historytab" path="res://scenes/HistoryTab.tscn" id="2"]
@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://settingstab" path="res://scenes/SettingsTab.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://keyboardtab" path="res://scenes/KeyboardTab.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://qrtab" path="res://scenes/QRTab.tscn" id="6"]
-[ext_resource type="Script" path="res://scripts/DicePad.gd" id="7"]
+[ext_resource type="Script" uid="uid://bqmovjblayg38" path="res://scripts/DicePad.gd" id="7"]
 
 [node name="MainUI" type="Control"]
 custom_minimum_size = Vector2(1080, 1920)
@@ -51,7 +51,6 @@ script = ExtResource("7")
 
 [node name="QtyRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
-separation = 12
 
 [node name="QtyLeftSpacer" type="Control" parent="DicePad/QtyRow"]
 layout_mode = 2
@@ -93,7 +92,6 @@ size_flags_horizontal = 2
 
 [node name="CommonDiceRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
-separation = 12
 
 [node name="DiceLeftSpacer" type="Control" parent="DicePad/CommonDiceRow"]
 layout_mode = 2
@@ -135,7 +133,6 @@ size_flags_horizontal = 2
 
 [node name="AdvancedRow" type="HBoxContainer" parent="DicePad"]
 layout_mode = 2
-separation = 12
 
 [node name="AdvancedLeftSpacer" type="Control" parent="DicePad/AdvancedRow"]
 layout_mode = 2
@@ -178,8 +175,8 @@ size_flags_horizontal = 2
 [node name="SystemDropdown" type="Button" parent="DicePad"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-text = "▼"
 size_flags_horizontal = 4
+text = "▼"
 
 [node name="QueueLabel" type="Label" parent="DicePad"]
 custom_minimum_size = Vector2(0, 40)
