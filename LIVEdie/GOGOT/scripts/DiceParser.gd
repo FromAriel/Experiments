@@ -13,7 +13,7 @@ extends RefCounted
 
 const DP_TOKEN_REGEX: String = (
     "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|"
-    + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/]|d|F|f|%)"
+    + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/,|]|d|F|f|%)"
 )
 
 var DP_token_list_IN: Array = []
@@ -23,12 +23,18 @@ var DP_index_IN: int = 0
 func DP_parse_expression(notation: String) -> Dictionary:
     DP_token_list_IN = _DP_tokenize_IN(notation)
     DP_index_IN = 0
-    var ast = _DP_parse_expr_IN()
+    var asts: Array = []
     var dice_groups: Array = []
-    _DP_collect_dice_IN(ast, dice_groups)
     var constants: Array = []
-    _DP_collect_constants_IN(ast, constants)
-    return {"ast": ast, "dice_groups": dice_groups, "constants": constants}
+    while DP_index_IN < DP_token_list_IN.size():
+        var ast = _DP_parse_expr_IN()
+        asts.append(ast)
+        _DP_collect_dice_IN(ast, dice_groups)
+        _DP_collect_constants_IN(ast, constants)
+        if _DP_match_symbol_IN(",") or _DP_match_symbol_IN("|"):
+            continue
+        break
+    return {"asts": asts, "dice_groups": dice_groups, "constants": constants}
 
 
 func _DP_tokenize_IN(expr: String) -> Array:
@@ -40,7 +46,7 @@ func _DP_tokenize_IN(expr: String) -> Array:
         var t: String = r.get_string()
         if t.is_valid_int():
             tokens.append({"type": "NUMBER", "value": int(t)})
-        elif t in ["+", "-", "*", "/", "(", ")", "d", "F", "f", "%"]:
+        elif t in ["+", "-", "*", "/", ",", "|", "(", ")", "d", "F", "f", "%"]:
             tokens.append({"type": "SYMBOL", "value": t})
         elif t in ["kh", "kl", "dh", "dl"]:
             tokens.append({"type": "KEEPDROP", "value": t})
