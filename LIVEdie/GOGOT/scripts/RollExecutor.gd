@@ -23,18 +23,20 @@ func _ready() -> void:
 
 func _on_roll_requested(notation: String) -> void:
     var plan := RE_parser_IN.DP_parse_expression(notation)
+    var groups: Array = []
+    for g in plan.dice_groups:
+        var res := RE_roll_group_IN(g)
+        g["result"] = res
+        groups.append(res)
     var result := RE_eval_ast_IN(plan.ast)
-    (
-        roll_executed
-        . emit(
-            {
-                "notation": notation,
-                "total": result.value,
-                "rolls": result.rolls,
-                "kept": result.kept,
-            }
-        )
-    )
+    var payload := {
+        "notation": notation,
+        "total": result.value,
+        "rolls": result.rolls,
+        "kept": result.kept,
+        "groups": groups,
+    }
+    roll_executed.emit(payload)
 
 
 func RE_eval_ast_IN(node: Variant) -> Dictionary:
@@ -43,6 +45,8 @@ func RE_eval_ast_IN(node: Variant) -> Dictionary:
             "number":
                 return {"value": node.value, "rolls": [], "kept": []}
             "dice":
+                if node.has("result"):
+                    return node.result
                 return RE_roll_group_IN(node)
             "binary":
                 var left := RE_eval_ast_IN(node.left)
