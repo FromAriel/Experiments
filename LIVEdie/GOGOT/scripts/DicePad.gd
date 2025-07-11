@@ -70,10 +70,15 @@ func _on_Quantity_pressed(value: int) -> void:
 
 func _on_Die_pressed(faces: int) -> void:
     var prefix := str(DP_current_quantity_SH) + "×D" + str(faces)
-    if DP_queue_label_SH.text == "(no dice)" or DP_queue_label_SH.text == "":
+    var base := DP_queue_label_SH.text
+    while base.ends_with(" ") or base.ends_with(","):
+        base = base.substr(0, base.length() - 1)
+    if base == "(no dice)" or base == "":
         DP_queue_label_SH.text = prefix
+    elif base.ends_with("|"):
+        DP_queue_label_SH.text = base + " " + prefix
     else:
-        DP_queue_label_SH.text += ", " + prefix
+        DP_queue_label_SH.text = base + ", " + prefix
     DP_current_quantity_SH = 1
 
 
@@ -85,7 +90,11 @@ func _on_CustomDie_pressed() -> void:
 
 
 func _on_Pipe_pressed() -> void:
-    DP_queue_label_SH.text += " | "
+    var base := DP_queue_label_SH.text
+    while base.ends_with(" ") or base.ends_with(","):
+        base = base.substr(0, base.length() - 1)
+    base = base.strip_edges(false, true)
+    DP_queue_label_SH.text = base + " | "
 
 
 func _on_Backspace_gui_input(event: InputEvent) -> void:
