@@ -112,6 +112,14 @@ func _on_Backspace_pressed() -> void:
         DP_queue_label_SH.text = DP_queue_label_SH.text.substr(
             0, DP_queue_label_SH.text.length() - 1
         )
+        while (
+            DP_queue_label_SH.text.ends_with(" ")
+            or DP_queue_label_SH.text.ends_with(",")
+            or DP_queue_label_SH.text.ends_with("|")
+        ):
+            DP_queue_label_SH.text = DP_queue_label_SH.text.substr(
+                0, DP_queue_label_SH.text.length() - 1
+            )
 
 
 func _on_Roll_pressed() -> void:

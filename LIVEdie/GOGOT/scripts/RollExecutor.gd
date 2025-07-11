@@ -32,23 +32,29 @@ func _on_roll_requested(notation: String) -> void:
         return
     var groups: Array = []
     for g in plan.dice_groups:
+        if g.type == "number":
+            groups.append({"value": g.value})
+            continue
         var res := RE_roll_group_IN(g)
         g["result"] = res
         groups.append(res)
     var total := 0
     var rolls: Array = []
     var kept: Array = []
-    for ast in plan.asts:
+    var sections: Array = []
+    for ast in plan.sections:
         var res := RE_eval_ast_IN(ast)
         total += res.value
         rolls += res.rolls
         kept += res.kept
+        sections.append(res)
     RE_last_result_SH = {
         "notation": notation,
         "total": total,
         "rolls": rolls,
         "kept": kept,
         "groups": groups,
+        "sections": sections,
     }
     roll_executed.emit(RE_last_result_SH)
 

@@ -18,5 +18,6 @@ func _init() -> void:
 
     bus.roll_requested.emit("1d4,2d6")
     assert(exec.RE_last_result_SH.groups.size() == 2)
+    assert(exec.RE_last_result_SH.sections.size() == 1)
     print("RollExecutor test passed")
     quit()
