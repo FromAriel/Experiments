@@ -30,12 +30,19 @@ func _on_roll_requested(notation: String) -> void:
         var res := RE_roll_group_IN(g)
         g["result"] = res
         groups.append(res)
-    var result := RE_eval_ast_IN(plan.ast)
+    var total := 0
+    var rolls: Array = []
+    var kept: Array = []
+    for ast in plan.asts:
+        var res := RE_eval_ast_IN(ast)
+        total += res.value
+        rolls += res.rolls
+        kept += res.kept
     RE_last_result_SH = {
         "notation": notation,
-        "total": result.value,
-        "rolls": result.rolls,
-        "kept": result.kept,
+        "total": total,
+        "rolls": rolls,
+        "kept": kept,
         "groups": groups,
     }
     roll_executed.emit(RE_last_result_SH)
