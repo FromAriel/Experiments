@@ -5,10 +5,11 @@
 # Critical Consts  • (none)
 # Editor Exports   • (none)
 # Dependencies     • RollExecutor.gd
-# Last Major Rev   • 24-07-11 – initial stub
+# Last Major Rev   • 24-07-12 – emit update signal
 ###############################################################
 class_name HistoryTab
 extends VBoxContainer
+signal history_updated
 
 
 func _ready() -> void:
@@ -17,21 +18,23 @@ func _ready() -> void:
 
 func _on_roll_executed(result: Dictionary) -> void:
     var entry := Label.new()
-    var parts := []
+    var parts: Array = []
     for sec in result.sections:
+        var snippet := ""
         if sec.rolls.size() > 1:
-            parts.append(" + ".join(sec.rolls.map(func(r): return str(r))))
+            snippet = " + ".join(sec.rolls.map(func(r): return str(r)))
         else:
-            parts.append(str(sec.value))
+            snippet = str(sec.value)
+        if sec.has("meta"):
+            var ex := []
+            if sec.meta.succ > 0:
+                ex.append("%d successes" % sec.meta.succ)
+            if sec.meta.crit > 0:
+                ex.append("%d crit" % sec.meta.crit)
+            if ex.size() > 0:
+                snippet += " (" + ", ".join(ex) + ")"
+        parts.append(snippet)
     var text := "%s → %s" % [result.notation, " | ".join(parts)]
-    if result.sections.size() == 1 and result.sections[0].has("meta"):
-        var m = result.sections[0].meta
-        var extras := []
-        if m.succ > 0:
-            extras.append("%d successes" % m.succ)
-        if m.crit > 0:
-            extras.append("%d crit" % m.crit)
-        if extras.size() > 0:
-            text += " (" + ", ".join(extras) + ")"
     entry.text = text
     add_child(entry)
+    history_updated.emit()

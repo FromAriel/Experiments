@@ -1,4 +1,5 @@
-# gdlint:disable=class-variable-name,function-name,class-definitions-order
+# gdlint:disable=class-variable-name,function-name,class-definitions-order,max-returns
+# gdlint:disable=no-elif-return,no-else-return
 ###############################################################
 # LIVEdie/GOGOT/scripts/DiceParser.gd
 # Key Classes      • DiceParser – parse dice notation into roll plan
@@ -12,7 +13,7 @@ class_name DiceParser
 extends RefCounted
 
 const DP_TOKEN_REGEX: String = (
-    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|VS|"
+    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|[Vv][Ss]|"
     + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/,|]|d|F|f|%|[A-Za-z_][A-Za-z0-9_]*)"
 )
 
@@ -78,7 +79,7 @@ func _DP_tokenize_IN(expr: String) -> Array:
             tokens.append({"type": "COMPARE", "value": t})
         elif t in ["!!", "!", "p", "p!!"]:
             tokens.append({"type": "EXPLODE", "value": t})
-        elif t == "VS":
+        elif t.to_lower() == "vs":
             tokens.append({"type": "VS", "value": t})
         elif t.is_valid_identifier():
             tokens.append({"type": "IDENT", "value": t})

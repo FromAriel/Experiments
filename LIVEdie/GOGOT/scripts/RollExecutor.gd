@@ -1,4 +1,5 @@
-# gdlint:disable=class-variable-name,function-name,class-definitions-order
+# gdlint:disable=class-variable-name,function-name,class-definitions-order,max-returns
+# gdlint:disable=no-elif-return,no-else-return
 ###############################################################
 # LIVEdie/GOGOT/scripts/RollExecutor.gd
 # Key Classes      • RollExecutor – executes parsed dice rolls
@@ -100,11 +101,20 @@ func RE_eval_ast_IN(node: Variant) -> Dictionary:
                             "lhs": left,
                             "rhs": right,
                         }
-                return {
+                var ret := {
                     "value": val,
                     "rolls": left.rolls + right.rolls,
                     "kept": left.kept + right.kept,
                 }
+                if left.has("winner"):
+                    ret.winner = left.winner
+                    ret.lhs = left.lhs
+                    ret.rhs = left.rhs
+                elif right.has("winner"):
+                    ret.winner = right.winner
+                    ret.lhs = right.lhs
+                    ret.rhs = right.rhs
+                return ret
             "func":
                 var args: Array = []
                 for a in node.args:
@@ -264,7 +274,9 @@ func _RE_apply_explode_IN(results: Array, mod: Dictionary, sides: Variant) -> Di
         var total_extra = 0
         var current = out[i]
         var loops = 0
+        var triggered := false
         while _RE_should_explode_IN(current, mod, sides) and loops < 100:
+            triggered = true
             var roll := _RE_roll_die_IN(sides)
             extra.append(roll)
             var add_val := roll
@@ -278,7 +290,7 @@ func _RE_apply_explode_IN(results: Array, mod: Dictionary, sides: Variant) -> Di
             loops += 1
         if loops >= 100:
             push_warning("Explosion max iterations reached")
-        if compound and total_extra != 0:
+        if compound and triggered and total_extra != 0:
             out[i] += total_extra
     return {"kept": out, "extra": extra}
 
@@ -375,6 +387,8 @@ func _RE_eval_function_IN(name: String, args: Array) -> Dictionary:
             return {"value": floor(values[0]), "rolls": rolls, "kept": kept}
         "ceil":
             return {"value": ceil(values[0]), "rolls": rolls, "kept": kept}
+        "abs":
+            return {"value": abs(values[0]), "rolls": rolls, "kept": kept}
         "sort":
             kept.sort()
             return {"value": values[0] if values.size() > 0 else 0, "rolls": rolls, "kept": kept}
