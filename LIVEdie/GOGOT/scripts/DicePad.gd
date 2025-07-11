@@ -14,6 +14,8 @@ extends VBoxContainer
 const DP_LONG_PRESS_TIME: float = 0.5
 
 @onready var DP_queue_label_SH: Label = $QueueLabel
+@onready var DP_roll_btn_SH: Button = $AdvancedRow/RollBtn
+var DP_custom_dialog_IN: AcceptDialog
 var DP_current_quantity_SH: int = 1
 var DP_backspace_timer_IN: Timer
 var DP_backspace_long_SH: bool = false
@@ -34,6 +36,14 @@ func _ready() -> void:
     $AdvancedRow/BackspaceBtn.gui_input.connect(_on_Backspace_gui_input)
     $AdvancedRow/RollBtn.pressed.connect(_on_Roll_pressed)
     get_node("/root/RollExecutor").roll_failed.connect(_on_roll_failed)
+    DP_custom_dialog_IN = AcceptDialog.new()
+    add_child(DP_custom_dialog_IN)
+    DP_custom_dialog_IN.canceled.connect(
+        func():
+            DP_queue_label_SH.text = DP_queue_label_SH.text.replace(", DX?", "").replace("DX?", "")
+            _collapse_spaces()
+    )
+    _update_roll_button_state()
 
 
 func _connect_quantity_buttons() -> void:
@@ -80,6 +90,7 @@ func _on_Die_pressed(faces: int) -> void:
     else:
         DP_queue_label_SH.text = base + ", " + prefix
     DP_current_quantity_SH = 1
+    _update_roll_button_state()
 
 
 func _on_CustomDie_pressed() -> void:
@@ -87,14 +98,18 @@ func _on_CustomDie_pressed() -> void:
         DP_queue_label_SH.text = "DX?"
     else:
         DP_queue_label_SH.text += ", DX?"
+    _update_roll_button_state()
 
 
 func _on_Pipe_pressed() -> void:
-    var base := DP_queue_label_SH.text
-    while base.ends_with(" ") or base.ends_with(","):
-        base = base.substr(0, base.length() - 1)
-    base = base.strip_edges(false, true)
-    DP_queue_label_SH.text = base + " | "
+    var t := DP_queue_label_SH.text.rstrip(" ,").strip_edges(false, true)
+
+    if t == "" or t.ends_with("|"):
+        return
+
+    DP_queue_label_SH.text = t + " | "
+    _collapse_spaces()
+    _update_roll_button_state()
 
 
 func _on_Backspace_gui_input(event: InputEvent) -> void:
@@ -111,6 +126,7 @@ func _on_Backspace_gui_input(event: InputEvent) -> void:
 func _on_Backspace_long() -> void:
     DP_backspace_long_SH = true
     DP_queue_label_SH.text = ""
+    _update_roll_button_state()
 
 
 func _on_Backspace_pressed() -> void:
@@ -129,6 +145,7 @@ func _on_Backspace_pressed() -> void:
             DP_queue_label_SH.text = DP_queue_label_SH.text.substr(
                 0, DP_queue_label_SH.text.length() - 1
             )
+    _update_roll_button_state()
 
 
 func _on_Roll_pressed() -> void:
@@ -140,3 +157,13 @@ func _on_roll_failed(msg: String) -> void:
     DP_queue_label_SH.modulate = Color(1, 0.2, 0.2)
     push_warning(msg)
     create_tween().tween_property(DP_queue_label_SH, "modulate", Color(1, 1, 1), 0.4)
+
+
+func _collapse_spaces() -> void:
+    var re := RegEx.new()
+    re.compile("\\s+")
+    DP_queue_label_SH.text = re.sub(DP_queue_label_SH.text, " ")
+
+
+func _update_roll_button_state() -> void:
+    DP_roll_btn_SH.disabled = DP_queue_label_SH.text.rstrip(" ").ends_with("|")
