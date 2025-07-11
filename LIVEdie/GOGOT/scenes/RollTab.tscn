@@ -1,7 +1,10 @@
-[gd_scene load_steps=1 format=3 uid="uid://rolltab"]
+[gd_scene load_steps=2 format=3 uid="uid://rolltab"]
+
+[ext_resource type="Script" path="res://scripts/RollTab.gd" id="1"]
 ; RollTab – hosts dice animations and result display
 ; Next: connect to UIEventBus roll_requested to trigger animation
 [node name="RollTab" type="Control"]
+script = ExtResource("1")
 
 [node name="DiceArea" type="Node2D" parent="."]
 ; Placeholder Node2D for future 2D/3D dice sprites

@@ -14,6 +14,7 @@ extends Node
 signal roll_executed(result: Dictionary)
 
 var RE_parser_IN: DiceParser
+var RE_last_result_SH: Dictionary = {}
 
 
 func _ready() -> void:
@@ -22,6 +23,7 @@ func _ready() -> void:
 
 
 func _on_roll_requested(notation: String) -> void:
+    print("\u25B6 RollExecutor got:", notation)
     var plan := RE_parser_IN.DP_parse_expression(notation)
     var groups: Array = []
     for g in plan.dice_groups:
@@ -29,14 +31,14 @@ func _on_roll_requested(notation: String) -> void:
         g["result"] = res
         groups.append(res)
     var result := RE_eval_ast_IN(plan.ast)
-    var payload := {
+    RE_last_result_SH = {
         "notation": notation,
         "total": result.value,
         "rolls": result.rolls,
         "kept": result.kept,
         "groups": groups,
     }
-    roll_executed.emit(payload)
+    roll_executed.emit(RE_last_result_SH)
 
 
 func RE_eval_ast_IN(node: Variant) -> Dictionary:
