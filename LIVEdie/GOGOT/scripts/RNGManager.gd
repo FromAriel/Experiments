@@ -2,7 +2,7 @@
 ###############################################################
 # LIVEdie/GOGOT/scripts/RNGManager.gd
 # Key Classes      • RNGManager – centralized random number manager
-# Key Functions    • RM_seed_IN, RM_generate_roll_SH
+# Key Functions    • RM_seed_IN, RM_generate_roll_SH, RM_generate_fudge_SH
 # Critical Consts  • (none)
 # Editor Exports   • (none)
 # Dependencies     • (none)
@@ -36,6 +36,12 @@ func RM_generate_roll_SH(num_sides: int) -> int:
     if not RM_rng_IN:
         RM_seed_IN()
     return RM_rng_IN.randi_range(1, num_sides)
+
+
+func RM_generate_fudge_SH() -> int:
+    if not RM_rng_IN:
+        RM_seed_IN()
+    return RM_rng_IN.randi_range(-1, 1)
 
 
 func _on_HTTPRequest_request_completed(
