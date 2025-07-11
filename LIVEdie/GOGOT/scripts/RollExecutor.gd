@@ -12,6 +12,7 @@ class_name RollExecutor
 extends Node
 
 signal roll_executed(result: Dictionary)
+signal roll_failed(message: String)
 
 var RE_parser_IN: DiceParser
 var RE_last_result_SH: Dictionary = {}
@@ -25,6 +26,10 @@ func _ready() -> void:
 func _on_roll_requested(notation: String) -> void:
     print("\u25B6 RollExecutor got:", notation)
     var plan := RE_parser_IN.DP_parse_expression(notation)
+    if plan.errors.size() > 0:
+        RE_last_result_SH = {}
+        roll_failed.emit(" ".join(plan.errors.map(func(e): return e.msg)))
+        return
     var groups: Array = []
     for g in plan.dice_groups:
         var res := RE_roll_group_IN(g)
