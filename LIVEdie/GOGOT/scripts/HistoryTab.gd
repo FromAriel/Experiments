@@ -16,24 +16,28 @@ func _ready() -> void:
     get_node("/root/RollExecutor").roll_executed.connect(_on_roll_executed)
 
 
+func _HT_build_snippet_IN(sec: Dictionary) -> String:
+    var snippet := ""
+    if sec.rolls.size() > 1:
+        snippet = " + ".join(sec.rolls.map(func(r): return str(r)))
+    else:
+        snippet = str(sec.value)
+    if sec.has("meta"):
+        var extras: Array = []
+        if sec.meta.succ > 0:
+            extras.append("%d successes" % sec.meta.succ)
+        if sec.meta.crit > 0:
+            extras.append("%d crit" % sec.meta.crit)
+        if extras.size() > 0:
+            snippet += " (" + ", ".join(extras) + ")"
+    return snippet
+
+
 func _on_roll_executed(result: Dictionary) -> void:
     var entry := Label.new()
     var parts: Array = []
     for sec in result.sections:
-        var snippet := ""
-        if sec.rolls.size() > 1:
-            snippet = " + ".join(sec.rolls.map(func(r): return str(r)))
-        else:
-            snippet = str(sec.value)
-        if sec.has("meta"):
-            var ex := []
-            if sec.meta.succ > 0:
-                ex.append("%d successes" % sec.meta.succ)
-            if sec.meta.crit > 0:
-                ex.append("%d crit" % sec.meta.crit)
-            if ex.size() > 0:
-                snippet += " (" + ", ".join(ex) + ")"
-        parts.append(snippet)
+        parts.append(_HT_build_snippet_IN(sec))
     var text := "%s → %s" % [result.notation, " | ".join(parts)]
     entry.text = text
     add_child(entry)
