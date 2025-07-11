@@ -26,15 +26,30 @@ func DP_parse_expression(notation: String) -> Dictionary:
     var asts: Array = []
     var dice_groups: Array = []
     var constants: Array = []
+    var errors: Array = []
     while DP_index_IN < DP_token_list_IN.size():
+        var start_idx := DP_index_IN
         var ast = _DP_parse_expr_IN()
-        asts.append(ast)
-        _DP_collect_dice_IN(ast, dice_groups)
-        _DP_collect_constants_IN(ast, constants)
+        if DP_index_IN == start_idx:
+            errors.append({"msg": "Unexpected input"})
+            break
+        if ast.has("error"):
+            errors.append({"msg": ast.error})
+        else:
+            asts.append(ast)
+            _DP_collect_dice_IN(ast, dice_groups)
+            _DP_collect_constants_IN(ast, constants)
         if _DP_match_symbol_IN(",") or _DP_match_symbol_IN("|"):
+            if DP_index_IN >= DP_token_list_IN.size():
+                errors.append(
+                    {"msg": "Unexpected input after '%s'" % _DP_previous_token_IN().value}
+                )
+                break
             continue
         break
-    return {"asts": asts, "dice_groups": dice_groups, "constants": constants}
+    if DP_index_IN < DP_token_list_IN.size():
+        errors.append({"msg": "Unexpected input after '%s'" % _DP_previous_token_IN().value})
+    return {"asts": asts, "dice_groups": dice_groups, "constants": constants, "errors": errors}
 
 
 func _DP_tokenize_IN(expr: String) -> Array:
@@ -122,7 +137,9 @@ func _DP_parse_dice_IN() -> Dictionary:
     if _DP_match_type_IN("NUMBER"):
         num = _DP_previous_token_IN().value
     var sides: Variant = 0
+    var saw_d := false
     if _DP_match_symbol_IN("d"):
+        saw_d = true
         if _DP_match_symbol_IN("%"):
             sides = "%"
         elif _DP_match_symbol_IN("F") or _DP_match_symbol_IN("f"):
@@ -135,6 +152,8 @@ func _DP_parse_dice_IN() -> Dictionary:
         sides = "%"
     else:
         _DP_expect_symbol_IN("d")
+    if saw_d and typeof(sides) == TYPE_INT and sides == 0:
+        return {"error": "Dice group missing sides"}
     var mods: Array = []
     while true:
         if _DP_match_type_IN("KEEPDROP"):

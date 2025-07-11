@@ -33,6 +33,7 @@ func _ready() -> void:
     $AdvancedRow/BackspaceBtn.pressed.connect(_on_Backspace_pressed)
     $AdvancedRow/BackspaceBtn.gui_input.connect(_on_Backspace_gui_input)
     $AdvancedRow/RollBtn.pressed.connect(_on_Roll_pressed)
+    get_node("/root/RollExecutor").roll_failed.connect(_on_roll_failed)
 
 
 func _connect_quantity_buttons() -> void:
@@ -116,3 +117,9 @@ func _on_Backspace_pressed() -> void:
 func _on_Roll_pressed() -> void:
     var clean := DP_queue_label_SH.text.replace("×", "").replace("D", "d")
     get_node("/root/UIEventBus").emit_signal("roll_requested", clean)
+
+
+func _on_roll_failed(msg: String) -> void:
+    DP_queue_label_SH.modulate = Color(1, 0.2, 0.2)
+    push_warning(msg)
+    create_tween().tween_property(DP_queue_label_SH, "modulate", Color(1, 1, 1), 0.4)

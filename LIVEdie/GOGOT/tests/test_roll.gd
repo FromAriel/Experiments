@@ -12,7 +12,7 @@ func _init() -> void:
     root.add_child(bus)
     root.add_child(rng)
     root.add_child(exec)
-    bus.roll_requested.connect(exec._on_roll_requested)
+    await process_frame
     bus.roll_requested.emit("1d4")
     assert(exec.RE_last_result_SH.notation == "1d4")
 
