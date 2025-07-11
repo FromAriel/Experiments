@@ -1,9 +1,12 @@
-[gd_scene load_steps=1 format=3 uid="uid://historytab"]
+[gd_scene load_steps=2 format=3 uid="uid://historytab"]
+
+[ext_resource type="Script" path="res://scripts/HistoryTab.gd" id="1"]
 ; HistoryTab – scrollable list of past rolls
 ; Future: populate with roll summaries from log
 [node name="HistoryTab" type="ScrollContainer"]
 
 [node name="HistoryVBox" type="VBoxContainer" parent="."]
+script = ExtResource("1")
 ; Each child will be a HistoryItem label
 
 [node name="HistoryPlaceholder" type="Label" parent="HistoryVBox"]

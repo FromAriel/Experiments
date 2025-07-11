@@ -10,5 +10,5 @@
 ###############################################################
 extends Node
 
-signal roll_requested
+signal roll_requested(notation: String)
 signal system_selected(system_name)

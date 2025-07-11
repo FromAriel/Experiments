@@ -114,4 +114,5 @@ func _on_Backspace_pressed() -> void:
 
 
 func _on_Roll_pressed() -> void:
-    get_node("/root/UIEventBus").emit_signal("roll_requested", DP_queue_label_SH.text)
+    var clean := DP_queue_label_SH.text.replace("×", "").replace("D", "d")
+    get_node("/root/UIEventBus").emit_signal("roll_requested", clean)
