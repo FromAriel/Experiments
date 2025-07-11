@@ -23,33 +23,32 @@ var DP_index_IN: int = 0
 func DP_parse_expression(notation: String) -> Dictionary:
     DP_token_list_IN = _DP_tokenize_IN(notation)
     DP_index_IN = 0
-    var asts: Array = []
+    var sections: Array = []
     var dice_groups: Array = []
     var constants: Array = []
     var errors: Array = []
-    while DP_index_IN < DP_token_list_IN.size():
-        var start_idx := DP_index_IN
-        var ast = _DP_parse_expr_IN()
-        if DP_index_IN == start_idx:
-            errors.append({"msg": "Unexpected input"})
+
+    var current
+    if DP_index_IN < DP_token_list_IN.size() and DP_token_list_IN[DP_index_IN].type == "PIPE":
+        errors.append({"msg": "Empty roll before/after pipe"})
+        current = {"type": "number", "value": 0}
+        _DP_match_type_IN("PIPE")
+    else:
+        current = _DP_parse_sum_IN(dice_groups, constants, errors)
+    while _DP_match_type_IN("PIPE"):
+        sections.append(current)
+        if _DP_peek_pipe_or_EOF_IN():
+            errors.append({"msg": "Empty roll before/after pipe"})
             break
-        if ast.has("error"):
-            errors.append({"msg": ast.error})
-        else:
-            asts.append(ast)
-            _DP_collect_dice_IN(ast, dice_groups)
-            _DP_collect_constants_IN(ast, constants)
-        if _DP_match_symbol_IN(",") or _DP_match_symbol_IN("|"):
-            if DP_index_IN >= DP_token_list_IN.size():
-                errors.append(
-                    {"msg": "Unexpected input after '%s'" % _DP_previous_token_IN().value}
-                )
-                break
-            continue
-        break
+        current = _DP_parse_sum_IN(dice_groups, constants, errors)
+    sections.append(current)
+
     if DP_index_IN < DP_token_list_IN.size():
         errors.append({"msg": "Unexpected input after '%s'" % _DP_previous_token_IN().value})
-    return {"asts": asts, "dice_groups": dice_groups, "constants": constants, "errors": errors}
+
+    return {
+        "sections": sections, "dice_groups": dice_groups, "constants": constants, "errors": errors
+    }
 
 
 func _DP_tokenize_IN(expr: String) -> Array:
@@ -61,7 +60,9 @@ func _DP_tokenize_IN(expr: String) -> Array:
         var t: String = r.get_string()
         if t.is_valid_int():
             tokens.append({"type": "NUMBER", "value": int(t)})
-        elif t in ["+", "-", "*", "/", ",", "|", "(", ")", "d", "F", "f", "%"]:
+        elif t == "|":
+            tokens.append({"type": "PIPE", "value": t})
+        elif t in ["+", "-", "*", "/", ",", "(", ")", "d", "F", "f", "%"]:
             tokens.append({"type": "SYMBOL", "value": t})
         elif t in ["kh", "kl", "dh", "dl"]:
             tokens.append({"type": "KEEPDROP", "value": t})
@@ -233,6 +234,44 @@ func _DP_check_dice_ahead_IN() -> bool:
     ):
         return true
     return false
+
+
+func _DP_peek_pipe_or_EOF_IN() -> bool:
+    if DP_index_IN >= DP_token_list_IN.size():
+        return true
+    return DP_token_list_IN[DP_index_IN].type == "PIPE"
+
+
+func _DP_parse_sum_IN(groups: Array, consts: Array, errs: Array) -> Dictionary:
+    var items: Array = []
+    var start_idx := DP_index_IN
+    var ast = _DP_parse_expr_IN()
+    if DP_index_IN == start_idx:
+        errs.append({"msg": "Unexpected input"})
+        return {"type": "number", "value": 0}
+    items.append(ast)
+    while _DP_match_symbol_IN(","):
+        if DP_index_IN >= DP_token_list_IN.size():
+            errs.append({"msg": "Unexpected input after '%s'" % _DP_previous_token_IN().value})
+            break
+        start_idx = DP_index_IN
+        var nxt = _DP_parse_expr_IN()
+        if DP_index_IN == start_idx:
+            errs.append({"msg": "Unexpected input"})
+            break
+        items.append(nxt)
+    for it in items:
+        if it.has("error"):
+            errs.append({"msg": it.error})
+        else:
+            _DP_collect_dice_IN(it, groups)
+            _DP_collect_constants_IN(it, consts)
+            if typeof(it) == TYPE_DICTIONARY and it.type == "number":
+                groups.append({"type": "number", "value": it.value})
+    var node = items[0]
+    for i in range(1, items.size()):
+        node = {"type": "binary", "op": "+", "left": node, "right": items[i]}
+    return node
 
 
 func _DP_previous_token_IN() -> Dictionary:

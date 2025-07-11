@@ -17,5 +17,8 @@ func _ready() -> void:
 
 func _on_roll_executed(result: Dictionary) -> void:
     var entry := Label.new()
-    entry.text = "%sd → %s" % [result.notation, result.total]
+    var totals := []
+    for sec in result.sections:
+        totals.append(str(sec.value))
+    entry.text = "%sd → %s" % [result.notation, " | ".join(totals)]
     add_child(entry)

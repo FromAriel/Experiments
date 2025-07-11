@@ -4,7 +4,7 @@ var cases = [
     {"src": "3d", "expect_msg": "missing sides"},
     {"src": "5d10,", "expect_msg": "Unexpected input"},
     {"src": ",2d6", "expect_msg": "Unexpected input"},
-    {"src": "2d6 |", "expect_msg": "Unexpected input"},
+    {"src": "2d6 |", "expect_msg": "Empty roll"},
     {"src": "1d8, 1d8 , 4d1 , 1d", "expect_msg": "missing sides"}
 ]
 
