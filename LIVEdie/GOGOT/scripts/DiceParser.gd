@@ -12,8 +12,8 @@ class_name DiceParser
 extends RefCounted
 
 const DP_TOKEN_REGEX: String = (
-    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|"
-    + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/,|]|d|F|f|%)"
+    "(\\d+|adv|dis|kh|kl|dh|dl|ro|ra|r|cs|cf|count|VS|"
+    + ">=|<=|>|<|!!|p!!|!|p|\\(|\\)|[+\\-*/,|]|d|F|f|%|[A-Za-z_][A-Za-z0-9_]*)"
 )
 
 var DP_token_list_IN: Array = []
@@ -78,6 +78,10 @@ func _DP_tokenize_IN(expr: String) -> Array:
             tokens.append({"type": "COMPARE", "value": t})
         elif t in ["!!", "!", "p", "p!!"]:
             tokens.append({"type": "EXPLODE", "value": t})
+        elif t == "VS":
+            tokens.append({"type": "VS", "value": t})
+        elif t.is_valid_identifier():
+            tokens.append({"type": "IDENT", "value": t})
         else:
             push_warning("Unknown token: " + t)
     return tokens
@@ -105,10 +109,16 @@ func _DP_collect_constants_IN(node: Variant, out: Array) -> void:
 
 func _DP_parse_expr_IN() -> Dictionary:
     var node = _DP_parse_term_IN()
-    while _DP_match_symbol_IN("+") or _DP_match_symbol_IN("-"):
-        var op = _DP_previous_token_IN().value
-        var right = _DP_parse_term_IN()
-        node = {"type": "binary", "op": op, "left": node, "right": right}
+    while true:
+        if _DP_match_type_IN("VS"):
+            var right = _DP_parse_term_IN()
+            node = {"type": "binary", "op": "vs", "left": node, "right": right}
+        elif _DP_match_symbol_IN("+") or _DP_match_symbol_IN("-"):
+            var op = _DP_previous_token_IN().value
+            var right = _DP_parse_term_IN()
+            node = {"type": "binary", "op": op, "left": node, "right": right}
+        else:
+            break
     return node
 
 
@@ -128,6 +138,11 @@ func _DP_parse_factor_IN() -> Dictionary:
         return expr
     elif _DP_check_dice_ahead_IN():
         return _DP_parse_dice_IN()
+    elif _DP_match_type_IN("IDENT"):
+        var name = _DP_previous_token_IN().value
+        if _DP_match_symbol_IN("("):
+            return _DP_parse_function_IN(name)
+        return {"type": "number", "value": 0}
     elif _DP_match_type_IN("NUMBER"):
         return {"type": "number", "value": _DP_previous_token_IN().value}
     return {"type": "number", "value": 0}
@@ -215,6 +230,16 @@ func _DP_parse_dice_IN() -> Dictionary:
         else:
             break
     return {"type": "dice", "num": num, "sides": sides, "mods": mods}
+
+
+func _DP_parse_function_IN(name: String) -> Dictionary:
+    var args: Array = []
+    if not _DP_match_symbol_IN(")"):
+        args.append(_DP_parse_expr_IN())
+        while _DP_match_symbol_IN(","):
+            args.append(_DP_parse_expr_IN())
+        _DP_expect_symbol_IN(")")
+    return {"type": "func", "name": name, "args": args}
 
 
 func _DP_check_dice_ahead_IN() -> bool:

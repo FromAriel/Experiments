@@ -23,5 +23,15 @@ func _on_roll_executed(result: Dictionary) -> void:
             parts.append(" + ".join(sec.rolls.map(func(r): return str(r))))
         else:
             parts.append(str(sec.value))
-    entry.text = "%s → %s" % [result.notation, " | ".join(parts)]
+    var text := "%s → %s" % [result.notation, " | ".join(parts)]
+    if result.sections.size() == 1 and result.sections[0].has("meta"):
+        var m = result.sections[0].meta
+        var extras := []
+        if m.succ > 0:
+            extras.append("%d successes" % m.succ)
+        if m.crit > 0:
+            extras.append("%d crit" % m.crit)
+        if extras.size() > 0:
+            text += " (" + ", ".join(extras) + ")"
+    entry.text = text
     add_child(entry)
