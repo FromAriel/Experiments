@@ -17,8 +17,11 @@ func _ready() -> void:
 
 func _on_roll_executed(result: Dictionary) -> void:
     var entry := Label.new()
-    var totals := []
+    var parts := []
     for sec in result.sections:
-        totals.append(str(sec.value))
-    entry.text = "%sd → %s" % [result.notation, " | ".join(totals)]
+        if sec.rolls.size() > 1:
+            parts.append(" + ".join(sec.rolls.map(func(r): return str(r))))
+        else:
+            parts.append(str(sec.value))
+    entry.text = "%s → %s" % [result.notation, " | ".join(parts)]
     add_child(entry)
