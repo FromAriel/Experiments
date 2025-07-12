@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://mainui"]
+[gd_scene load_steps=9 format=3 uid="uid://mainui"]
 
 [ext_resource type="PackedScene" uid="uid://rolltab" path="res://scenes/RollTab.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://historytab" path="res://scenes/HistoryTab.tscn" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://keyboardtab" path="res://scenes/KeyboardTab.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://qrtab" path="res://scenes/QRTab.tscn" id="6"]
 [ext_resource type="Script" uid="uid://bqmovjblayg38" path="res://scripts/DicePad.gd" id="7"]
+[ext_resource type="Script" uid="uid://bo5xejq322083" path="res://scripts/UIScalable.gd" id="8"]
 
 [node name="MainUI" type="Control"]
 custom_minimum_size = Vector2(1080, 1920)
@@ -28,6 +29,9 @@ layout_mode = 2
 [node name="TitleLabel" type="Label" parent="TopBar/BarHBox"]
 layout_mode = 2
 text = "LIVEdie"
+script = ExtResource("8")
+SC_base_size_IN = Vector2(0, 0)
+SC_base_font_IN = 32
 
 [node name="Spacer" type="Control" parent="TopBar/BarHBox"]
 layout_mode = 2
@@ -60,31 +64,43 @@ size_flags_horizontal = 2
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "1×"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="Qty2" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "2×"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="Qty3" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "3×"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="Qty4" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "4×"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="Qty5" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "5×"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="Qty10" type="Button" parent="DicePad/QtyRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "10×"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="QtyRightSpacer" type="Control" parent="DicePad/QtyRow"]
 layout_mode = 2
@@ -101,31 +117,43 @@ size_flags_horizontal = 2
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D4"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="D6" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D6"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="D8" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D8"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="D10" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D10"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="D12" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D12"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="D20" type="Button" parent="DicePad/CommonDiceRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D20"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="DiceRightSpacer" type="Control" parent="DicePad/CommonDiceRow"]
 layout_mode = 2
@@ -142,31 +170,44 @@ size_flags_horizontal = 2
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D2"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="D100Btn" type="Button" parent="DicePad/AdvancedRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D100"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="PipeBtn" type="Button" parent="DicePad/AdvancedRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "|"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="DXPromptBtn" type="Button" parent="DicePad/AdvancedRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "DX?"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="RollBtn" type="Button" parent="DicePad/AdvancedRow"]
 custom_minimum_size = Vector2(120, 80)
 layout_mode = 2
 text = "ROLL"
+script = ExtResource("8")
+SC_base_size_IN = Vector2(120, 80)
+SC_base_font_IN = 32
 
 [node name="BackspaceBtn" type="Button" parent="DicePad/AdvancedRow"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "⌫"
+script = ExtResource("8")
+SC_base_font_IN = 32
 
 [node name="AdvancedRightSpacer" type="Control" parent="DicePad/AdvancedRow"]
 layout_mode = 2
@@ -177,12 +218,16 @@ custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "▼"
+script = ExtResource("8")
+SC_base_size_IN = Vector2(48, 48)
 
 [node name="QueueLabel" type="Label" parent="DicePad"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "(no dice)"
 autowrap_mode = 1
+script = ExtResource("8")
+SC_base_size_IN = Vector2(0, 40)
 
 [node name="LowerPane" type="PanelContainer" parent="."]
 layout_mode = 0
