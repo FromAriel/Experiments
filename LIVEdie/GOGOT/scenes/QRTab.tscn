@@ -1,4 +1,6 @@
-[gd_scene load_steps=1 format=3 uid="uid://qrtab"]
+[gd_scene load_steps=2 format=3 uid="uid://qrtab"]
+
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="1"]
 ; QRTab – placeholder for QR code connection
 ; Next step: generate code from session info
 [node name="QRTab" type="Control"]
@@ -7,4 +9,6 @@
 anchor_right = 1.0
 anchor_bottom = 1.0
 [node name="PlaceholderLabel" type="Label" parent="."]
+script = ExtResource("1")
+groups=[ "scalable_ui" ]
 text = "(QR code placeholder)"

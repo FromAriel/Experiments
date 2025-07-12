@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://keyboardtab"]
+[gd_scene load_steps=1 format=3 uid="uid://keyboardtab"]
+
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="1"]
 
 [node name="KeyboardTab" type="Control"]
 physics_interpolation_mode = 0
@@ -9,6 +11,8 @@ anchors_preset = 0
 layout_mode = 0
 
 [node name="LabelA" type="Label" parent="PageA"]
+script = ExtResource("1")
+groups=[ "scalable_ui" ]
 layout_mode = 2
 text = "Numeric Page (A)"
 
@@ -16,5 +20,7 @@ text = "Numeric Page (A)"
 layout_mode = 0
 
 [node name="LabelB" type="Label" parent="PageB"]
+script = ExtResource("1")
+groups=[ "scalable_ui" ]
 layout_mode = 2
 text = "Notation Page (B)"
