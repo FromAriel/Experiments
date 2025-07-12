@@ -21,6 +21,7 @@ config/features=PackedStringArray("4.4")
 UIEventBus="res://scripts/UIEventBus.gd"
 RNGManager="res://scripts/RNGManager.gd"
 RollExecutor="res://scripts/RollExecutor.gd"
+UIStyleManager="res://scripts/UIStyleManager.gd"
 
 [display]
 

@@ -1,6 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://historytab"]
 
 [ext_resource type="Script" path="res://scripts/HistoryTab.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="2"]
 ; HistoryTab – scrollable list of past rolls
 ; Future: populate with roll summaries from log
 [node name="HistoryTab" type="ScrollContainer"]
@@ -10,4 +11,7 @@ script = ExtResource("1")
 ; Each child will be a HistoryItem label
 
 [node name="HistoryPlaceholder" type="Label" parent="HistoryVBox"]
+script = ExtResource("2")
+SC_base_font_IN = 24
+SC_base_size_IN = Vector2(0, 0)
 text = "(History list placeholder)"
