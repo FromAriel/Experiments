@@ -1,5 +1,6 @@
-[gd_scene load_steps=1 format=3 uid="uid://keyboardtab"]
-[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="1"]
+[gd_scene load_steps=2 format=3 uid="uid://keyboardtab"]
+
+[ext_resource type="Script" uid="uid://bo5xejq322083" path="res://scripts/UIScalable.gd" id="1"]
 
 [node name="KeyboardTab" type="Control"]
 physics_interpolation_mode = 0
@@ -11,17 +12,15 @@ layout_mode = 0
 
 [node name="LabelA" type="Label" parent="PageA"]
 layout_mode = 2
-script = ExtResource("1")
-SC_base_font_IN = 24
-SC_base_size_IN = Vector2(0, 0)
 text = "Numeric Page (A)"
+script = ExtResource("1")
+SC_base_size_IN = Vector2(0, 0)
 
 [node name="PageB" type="GridContainer" parent="."]
 layout_mode = 0
 
 [node name="LabelB" type="Label" parent="PageB"]
 layout_mode = 2
-script = ExtResource("1")
-SC_base_font_IN = 24
-SC_base_size_IN = Vector2(0, 0)
 text = "Notation Page (B)"
+script = ExtResource("1")
+SC_base_size_IN = Vector2(0, 0)
