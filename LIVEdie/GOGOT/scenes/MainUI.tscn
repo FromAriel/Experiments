@@ -235,6 +235,11 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -960.0
+[node name="DragHandle" type="ColorRect" parent="LowerPane"]
+custom_minimum_size = Vector2(0, 32)
+mouse_filter = 2
+color = Color(0.4, 0.4, 0.4, 1)
+
 
 [node name="TabHost" type="TabContainer" parent="LowerPane"]
 layout_mode = 2
