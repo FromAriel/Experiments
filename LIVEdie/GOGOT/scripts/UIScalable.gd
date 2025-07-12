@@ -24,3 +24,4 @@ func _ready() -> void:
 func update_ui_scale(scale: float) -> void:
     custom_minimum_size = SC_base_size_IN * scale
     add_theme_font_size_override("font_size", int(SC_base_font_IN * scale))
+    update_minimum_size()
