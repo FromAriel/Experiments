@@ -5,15 +5,30 @@
 # Critical Consts  • (none)
 # Editor Exports   • (none)
 # Dependencies     • RollExecutor.gd
-# Last Major Rev   • 24-07-12 – emit update signal
+# Last Major Rev   • 24-07-14 – populate dummy history
 ###############################################################
 class_name HistoryTab
 extends VBoxContainer
 signal history_updated
 
+const HT_SCALE_SCRIPT_IN := preload("res://scripts/UIScalable.gd")
+
 
 func _ready() -> void:
     get_node("/root/RollExecutor").roll_executed.connect(_on_roll_executed)
+    _HT_populate_dummy_IN()
+
+
+func _HT_populate_dummy_IN() -> void:
+    if has_node("HistoryPlaceholder"):
+        get_node("HistoryPlaceholder").queue_free()
+    for i in range(100, 0, -1):
+        var label := Label.new()
+        label.set_script(HT_SCALE_SCRIPT_IN)
+        label.SC_base_font_IN = 24
+        label.SC_base_size_IN = Vector2(0, 0)
+        label.text = "Roll %d (placeholder)" % i
+        add_child(label)
 
 
 func _HT_build_snippet_IN(sec: Dictionary) -> String:
