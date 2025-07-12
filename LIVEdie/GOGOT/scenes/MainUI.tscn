@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://qrtab" path="res://scenes/QRTab.tscn" id="6"]
 [ext_resource type="Script" uid="uid://bqmovjblayg38" path="res://scripts/DicePad.gd" id="7"]
 [ext_resource type="Script" uid="uid://bo5xejq322083" path="res://scripts/UIScalable.gd" id="8"]
+[ext_resource type="Texture2D" path="res://ui/chevron_updown.svg" id="9"]
 
 [node name="MainUI" type="Control"]
 custom_minimum_size = Vector2(1080, 1920)
@@ -229,19 +230,27 @@ autowrap_mode = 1
 script = ExtResource("8")
 SC_base_size_IN = Vector2(0, 40)
 
+
 [node name="LowerPane" type="PanelContainer" parent="."]
 layout_mode = 0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -960.0
+offset_top = 0.0
 
 [node name="DragHandle" type="Control" parent="LowerPane"]
+anchor_left = 0.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 48)
 mouse_filter = 1
 modulate = Color(0.8, 0.8, 0.8, 0.5)
+
+[node name="Icon" type="TextureRect" parent="LowerPane/DragHandle"]
+texture = ExtResource("9")
+expand = true
+stretch_mode = 6
 
 [node name="TabHost" type="TabContainer" parent="LowerPane"]
 layout_mode = 2

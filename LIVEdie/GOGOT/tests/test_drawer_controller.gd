@@ -9,17 +9,24 @@ func _init() -> void:
     root.add_child(scene)
     await process_frame
 
+    var lower = scene.get_node("LowerPane")
+    var dimmer = ctrl.DC_dimmer_SH
+    assert(lower.offset_top == 0)
+
     ctrl.open_preview()
-    await process_frame
-    assert(scene.get_node("LowerPane").offset_top == -ctrl.DC_preview_height_IN)
+    await get_tree().create_timer(0.35).timeout
+    assert(lower.offset_top == -ctrl.DC_preview_height_IN)
+    assert(is_equal_approx(dimmer.modulate.a, 0.5))
 
     ctrl.open_full()
-    await process_frame
-    assert(scene.get_node("LowerPane").offset_top == -ctrl.DC_full_height_IN)
+    await get_tree().create_timer(0.35).timeout
+    assert(lower.offset_top == -ctrl.DC_full_height_IN)
+    assert(is_equal_approx(dimmer.modulate.a, 0.0))
 
     ctrl.close_drawer()
-    await process_frame
-    assert(scene.get_node("LowerPane").offset_top == -ctrl.DC_closed_height_IN)
+    await get_tree().create_timer(0.35).timeout
+    assert(lower.offset_top == -ctrl.DC_closed_height_IN)
+    assert(is_equal_approx(dimmer.modulate.a, 0.0))
 
     print("DrawerController basic test passed")
     quit()
