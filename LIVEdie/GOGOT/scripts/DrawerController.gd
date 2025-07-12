@@ -16,7 +16,7 @@ extends Node
 @export var DC_drag_speed_IN: float = 300.0
 @export var DC_full_height_IN: int = 960
 @export var DC_preview_height_IN: int = 600
-@export var DC_closed_height_IN: int = 0
+@export var DC_closed_height_IN: int = 48
 
 @onready var DC_main_ui_SH: Control = get_node("/root/MainUI")
 @onready var DC_lower_pane_SH: Control = DC_main_ui_SH.get_node("LowerPane")
@@ -45,7 +45,7 @@ func _ready() -> void:
     DC_dimmer_SH.z_index = 1
     DC_handle_SH.gui_input.connect(_on_handle_gui_input)
     DC_lower_pane_SH.gui_input.connect(_on_handle_gui_input)
-    DC_lower_pane_SH.offset_top = 0
+    DC_lower_pane_SH.offset_top = -DC_closed_height_IN
     DC_state_SH = "closed"
     DC_handle_SH.mouse_default_cursor_shape = Control.CURSOR_DRAG
 
