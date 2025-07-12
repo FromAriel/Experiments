@@ -1,4 +1,6 @@
-[gd_scene load_steps=1 format=3 uid="uid://systemstab"]
+[gd_scene load_steps=2 format=3 uid="uid://systemstab"]
+
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="1"]
 ; SystemsTab – choose rulesets, star favorites
 ; TODO: connect selection to UIEventBus system_selected
 [node name="SystemsTab" type="ScrollContainer"]
@@ -7,4 +9,6 @@
 ; Placeholder buttons with star checkboxes
 
 [node name="SystemsPlaceholder" type="Label" parent="SystemVBox"]
+script = ExtResource("1")
+groups=[ "scalable_ui" ]
 text = "(Systems list placeholder)"

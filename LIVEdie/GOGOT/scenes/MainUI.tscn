@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://mainui"]
+[gd_scene load_steps=9 format=3 uid="uid://mainui"]
 
 [ext_resource type="PackedScene" uid="uid://rolltab" path="res://scenes/RollTab.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://historytab" path="res://scenes/HistoryTab.tscn" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://keyboardtab" path="res://scenes/KeyboardTab.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://qrtab" path="res://scenes/QRTab.tscn" id="6"]
 [ext_resource type="Script" uid="uid://bqmovjblayg38" path="res://scripts/DicePad.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="8"]
 
 [node name="MainUI" type="Control"]
 custom_minimum_size = Vector2(1080, 1920)
@@ -26,6 +27,9 @@ offset_bottom = 120.0
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="TopBar/BarHBox"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
+US_base_size_IN = Vector2(0, 40)
 layout_mode = 2
 text = "LIVEdie"
 
@@ -57,31 +61,43 @@ layout_mode = 2
 size_flags_horizontal = 2
 
 [node name="Qty1" type="Button" parent="DicePad/QtyRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "1×"
 
 [node name="Qty2" type="Button" parent="DicePad/QtyRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "2×"
 
 [node name="Qty3" type="Button" parent="DicePad/QtyRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "3×"
 
 [node name="Qty4" type="Button" parent="DicePad/QtyRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "4×"
 
 [node name="Qty5" type="Button" parent="DicePad/QtyRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "5×"
 
 [node name="Qty10" type="Button" parent="DicePad/QtyRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "10×"
@@ -98,31 +114,43 @@ layout_mode = 2
 size_flags_horizontal = 2
 
 [node name="D4" type="Button" parent="DicePad/CommonDiceRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D4"
 
 [node name="D6" type="Button" parent="DicePad/CommonDiceRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D6"
 
 [node name="D8" type="Button" parent="DicePad/CommonDiceRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D8"
 
 [node name="D10" type="Button" parent="DicePad/CommonDiceRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D10"
 
 [node name="D12" type="Button" parent="DicePad/CommonDiceRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D12"
 
 [node name="D20" type="Button" parent="DicePad/CommonDiceRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D20"
@@ -139,31 +167,44 @@ layout_mode = 2
 size_flags_horizontal = 2
 
 [node name="D2Btn" type="Button" parent="DicePad/AdvancedRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D2"
 
 [node name="D100Btn" type="Button" parent="DicePad/AdvancedRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "D100"
 
 [node name="PipeBtn" type="Button" parent="DicePad/AdvancedRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "|"
 
 [node name="DXPromptBtn" type="Button" parent="DicePad/AdvancedRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "DX?"
 
 [node name="RollBtn" type="Button" parent="DicePad/AdvancedRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
+US_base_size_IN = Vector2(120, 80)
 custom_minimum_size = Vector2(120, 80)
 layout_mode = 2
 text = "ROLL"
 
 [node name="BackspaceBtn" type="Button" parent="DicePad/AdvancedRow"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "⌫"
@@ -173,12 +214,18 @@ layout_mode = 2
 size_flags_horizontal = 2
 
 [node name="SystemDropdown" type="Button" parent="DicePad"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
+US_base_size_IN = Vector2(48, 48)
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "▼"
 
 [node name="QueueLabel" type="Label" parent="DicePad"]
+script = ExtResource("8")
+groups=[ "scalable_ui" ]
+US_base_size_IN = Vector2(0, 40)
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "(no dice)"

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://rolltab"]
+[gd_scene load_steps=3 format=3 uid="uid://rolltab"]
 
 [ext_resource type="Script" uid="uid://gctxcv00gj5w" path="res://scripts/RollTab.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="2"]
 
 [node name="RollTab" type="Control"]
 layout_mode = 3
@@ -13,5 +14,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="PlaceholderLabel" type="Label" parent="."]
+script = ExtResource("2")
+groups=[ "scalable_ui" ]
 layout_mode = 0
 text = "Roll View (animation)"

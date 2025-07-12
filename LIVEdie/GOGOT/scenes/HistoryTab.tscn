@@ -1,4 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://historytab"]
+[gd_scene load_steps=3 format=3 uid="uid://historytab"]
+
+[ext_resource type="Script" path="res://scripts/UIScalable.gd" id="2"]
 
 [ext_resource type="Script" path="res://scripts/HistoryTab.gd" id="1"]
 ; HistoryTab – scrollable list of past rolls
@@ -10,4 +12,6 @@ script = ExtResource("1")
 ; Each child will be a HistoryItem label
 
 [node name="HistoryPlaceholder" type="Label" parent="HistoryVBox"]
+script = ExtResource("2")
+groups=[ "scalable_ui" ]
 text = "(History list placeholder)"
