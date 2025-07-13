@@ -22,6 +22,7 @@ UIEventBus="res://scripts/UIEventBus.gd"
 RNGManager="res://scripts/RNGManager.gd"
 RollExecutor="res://scripts/RollExecutor.gd"
 UIStyleManager="res://scripts/UIStyleManager.gd"
+DrawerController="res://scripts/DrawerController.gd"
 
 [display]
 
