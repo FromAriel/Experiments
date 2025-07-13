@@ -242,11 +242,10 @@ offset_bottom = -861.0
 vertical = true
 
 [node name="DragHandle" type="TextureRect" parent="LowerPane"]
-custom_minimum_size = Vector2(1080, 1080)
+custom_minimum_size = Vector2(1024, 810)
 layout_mode = 2
 texture = ExtResource("3_51wrm")
 expand_mode = 1
-stretch_mode = 4
 flip_v = true
 
 [node name="Icon" type="TextureRect" parent="LowerPane/DragHandle"]
