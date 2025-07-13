@@ -12,8 +12,8 @@
 ###############################################################
 extends Node
 
-@export var DC_drag_speed_IN: float = 300.0
-@export var DC_half_height_IN: int = 600
+@export var DC_drag_speed_IN: float = 350.0
+@export var DC_half_height_IN: int = 700
 @export var DC_closed_height_IN: int = 48
 
 @onready var DC_main_ui_SH: Control = get_node("/root/MainUI")

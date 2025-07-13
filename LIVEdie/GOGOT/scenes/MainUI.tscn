@@ -1,14 +1,15 @@
-[gd_scene load_steps=9 format=3 uid="uid://mainui"]
+[gd_scene load_steps=11 format=3 uid="uid://mainui"]
 
 [ext_resource type="PackedScene" uid="uid://rolltab" path="res://scenes/RollTab.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://historytab" path="res://scenes/HistoryTab.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://systemstab" path="res://scenes/SystemsTab.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://brjasiytlfcd5" path="res://assets/images/20250712_1943_Textured Drag Handle_remix_01k00tj84rff8scebswqsdzvka.png" id="3_51wrm"]
 [ext_resource type="PackedScene" uid="uid://settingstab" path="res://scenes/SettingsTab.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://keyboardtab" path="res://scenes/KeyboardTab.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://qrtab" path="res://scenes/QRTab.tscn" id="6"]
 [ext_resource type="Script" uid="uid://bqmovjblayg38" path="res://scripts/DicePad.gd" id="7"]
 [ext_resource type="Script" uid="uid://bo5xejq322083" path="res://scripts/UIScalable.gd" id="8"]
-[ext_resource type="Texture2D" path="res://ui/chevron_updown.svg" id="9"]
+[ext_resource type="Texture2D" uid="uid://bommvo34bps3b" path="res://ui/chevron_updown.svg" id="9"]
 
 [node name="MainUI" type="Control"]
 custom_minimum_size = Vector2(1080, 1920)
@@ -230,58 +231,70 @@ autowrap_mode = 1
 script = ExtResource("8")
 SC_base_size_IN = Vector2(0, 40)
 
-
-[node name="LowerPane" type="PanelContainer" parent="."]
+[node name="LowerPane" type="BoxContainer" parent="."]
 layout_mode = 0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -48.0
+offset_top = -1920.0
+offset_right = 8.0
+offset_bottom = -861.0
+vertical = true
 
-[node name="DragHandle" type="Control" parent="LowerPane"]
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 1.0
-anchor_bottom = 0.0
-custom_minimum_size = Vector2(0, 48)
-mouse_filter = 1
-modulate = Color(0.8, 0.8, 0.8, 0.5)
+[node name="DragHandle" type="TextureRect" parent="LowerPane"]
+custom_minimum_size = Vector2(1080, 1080)
+layout_mode = 2
+texture = ExtResource("3_51wrm")
+expand_mode = 1
+stretch_mode = 4
+flip_v = true
 
 [node name="Icon" type="TextureRect" parent="LowerPane/DragHandle"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -519.33
+offset_right = 24.0
+offset_bottom = -495.33
+grow_vertical = 2
 texture = ExtResource("9")
-expand = true
-stretch_mode = 6
 
-[node name="TabHost" type="TabContainer" parent="LowerPane"]
-layout_mode = 2
-current_tab = 0
-offset_top = 48.0
+[node name="TabHost" type="TabContainer" parent="LowerPane/DragHandle"]
+layout_mode = 0
+offset_top = 70.515
+offset_right = 1088.0
+offset_bottom = 1070.52
+tab_alignment = 1
+current_tab = 1
+clip_tabs = false
 
-[node name="RollTab" parent="LowerPane/TabHost" instance=ExtResource("1")]
+[node name="RollTab             _" parent="LowerPane/DragHandle/TabHost" instance=ExtResource("1")]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="HistoryTab" parent="LowerPane/TabHost" instance=ExtResource("2")]
-visible = false
+[node name="HistoryTab          _" parent="LowerPane/DragHandle/TabHost" instance=ExtResource("2")]
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="SystemsTab" parent="LowerPane/TabHost" instance=ExtResource("3")]
+[node name="SystemsTab          _" parent="LowerPane/DragHandle/TabHost" instance=ExtResource("3")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
-[node name="SettingsTab" parent="LowerPane/TabHost" instance=ExtResource("4")]
+[node name="SettingsTab          _" parent="LowerPane/DragHandle/TabHost" instance=ExtResource("4")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 3
 
-[node name="KeyboardTab" parent="LowerPane/TabHost" instance=ExtResource("5")]
+[node name="KeyboardTab         _" parent="LowerPane/DragHandle/TabHost" instance=ExtResource("5")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 4
 
-[node name="QRTab" parent="LowerPane/TabHost" instance=ExtResource("6")]
+[node name="QRTab               _" parent="LowerPane/DragHandle/TabHost" instance=ExtResource("6")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 5
