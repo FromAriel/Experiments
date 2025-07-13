@@ -51,4 +51,4 @@ func _on_HTTPRequest_request_completed(
         var hex_seed := body.get_string_from_utf8().strip_edges()
         if hex_seed != "":
             RM_rng_IN.seed = int("0x" + hex_seed)
-    RM_http_request_IN.disconnect("request_completed", _on_HTTPRequest_request_completed)
+    RM_http_request_IN.request_completed.disconnect(_on_HTTPRequest_request_completed)
