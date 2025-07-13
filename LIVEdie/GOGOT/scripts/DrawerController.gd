@@ -2,26 +2,23 @@
 ###############################################################
 # LIVEdie/GOGOT/scripts/DrawerController.gd
 # Key Classes      • DrawerController – controls LowerPane slide
-# Key Functions    • open_preview, open_full, close_drawer
+# Key Functions    • open_half, close_drawer
 # Critical Consts  • (none)
 # Editor Exports   • DC_drag_speed_IN: float
-#                  • DC_full_height_IN: int
-#                  • DC_preview_height_IN: int
+#                  • DC_half_height_IN: int
 #                  • DC_closed_height_IN: int
 # Dependencies     • (none)
-# Last Major Rev   • 24-07-13 – implement drag logic
+# Last Major Rev   • 24-07-13 – simplify to two-state drawer
 ###############################################################
 extends Node
 
 @export var DC_drag_speed_IN: float = 300.0
-@export var DC_full_height_IN: int = 960
-@export var DC_preview_height_IN: int = 600
+@export var DC_half_height_IN: int = 600
 @export var DC_closed_height_IN: int = 48
 
 @onready var DC_main_ui_SH: Control = get_node("/root/MainUI")
 @onready var DC_lower_pane_SH: Control = DC_main_ui_SH.get_node("LowerPane")
 @onready var DC_handle_SH: Control = DC_lower_pane_SH.get_node("DragHandle")
-var DC_dimmer_SH: ColorRect
 var DC_state_SH: String = "closed"
 var DC_dragging_IN: bool = false
 var DC_start_y_IN: float = 0.0
@@ -34,15 +31,6 @@ func _log(msg: String) -> void:
 
 
 func _ready() -> void:
-    DC_dimmer_SH = ColorRect.new()
-    DC_dimmer_SH.color = Color.BLACK
-    DC_dimmer_SH.modulate.a = 0.0
-    DC_dimmer_SH.anchor_right = 1.0
-    DC_dimmer_SH.anchor_bottom = 1.0
-    DC_dimmer_SH.visible = false
-    DC_main_ui_SH.add_child(DC_dimmer_SH)
-    DC_lower_pane_SH.z_index = 2
-    DC_dimmer_SH.z_index = 1
     DC_handle_SH.gui_input.connect(_on_handle_gui_input)
     DC_lower_pane_SH.gui_input.connect(_on_handle_gui_input)
     DC_lower_pane_SH.offset_top = -DC_closed_height_IN
@@ -66,60 +54,34 @@ func _on_handle_gui_input(ev: InputEvent) -> void:
 
 
 func _update_drag(height: float) -> void:
-    height = clamp(height, DC_closed_height_IN, DC_full_height_IN)
+    height = clamp(height, DC_closed_height_IN, DC_half_height_IN)
     DC_lower_pane_SH.offset_top = -height
-    _update_dimmer(height)
     if OS.is_debug_build():
         _log("drag height %s" % height)
 
 
-func _update_dimmer(height: float) -> void:
-    if height < DC_preview_height_IN:
-        DC_dimmer_SH.visible = false
-        DC_dimmer_SH.modulate.a = 0.0
-        return
-
-    var alpha := (height - DC_preview_height_IN) / (DC_full_height_IN - DC_preview_height_IN) * 0.5
-    DC_dimmer_SH.modulate.a = alpha
-    DC_dimmer_SH.visible = alpha > 0.0
-
-
 func _finish_drag() -> void:
     var h: float = -DC_lower_pane_SH.offset_top
-    var snap_closed: float = DC_closed_height_IN * 1.5
-    var snap_preview: float = (DC_preview_height_IN + DC_full_height_IN) * 0.5
-
-    if h < snap_closed:
+    if h < DC_half_height_IN * 0.5:
         close_drawer()
-    elif h < snap_preview:
-        open_preview()
     else:
-        open_full()
+        open_half()
 
 
-func _snap(height: int, show_dimmer: bool) -> void:
-    var alpha: float = 0.5 if show_dimmer else 0.0
-    DC_dimmer_SH.visible = true
+func _snap(height: int) -> void:
     var t: Tween = create_tween()
     t.tween_property(DC_lower_pane_SH, "offset_top", -height, DC_drag_speed_IN / 1000.0)
-    t.tween_property(DC_dimmer_SH, "modulate:a", alpha, DC_drag_speed_IN / 1000.0)
-    t.finished.connect(func(): DC_dimmer_SH.visible = alpha > 0.0)
     if OS.is_debug_build():
         _log("snap to %s" % height)
     if OS.has_feature("mobile"):
         Input.vibrate_handheld(30)
 
 
-func open_preview() -> void:
-    DC_state_SH = "preview"
-    _snap(DC_preview_height_IN, true)
-
-
-func open_full() -> void:
-    DC_state_SH = "full"
-    _snap(DC_full_height_IN, false)
+func open_half() -> void:
+    DC_state_SH = "half"
+    _snap(DC_half_height_IN)
 
 
 func close_drawer() -> void:
     DC_state_SH = "closed"
-    _snap(DC_closed_height_IN, false)
+    _snap(DC_closed_height_IN)

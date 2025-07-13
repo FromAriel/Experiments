@@ -10,23 +10,15 @@ func _init() -> void:
     await process_frame
 
     var lower = scene.get_node("LowerPane")
-    var dimmer = ctrl.DC_dimmer_SH
     assert(lower.offset_top == -ctrl.DC_closed_height_IN)
 
-    ctrl.open_preview()
+    ctrl.open_half()
     await create_timer(0.35).timeout
-    assert(lower.offset_top == -ctrl.DC_preview_height_IN)
-    assert(is_equal_approx(dimmer.modulate.a, 0.5))
-
-    ctrl.open_full()
-    await create_timer(0.35).timeout
-    assert(lower.offset_top == -ctrl.DC_full_height_IN)
-    assert(is_equal_approx(dimmer.modulate.a, 0.0))
+    assert(lower.offset_top == -ctrl.DC_half_height_IN)
 
     ctrl.close_drawer()
     await create_timer(0.35).timeout
     assert(lower.offset_top == -ctrl.DC_closed_height_IN)
-    assert(is_equal_approx(dimmer.modulate.a, 0.0))
 
     print("DrawerController basic test passed")
     quit()
