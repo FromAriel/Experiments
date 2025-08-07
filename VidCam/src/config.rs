@@ -13,8 +13,24 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tokio::task;
+use dirs::home_dir;
 
-const CONFIG_PATH: &str = "config.json";
+
+fn default_root() -> PathBuf {
+    if let Ok(p) = std::env::var("VIDCAM_ROOT") {
+        return PathBuf::from(p);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        let p = PathBuf::from("J:/VidCam");
+        if p.exists() {
+            return p;
+        }
+    }
+    home_dir().unwrap_or_else(|| PathBuf::from(".")) .join("VidCam")
+}
+
+fn config_path() -> PathBuf { default_root().join("config.json") }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Config {
@@ -32,7 +48,7 @@ impl Default for Config {
             window_position: (0, 0),
             window_size: (300, 200),
             base_opacity: 0.05,
-            last_save_dir: PathBuf::from("timelapse"),
+            last_save_dir: default_root().join("timelapse"),
             auto_compile: true,
             rtsp_url: "rtsp://fromariel%40gmail.com:VMonkey%21%401@192.168.1.169:554/stream1"
                 .to_string(),
@@ -41,11 +57,11 @@ impl Default for Config {
 }
 
 pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
-    load_config_from(Path::new(CONFIG_PATH))
+    load_config_from(&config_path())
 }
 
 pub fn save_config(cfg: &Config) -> Result<(), Box<dyn std::error::Error>> {
-    save_config_to(cfg, Path::new(CONFIG_PATH))
+    save_config_to(cfg, &config_path())
 }
 
 pub fn load_config_from(path: &Path) -> Result<Config, Box<dyn std::error::Error>> {

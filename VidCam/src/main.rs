@@ -26,8 +26,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Start RTSP client and frame capture loop
     let (client, frame_rx) = {
-        let url = shared_cfg.lock().unwrap().rtsp_url.clone();
-        RtspClient::new(url)
+        let c = shared_cfg.lock().unwrap();
+        let url = c.rtsp_url.clone();
+        let (w, h) = c.window_size;
+        RtspClient::new(url, w, h)
     };
     let capture_dir = shared_cfg.lock().unwrap().last_save_dir.clone();
     rt.spawn(client.run());

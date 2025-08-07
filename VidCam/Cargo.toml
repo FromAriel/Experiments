@@ -11,6 +11,8 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"
 image = { version = "0.24", default-features = false, features = ["jpeg", "png"] }
 eframe = { version = "0.32", default-features = false, features = ["glow", "wayland", "x11"] }
 thiserror = "1"
+dirs = "5"
+winit = "0.30"
 
 [dev-dependencies]
 tempfile = "3"

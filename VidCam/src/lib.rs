@@ -12,3 +12,4 @@ pub mod config;
 pub mod overlay;
 pub mod timelapse;
 pub mod rtsp;
+pub mod frame;
