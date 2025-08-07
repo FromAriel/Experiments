@@ -7,9 +7,10 @@
 // ###############################################################
 
 use crate::config::{save_config_async, Config};
-use image::DynamicImage;
+use crate::frame::RawFrame;
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
+use std::time::{Duration, Instant};
 
 use eframe::{egui, NativeOptions};
 use egui::{Color32, Pos2, Vec2};
@@ -17,7 +18,7 @@ use egui::{Color32, Pos2, Vec2};
 /// Run the overlay window until closed.
 pub fn run_overlay(
     cfg: Arc<Mutex<Config>>,
-    frame_rx: broadcast::Receiver<DynamicImage>,
+    frame_rx: broadcast::Receiver<RawFrame>,
 ) -> eframe::Result<()> {
     let (w, h, pos) = {
         let c = cfg.lock().unwrap();
@@ -48,28 +49,33 @@ pub fn run_overlay(
 
 struct OverlayApp {
     cfg: Arc<Mutex<Config>>,
-    frames: broadcast::Receiver<DynamicImage>,
+    frames: broadcast::Receiver<RawFrame>,
     texture: Option<egui::TextureHandle>,
+    opacity: f32,
+    last_save: Instant,
+    last_fade: Instant,
 }
 
 impl OverlayApp {
     fn new(
         _cc: &eframe::CreationContext<'_>,
         cfg: Arc<Mutex<Config>>,
-        frames: broadcast::Receiver<DynamicImage>,
+        frames: broadcast::Receiver<RawFrame>,
     ) -> Self {
         Self {
-            cfg,
+            cfg: cfg.clone(),
             frames,
             texture: None,
+            opacity: cfg.lock().unwrap().base_opacity,
+            last_save: Instant::now() - Duration::from_secs(1),
+            last_fade: Instant::now(),
         }
     }
 
     fn update_texture(&mut self, ctx: &egui::Context) {
         while let Ok(frame) = self.frames.try_recv() {
-            let size = [frame.width() as usize, frame.height() as usize];
-            let rgba = frame.to_rgba8();
-            let img = egui::ColorImage::from_rgba_unmultiplied(size, &rgba);
+            let size = [frame.width as usize, frame.height as usize];
+            let img = egui::ColorImage::from_rgba_unmultiplied(size, &frame.data);
             self.texture = Some(ctx.load_texture("rtsp", img, Default::default()));
         }
     }
@@ -98,9 +104,14 @@ impl OverlayApp {
                 .fixed_pos(pos)
                 .show(ctx, |ui| {
                     let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), egui::Sense::drag());
-                    ui.painter()
-                        .rect_filled(rect, 4.0, Color32::from_rgb(0, 128, 255));
                     let response = response.on_hover_cursor(cursor);
+                    let center = rect.center();
+                    let radius = size / 2.0;
+                    let color = Color32::from_rgb(0, 128, 255);
+                    ui.painter().circle_filled(center, radius, color);
+                    if response.hovered() {
+                        ui.painter().circle_stroke(center, radius + 2.0, (1.0, Color32::LIGHT_BLUE));
+                    }
                     if response.dragged() {
                         let delta = response.drag_delta();
                         let mut cfg = self.cfg.lock().unwrap();
@@ -141,7 +152,11 @@ impl OverlayApp {
                         );
                         ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(new_size));
                         ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(new_pos));
-                        save_config_async(cfg.clone());
+                        let now = Instant::now();
+                        if now.duration_since(self.last_save) > Duration::from_secs(1) {
+                            save_config_async(cfg.clone());
+                            self.last_save = now;
+                        }
                     }
                 });
         }
@@ -156,10 +171,39 @@ impl eframe::App for OverlayApp {
         let hovered = ctx.input(|i| i.pointer.hover_pos().is_some());
         let base = { self.cfg.lock().unwrap().base_opacity };
 
+        let target = if hovered { 1.0 } else { base };
+        let now = Instant::now();
+        let dt = (now - self.last_fade).as_secs_f32();
+        self.last_fade = now;
+        let t = (dt / 0.15).min(1.0);
+        self.opacity += (target - self.opacity) * t;
+
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.set_opacity(if hovered {1.0} else {base});
-            if let Some(ref tex) = self.texture { ui.image(tex); }
+            ui.set_opacity(self.opacity);
+            if let Some(ref tex) = self.texture {
+                ui.image(tex);
+            }
         });
+
+        #[cfg(target_os = "windows")]
+        ctx.send_viewport_cmd(egui::ViewportCommand::MousePassthrough(!hovered));
+
+        // Persist geometry if changed
+        let info = ctx.input(|i| i.viewport().clone());
+        if let Some(rect) = info.outer_rect {
+            let mut cfg = self.cfg.lock().unwrap();
+            let pos = (rect.left().round() as i32, rect.top().round() as i32);
+            let size = (rect.width().round() as u32, rect.height().round() as u32);
+            if cfg.window_position != pos || cfg.window_size != size {
+                cfg.window_position = pos;
+                cfg.window_size = size;
+                let now = Instant::now();
+                if now.duration_since(self.last_save) > Duration::from_secs(1) {
+                    save_config_async(cfg.clone());
+                    self.last_save = now;
+                }
+            }
+        }
 
         if hovered {
             egui::TopBottomPanel::bottom("opacity").show(ctx, |ui| {
@@ -173,4 +217,42 @@ impl eframe::App for OverlayApp {
             self.resize_handles(ctx);
         }
     }
+}
+
+pub fn run_overlay_headless_once(cfg: Arc<Mutex<Config>>, modify: impl FnOnce(&egui::Context) + Send + 'static) {
+    use egui::{Pos2, Vec2};
+    use eframe::NativeOptions;
+    let (w, h, pos) = {
+        let c = cfg.lock().unwrap();
+        (c.window_size.0 as f32, c.window_size.1 as f32, Pos2::new(c.window_position.0 as f32, c.window_position.1 as f32))
+    };
+    let viewport = egui::ViewportBuilder::default()
+        .with_inner_size(Vec2::new(w, h))
+        .with_position(pos)
+        .with_decorations(false)
+        .with_transparent(true);
+    let options = NativeOptions {
+        run_and_return: true,
+        viewport,
+        event_loop_builder: Some(Box::new(|b| {
+            #[cfg(target_os = "linux")]
+            {
+                use winit::platform::x11::EventLoopBuilderExtX11;
+                use winit::platform::wayland::EventLoopBuilderExtWayland;
+                EventLoopBuilderExtX11::with_any_thread(b, true);
+                EventLoopBuilderExtWayland::with_any_thread(b, true);
+            }
+            #[cfg(target_os = "windows")]
+            {
+                use winit::platform::windows::EventLoopBuilderExtWindows;
+                b.with_any_thread(true);
+            }
+        })),
+        ..Default::default()
+    };
+    let (_tx, rx) = broadcast::channel(1);
+    eframe::run_native("test", options, Box::new(move |cc| {
+        modify(&cc.egui_ctx);
+        Ok(Box::new(OverlayApp::new(cc, cfg.clone(), rx)) as Box<dyn eframe::App>)
+    })).unwrap();
 }
