@@ -36,3 +36,6 @@ fishtank/art/triangle_placeholder.png
 /LIVEdie/GOGOT/USER_Toolscripts
 LIVEdie/GOGOT/ZZZscenes_inspector_dump.txt
 LIVEdie/GOGOT/ZZZScriptCompilation.txt
+VidCam/target/
+VidCam/timelapse/
+VidCam/config.json

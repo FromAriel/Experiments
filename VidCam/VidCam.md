@@ -185,3 +185,22 @@ This application is a **lightweight, high-visibility transparent overlay** to mo
 * ⚙️ Persistent config for ease of use
 
 ---
+
+## 🛠️ Implementation Notes
+
+* Relies on the `ffmpeg` command-line tool for both RTSP frame decoding and
+  timelapse assembly. Ensure it is installed and available on `PATH`
+  (e.g. `J:\VidCam\ffmpeg.exe` on Windows).
+* Configuration and captured frames are stored next to the executable in the
+  `timelapse/` directory and `config.json`.
+
+## 🚀 Running
+
+```bash
+cargo run --package vidcam --release
+```
+
+The application will display the camera overlay, save snapshots at 1 FPS, and
+compile them into an MP4 on exit when `auto_compile` is enabled.
+
+---
